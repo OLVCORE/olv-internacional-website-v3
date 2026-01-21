@@ -4,7 +4,56 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 
+// Tentar carregar dotenv se disponível
+try {
+    require('dotenv').config();
+} catch (e) {
+    // dotenv não instalado, continuar sem ele
+}
+
+// Tentar carregar nodemailer se disponível
+let nodemailer = null;
+try {
+    nodemailer = require('nodemailer');
+} catch (e) {
+    // nodemailer não instalado
+}
+
 const PORT = 3000;
+
+// Email configuration
+// Configure estas variáveis de ambiente ou crie um arquivo .env
+let emailTransporter = null;
+
+if (nodemailer) {
+    const EMAIL_CONFIG = {
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: false, // true para 465, false para outras portas
+        auth: {
+            user: process.env.SMTP_USER || 'seu-email@gmail.com',
+            pass: process.env.SMTP_PASS || 'sua-senha-app'
+        }
+    };
+    
+    // Criar transporter de email (será inicializado se configurado)
+    try {
+        if (EMAIL_CONFIG.auth.user !== 'seu-email@gmail.com' && EMAIL_CONFIG.auth.pass !== 'sua-senha-app') {
+            emailTransporter = nodemailer.createTransport(EMAIL_CONFIG);
+            console.log('✅ Email transporter configurado');
+        } else {
+            console.log('⚠️  Email não configurado - usando apenas salvamento em arquivo');
+            console.log('   Configure SMTP_USER e SMTP_PASS no arquivo .env');
+            console.log('   Veja email-config.md para instruções');
+        }
+    } catch (err) {
+        console.log('⚠️  Erro ao configurar email:', err.message);
+    }
+} else {
+    console.log('⚠️  nodemailer não disponível - usando apenas salvamento em arquivo');
+    console.log('   Execute: npm install nodemailer dotenv');
+}
+
 const MIME_TYPES = {
     '.html': 'text/html; charset=utf-8',
     '.css': 'text/css; charset=utf-8',
@@ -18,93 +67,279 @@ const MIME_TYPES = {
 };
 
 const server = http.createServer((req, res) => {
-    // Parse URL
-    const parsedUrl = url.parse(req.url, true);
-    let pathname = parsedUrl.pathname;
-    
-    // Default to index.html for root
-    if (pathname === '/' || pathname === '') {
-        pathname = '/index.html';
-    }
-    
-    // Build file path
-    let filePath = path.join(__dirname, pathname);
-    
-    // Normalize path
-    filePath = path.normalize(filePath);
-    
-    // Security: ensure file is within current directory
-    const rootPath = path.normalize(path.join(__dirname, '.'));
-    if (!filePath.startsWith(rootPath)) {
-        res.writeHead(403, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.end('403 - Acesso negado', 'utf-8');
-        return;
-    }
-    
-    // Get file extension
-    const extname = String(path.extname(filePath)).toLowerCase();
-    const contentType = MIME_TYPES[extname] || 'application/octet-stream';
-    
-    // Read file
-    fs.readFile(filePath, (error, content) => {
-        if (error) {
-            if (error.code === 'ENOENT') {
-                // File not found
-                console.log(`404: ${pathname}`);
-                res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
-                res.end(`
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <title>404 - Página não encontrada</title>
-                        <style>
-                            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-                            h1 { color: #0066cc; }
-                        </style>
-                    </head>
-                    <body>
-                        <h1>404 - Página não encontrada</h1>
-                        <p>A página que você está procurando não existe.</p>
-                        <p>Arquivo: ${pathname}</p>
-                        <a href="/">Voltar para a página inicial</a>
-                    </body>
-                    </html>
-                `, 'utf-8');
-            } else {
-                // Server error
-                console.error(`500 Error: ${error.code} - ${pathname}`);
-                console.error(error);
-                res.writeHead(500, { 'Content-Type': 'text/html; charset=utf-8' });
-                res.end(`
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <title>500 - Erro do Servidor</title>
-                        <style>
-                            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-                            h1 { color: #cc0000; }
-                            pre { text-align: left; background: #f5f5f5; padding: 20px; border-radius: 5px; }
-                        </style>
-                    </head>
-                    <body>
-                        <h1>500 - Erro do Servidor</h1>
-                        <p>Erro: ${error.code}</p>
-                        <p>Arquivo: ${pathname}</p>
-                        <pre>${error.stack || error.message}</pre>
-                        <a href="/">Voltar para a página inicial</a>
-                    </body>
-                    </html>
-                `, 'utf-8');
-            }
-        } else {
-            // Success
-            res.writeHead(200, { 
-                'Content-Type': contentType,
-                'Cache-Control': 'no-cache'
+    try {
+        // Handle API endpoints
+        if (req.method === 'POST' && req.url === '/api/checklist-report') {
+            let body = '';
+            
+            req.on('data', chunk => {
+                body += chunk.toString();
             });
-            res.end(content, 'utf-8');
+            
+            req.on('end', () => {
+                try {
+                    const data = JSON.parse(body);
+                    
+                    // Log the report
+                    console.log('\n📊 RELATÓRIO DE ADERÊNCIA RECEBIDO:');
+                    console.log('================================');
+                    console.log(`Cliente: ${data.nome}`);
+                    console.log(`Empresa: ${data.empresa}`);
+                    console.log(`Email: ${data.email}`);
+                    console.log(`Telefone: ${data.telefone}`);
+                    console.log(`Aderência: ${data.adherence}%`);
+                    console.log(`Itens selecionados: ${data.selectedItems.length}`);
+                    console.log('================================\n');
+                    
+                    // Save to file (in production, send email)
+                    const reportData = {
+                        timestamp: new Date().toISOString(),
+                        ...data
+                    };
+                    
+                    const reportsDir = path.join(__dirname, 'reports');
+                    if (!fs.existsSync(reportsDir)) {
+                        fs.mkdirSync(reportsDir);
+                    }
+                    
+                    const filename = `report-${Date.now()}.json`;
+                    fs.writeFileSync(
+                        path.join(reportsDir, filename),
+                        JSON.stringify(reportData, null, 2),
+                        'utf-8'
+                    );
+                    
+                    // Prepare email content
+                    const emailSubject = `Relatório de Aderência OLV - ${data.empresa}`;
+                    const emailHtml = `
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <meta charset="utf-8">
+                            <style>
+                                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                                .header { background: #0066cc; color: white; padding: 20px; text-align: center; }
+                                .content { background: #f9f9f9; padding: 20px; }
+                                .highlight { background: #fff; padding: 15px; margin: 10px 0; border-left: 4px solid #0066cc; }
+                                .adherence-score { font-size: 48px; font-weight: bold; color: #0066cc; text-align: center; }
+                                .items-list { list-style: none; padding: 0; }
+                                .items-list li { padding: 8px; margin: 5px 0; background: #fff; border-radius: 4px; }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="container">
+                                <div class="header">
+                                    <h1>📊 Relatório de Aderência OLV</h1>
+                                </div>
+                                <div class="content">
+                                    <div class="highlight">
+                                        <h2>Dados do Cliente</h2>
+                                        <p><strong>Nome:</strong> ${data.nome}</p>
+                                        <p><strong>Empresa:</strong> ${data.empresa}</p>
+                                        <p><strong>Email:</strong> ${data.email}</p>
+                                        <p><strong>Telefone:</strong> ${data.telefone}</p>
+                                    </div>
+                                    
+                                    <div class="highlight">
+                                        <h2>Nível de Aderência</h2>
+                                        <div class="adherence-score">${data.adherence}%</div>
+                                        <p style="text-align: center; margin-top: 10px;">
+                                            ${data.adherence < 30 ? 'Aderência Baixa' : 
+                                              data.adherence < 60 ? 'Aderência Média' :
+                                              data.adherence < 80 ? 'Aderência Alta' :
+                                              'Aderência Muito Alta'}
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="highlight">
+                                        <h2>Itens Identificados (${data.selectedItems.length})</h2>
+                                        <ul class="items-list">
+                                            ${data.selectedItems.map((item, index) => 
+                                                `<li>${index + 1}. ${item.label} <strong>(Peso: ${item.weight})</strong></li>`
+                                            ).join('')}
+                                        </ul>
+                                    </div>
+                                    
+                                    <div class="highlight">
+                                        <p><strong>Data/Hora:</strong> ${new Date().toLocaleString('pt-BR')}</p>
+                                        <p><strong>Análise:</strong> ${data.adherence < 30 ? 
+                                            'Cliente com algumas dificuldades que podemos ajudar a resolver.' :
+                                            data.adherence < 60 ? 
+                                            'Cliente com várias dificuldades - a OLV pode fazer a diferença.' :
+                                            data.adherence < 80 ?
+                                            'Cliente precisa de ajuda urgente - alto potencial de conversão.' :
+                                            'Cliente precisa de ajuda estratégica imediata - prioridade máxima.'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </body>
+                        </html>
+                    `;
+                    
+                    const emailText = `
+RELATÓRIO DE ADERÊNCIA - OLV INTERNACIONAL
+
+Cliente: ${data.nome}
+Empresa: ${data.empresa}
+Email: ${data.email}
+Telefone: ${data.telefone}
+
+NÍVEL DE ADERÊNCIA: ${data.adherence}%
+
+ITENS IDENTIFICADOS:
+${data.selectedItems.map((item, index) => `${index + 1}. ${item.label} (Peso: ${item.weight})`).join('\n')}
+
+ANÁLISE:
+${data.adherence < 30 ? 'Aderência Baixa - Cliente com algumas dificuldades' : 
+  data.adherence < 60 ? 'Aderência Média - Cliente com várias dificuldades' :
+  data.adherence < 80 ? 'Aderência Alta - Cliente precisa de ajuda urgente' :
+  'Aderência Muito Alta - Cliente precisa de ajuda estratégica imediata'}
+
+Data: ${new Date().toLocaleString('pt-BR')}
+                    `;
+                    
+                // Send email if configured (NOTIFICAÇÃO IMEDIATA)
+                if (emailTransporter && nodemailer) {
+                    const emailUser = process.env.SMTP_USER || 'seu-email@gmail.com';
+                    const mailOptions = {
+                        from: `"OLV Internacional" <${emailUser}>`,
+                        to: process.env.RECEIVE_EMAIL || emailUser, // Email que receberá os relatórios
+                        subject: `🚨 URGENTE: ${emailSubject}`, // Marca como urgente
+                        text: emailText,
+                        html: emailHtml,
+                        priority: 'high' // Prioridade alta para notificação imediata
+                    };
+                        
+                    emailTransporter.sendMail(mailOptions)
+                        .then(info => {
+                            console.log('✅ Email enviado IMEDIATAMENTE:', info.messageId);
+                            console.log('📧 Cliente pronto para contato:', data.email, data.telefone);
+                        })
+                        .catch(error => {
+                            console.error('❌ Erro ao enviar email:', error.message);
+                        });
+                } else {
+                    // Log para notificação mesmo sem email configurado
+                    console.log('\n🚨 NOVO LEAD - Entre em contato IMEDIATAMENTE:');
+                    console.log(`   Nome: ${data.nome}`);
+                    console.log(`   Empresa: ${data.empresa}`);
+                    console.log(`   Email: ${data.email}`);
+                    console.log(`   Telefone: ${data.telefone}`);
+                    console.log(`   Aderência: ${data.adherence}%\n`);
+                }
+                    
+                    res.writeHead(200, { 
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    });
+                    res.end(JSON.stringify({ 
+                        success: true, 
+                        message: 'Relatório recebido com sucesso',
+                        filename: filename,
+                        emailSent: emailTransporter ? true : false
+                    }), 'utf-8');
+                } catch (err) {
+                    console.error('Error processing report:', err);
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: 'Invalid data' }), 'utf-8');
+                }
+            });
+            return;
         }
-    });
+        
+        // Parse URL
+        const parsedUrl = url.parse(req.url, true);
+        let pathname = parsedUrl.pathname;
+        
+        // Default to index.html for root
+        if (pathname === '/' || pathname === '') {
+            pathname = '/index.html';
+        }
+        
+        // Build file path
+        let filePath = path.join(__dirname, pathname);
+        
+        // Normalize path
+        filePath = path.normalize(filePath);
+        
+        // Security: ensure file is within current directory
+        const rootPath = path.normalize(path.join(__dirname, '.'));
+        if (!filePath.startsWith(rootPath)) {
+            res.writeHead(403, { 'Content-Type': 'text/html; charset=utf-8' });
+            res.end('403 - Acesso negado', 'utf-8');
+            return;
+        }
+        
+        // Get file extension
+        const extname = String(path.extname(filePath)).toLowerCase();
+        const contentType = MIME_TYPES[extname] || 'application/octet-stream';
+        
+        // Read file
+        fs.readFile(filePath, (error, content) => {
+            if (error) {
+                if (error.code === 'ENOENT') {
+                    // File not found
+                    console.log(`404: ${pathname}`);
+                    res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
+                    res.end(`
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>404 - Página não encontrada</title>
+                            <style>
+                                body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+                                h1 { color: #0066cc; }
+                            </style>
+                        </head>
+                        <body>
+                            <h1>404 - Página não encontrada</h1>
+                            <p>A página que você está procurando não existe.</p>
+                            <p>Arquivo: ${pathname}</p>
+                            <a href="/">Voltar para a página inicial</a>
+                        </body>
+                        </html>
+                    `, 'utf-8');
+                } else {
+                    // Server error
+                    console.error(`500 Error: ${error.code} - ${pathname}`);
+                    console.error(error);
+                    res.writeHead(500, { 'Content-Type': 'text/html; charset=utf-8' });
+                    res.end(`
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>500 - Erro do Servidor</title>
+                            <style>
+                                body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+                                h1 { color: #cc0000; }
+                                pre { text-align: left; background: #f5f5f5; padding: 20px; border-radius: 5px; }
+                            </style>
+                        </head>
+                        <body>
+                            <h1>500 - Erro do Servidor</h1>
+                            <p>Erro: ${error.code}</p>
+                            <p>Arquivo: ${pathname}</p>
+                            <pre>${error.stack || error.message}</pre>
+                            <a href="/">Voltar para a página inicial</a>
+                        </body>
+                        </html>
+                    `, 'utf-8');
+                }
+            } else {
+                // Success
+                res.writeHead(200, { 
+                    'Content-Type': contentType,
+                    'Cache-Control': 'no-cache'
+                });
+                res.end(content, 'utf-8');
+            }
+        });
+    } catch (err) {
+        console.error('Server error:', err);
+        res.writeHead(500, { 'Content-Type': 'text/html; charset=utf-8' });
+        res.end('500 - Erro interno do servidor', 'utf-8');
+    }
 });
 
 server.on('error', (error) => {
@@ -122,5 +357,10 @@ server.listen(PORT, () => {
     console.log(`📡 Acesse: http://localhost:${PORT}`);
     console.log(`📡 Ou: http://127.0.0.1:${PORT}`);
     console.log(`📂 Diretório: ${__dirname}`);
+    if (emailTransporter) {
+        console.log('📧 Email configurado e pronto para envio');
+    } else {
+        console.log('📧 Email não configurado - veja email-config.md para instruções');
+    }
     console.log('\n💡 Pressione Ctrl+C para parar o servidor\n');
 });

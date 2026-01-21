@@ -196,6 +196,392 @@ function initAccordions() {
 })();
 
 // ============================================
+// CHECKLIST ADHERENCE SYSTEM
+// ============================================
+(function() {
+    const checkboxes = document.querySelectorAll('.checklist-item input[type="checkbox"]');
+    const infoButtons = document.querySelectorAll('.checklist-info-btn');
+    const submitBtn = document.getElementById('checklistSubmitBtn');
+    const modal = document.getElementById('checklistModal');
+    const modalClose = document.querySelector('.modal-close');
+    const checklistForm = document.getElementById('checklistForm');
+    
+    // Total possible score (all items checked)
+    const maxScore = Array.from(checkboxes).reduce((sum, cb) => {
+        return sum + parseInt(cb.dataset.weight || 1);
+    }, 0);
+    
+    // Função para criar card dinâmico
+    function createDynamicCard(checkboxId, config) {
+        const card = document.createElement('div');
+        card.className = 'impact-card dynamic-card';
+        card.id = `dynamic-card-${checkboxId}`;
+        card.style.borderLeft = `4px solid ${config.borderColor}`;
+        card.style.animation = 'fadeIn 0.5s ease';
+        
+        card.innerHTML = `
+            <div class="impact-icon" style="color: ${config.iconColor}">
+                <i class="fas ${config.icon}"></i>
+            </div>
+            <h4>${config.title}</h4>
+            <p>${config.description}</p>
+        `;
+        
+        return card;
+    }
+    
+    // Função para gerenciar cards dinâmicos
+    function manageDynamicCards(checkedItems) {
+        const impactGrid = document.querySelector('.impact-grid');
+        if (!impactGrid) return;
+        
+        // Remover cards dinâmicos existentes
+        document.querySelectorAll('.dynamic-card').forEach(card => card.remove());
+        
+        // Adicionar novos cards dinâmicos para checkboxes marcados
+        checkedItems.forEach(item => {
+            const config = typeof dynamicCardsConfig !== 'undefined' ? dynamicCardsConfig[item.id] : null;
+            if (config) {
+                const card = createDynamicCard(item.id, config);
+                impactGrid.appendChild(card);
+            }
+        });
+    }
+    
+    // Update adherence meter - SISTEMA PROGRESSIVO
+    function updateAdherence() {
+        let score = 0;
+        const checkedItems = [];
+        let checkedCount = 0;
+        const checkedIndices = [];
+        
+        // Sistema progressivo baseado na POSIÇÃO do item na lista (não ordem de marcação)
+        // Primeiros itens da lista valem muito mais - reflete dores mais comuns
+        checkboxes.forEach((checkbox, index) => {
+            if (checkbox.checked) {
+                checkedCount++;
+                
+                // Sistema progressivo: primeiros itens da lista valem muito mais
+                let progressiveWeight;
+                if (index === 0) {
+                    // Primeiro item da lista: 25% (mais comum)
+                    progressiveWeight = 25;
+                } else if (index === 1) {
+                    // Segundo item da lista: 22% (muito comum)
+                    progressiveWeight = 22;
+                } else if (index === 2) {
+                    // Terceiro item da lista: 20% (comum)
+                    progressiveWeight = 20;
+                } else if (index === 3) {
+                    // Quarto item da lista: 15% (frequente)
+                    progressiveWeight = 15;
+                } else if (index === 4) {
+                    // Quinto item da lista: 10% (ocasional)
+                    progressiveWeight = 10;
+                } else if (index === 5) {
+                    // Sexto item da lista: 8% (menos comum)
+                    progressiveWeight = 8;
+                } else {
+                    // Itens restantes: 5% cada
+                    progressiveWeight = 5;
+                }
+                
+                score += progressiveWeight;
+                checkedItems.push({
+                    id: checkbox.id,
+                    label: checkbox.nextElementSibling.textContent.trim(),
+                    weight: progressiveWeight,
+                    originalWeight: parseInt(checkbox.dataset.weight || 1),
+                    position: index + 1
+                });
+            }
+        });
+        
+        // Calcular porcentagem (máximo 100%)
+        let percentage = Math.min(score, 100);
+        
+        // Se 4 ou mais checkboxes marcados, garantir mínimo de 60%
+        if (checkedCount >= 4 && percentage < 60) {
+            percentage = 60;
+        }
+        
+        // Se 6 ou mais checkboxes marcados, aderência = 100%
+        if (checkedCount >= 6) {
+            percentage = 100;
+        }
+        const scoreElement = document.getElementById('adherenceScore');
+        const fillElement = document.getElementById('adherenceFill');
+        const levelElement = document.getElementById('adherenceLevel');
+        
+        if (scoreElement) scoreElement.textContent = percentage + '%';
+        if (fillElement) {
+            fillElement.style.width = percentage + '%';
+            
+            // Update color based on maturity level (vermelho → verde = maturidade crescente)
+            if (percentage === 0) {
+                fillElement.style.background = 'var(--bg-tertiary)';
+            } else if (percentage < 25) {
+                // Vermelho - Baixa maturidade
+                fillElement.style.background = 'linear-gradient(90deg, #ef4444 0%, #dc2626 100%)';
+            } else if (percentage < 50) {
+                // Laranja - Maturidade em desenvolvimento
+                fillElement.style.background = 'linear-gradient(90deg, #f97316 0%, #ea580c 100%)';
+            } else if (percentage < 75) {
+                // Amarelo - Maturidade média
+                fillElement.style.background = 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)';
+            } else if (percentage < 100) {
+                // Verde claro - Alta maturidade
+                fillElement.style.background = 'linear-gradient(90deg, #22c55e 0%, #16a34a 100%)';
+            } else {
+                // Verde - Maturidade máxima
+                fillElement.style.background = 'linear-gradient(90deg, #10b981 0%, #059669 100%)';
+            }
+        }
+        
+        // Update score color (progressão vermelho → verde)
+        if (scoreElement) {
+            if (percentage === 0) {
+                scoreElement.style.color = 'var(--text-tertiary)';
+            } else if (percentage < 25) {
+                scoreElement.style.color = '#ef4444';
+            } else if (percentage < 50) {
+                scoreElement.style.color = '#f97316';
+            } else if (percentage < 75) {
+                scoreElement.style.color = '#f59e0b';
+            } else if (percentage < 100) {
+                scoreElement.style.color = '#22c55e';
+            } else {
+                scoreElement.style.color = '#10b981';
+            }
+        }
+        
+        // Update level description
+        if (levelElement) {
+            let levelText = 'Marque os itens que se aplicam à sua empresa';
+            let levelDesc = '';
+            
+            if (percentage === 0) {
+                levelText = 'Nível de Aderência';
+                levelDesc = 'Comece marcando os itens que se aplicam';
+            } else if (percentage < 30) {
+                levelText = 'Aderência Baixa';
+                levelDesc = 'Sua empresa tem algumas dificuldades que podemos ajudar a resolver';
+            } else if (percentage < 60) {
+                levelText = 'Aderência Média';
+                levelDesc = 'Sua empresa tem várias dificuldades - a OLV pode fazer a diferença';
+            } else if (percentage < 80) {
+                levelText = 'Aderência Alta';
+                levelDesc = 'Sua empresa tem muitas dificuldades - precisamos conversar urgentemente';
+            } else {
+                levelText = 'Aderência Muito Alta';
+                levelDesc = 'Sua empresa precisa de ajuda estratégica imediata - vamos resolver isso';
+            }
+            
+            levelElement.innerHTML = `
+                <span class="level-text">${levelText}</span>
+                <span class="level-description">${levelDesc}</span>
+            `;
+        }
+        
+        // Mostrar/ocultar seção de impacto no Supply Chain
+        const impactSection = document.getElementById('supplyChainImpact');
+        if (impactSection) {
+            if (percentage > 0) {
+                impactSection.style.display = 'block';
+                // Gerenciar cards dinâmicos
+                manageDynamicCards(checkedItems);
+            } else {
+                impactSection.style.display = 'none';
+            }
+        }
+        
+        // Store data for form
+        if (document.getElementById('adherenceValue')) {
+            document.getElementById('adherenceValue').value = percentage;
+        }
+        if (document.getElementById('selectedItems')) {
+            document.getElementById('selectedItems').value = JSON.stringify(checkedItems);
+        }
+    }
+    
+    // Toggle dropdown on info button click
+    infoButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const itemId = this.dataset.item;
+            const dropdown = document.getElementById('dropdown' + itemId);
+            
+            // Close all other dropdowns
+            document.querySelectorAll('.checklist-dropdown').forEach(dd => {
+                if (dd !== dropdown) {
+                    dd.classList.remove('active');
+                }
+            });
+            
+            // Toggle current dropdown
+            if (dropdown) {
+                dropdown.classList.toggle('active');
+            }
+        });
+    });
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.checklist-item')) {
+            document.querySelectorAll('.checklist-dropdown').forEach(dd => {
+                dd.classList.remove('active');
+            });
+        }
+    });
+    
+    // Update adherence when checkbox changes
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            // Fechar dropdown quando checkbox é marcado
+            const item = this.closest('.checklist-item');
+            if (item) {
+                const dropdown = item.querySelector('.checklist-dropdown');
+                if (dropdown && dropdown.classList.contains('active')) {
+                    dropdown.classList.remove('active');
+                }
+            }
+            updateAdherence();
+        });
+    });
+    
+    // Open modal on submit button click
+    if (submitBtn) {
+        submitBtn.addEventListener('click', function() {
+            const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+            
+            if (checkedCount === 0) {
+                alert('Por favor, marque pelo menos um item para continuar.');
+                return;
+            }
+            
+            updateAdherence();
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        });
+    }
+    
+    // Close modal
+    if (modalClose) {
+        modalClose.addEventListener('click', function() {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        });
+    }
+    
+    // Close modal when clicking outside
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+    }
+    
+    // Handle form submission
+    if (checklistForm) {
+        checklistForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+            const adherence = document.getElementById('adherenceValue').value;
+            const selectedItems = JSON.parse(document.getElementById('selectedItems').value);
+            
+            // Prepare email report
+            const report = {
+                nome: data.nome,
+                email: data.email,
+                telefone: data.telefone,
+                empresa: data.empresa,
+                adherence: adherence + '%',
+                selectedItems: selectedItems,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Send to server (NOTIFICAÇÃO IMEDIATA - email é enviado automaticamente)
+            fetch('/api/checklist-report', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(report)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    // Notificação imediata já foi enviada pelo servidor
+                    // Aqui você pode adicionar outras formas de notificação:
+                    // - Webhook para sistema de CRM (Salesforce, HubSpot, etc.)
+                    // - SMS via API (Twilio, etc.)
+                    // - Notificação push
+                    // - Integração com WhatsApp Business API
+                    console.log('✅ Relatório enviado - notificação imediata ativada');
+                    
+                    // Create email body for client
+                    const emailSubject = encodeURIComponent(`Relatório de Aderência OLV - ${data.empresa}`);
+                    const emailBody = encodeURIComponent(`
+RELATÓRIO DE ADERÊNCIA - OLV INTERNACIONAL
+
+Cliente: ${data.nome}
+Empresa: ${data.empresa}
+Email: ${data.email}
+Telefone: ${data.telefone}
+
+NÍVEL DE ADERÊNCIA: ${adherence}%
+
+ITENS IDENTIFICADOS:
+${selectedItems.map((item, index) => `${index + 1}. ${item.label} (Peso: ${item.weight})`).join('\n')}
+
+ANÁLISE:
+${adherence < 30 ? 'Aderência Baixa - Cliente com algumas dificuldades' : 
+  adherence < 60 ? 'Aderência Média - Cliente com várias dificuldades' :
+  adherence < 80 ? 'Aderência Alta - Cliente precisa de ajuda urgente' :
+  'Aderência Muito Alta - Cliente precisa de ajuda estratégica imediata'}
+
+Data: ${new Date().toLocaleString('pt-BR')}
+                    `);
+                    
+                    // Show success message
+                    alert(`Obrigado, ${data.nome}! Seu relatório de aderência (${adherence}%) foi enviado com sucesso. Nossa equipe entrará em contato em até 24 horas.`);
+                    
+                    // Close modal and reset
+                    modal.classList.remove('active');
+                    document.body.style.overflow = '';
+                    checklistForm.reset();
+                } else {
+                    alert('Erro ao enviar relatório. Por favor, tente novamente.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Fallback: open email client
+                const emailSubject = encodeURIComponent(`Relatório de Aderência OLV - ${data.empresa}`);
+                const emailBody = encodeURIComponent(JSON.stringify(report, null, 2));
+                window.location.href = `mailto:contato@olvinternacional.com.br?subject=${emailSubject}&body=${emailBody}`;
+                alert(`Obrigado, ${data.nome}! Seu relatório de aderência (${adherence}%) foi preparado. Um email foi aberto para envio.`);
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+            
+            // Optionally reset checkboxes
+            // checkboxes.forEach(cb => cb.checked = false);
+            // updateAdherence();
+        });
+    }
+    
+    // Initialize
+    updateAdherence();
+})();
+
+// ============================================
 // FORM HANDLING
 // ============================================
 (function() {
