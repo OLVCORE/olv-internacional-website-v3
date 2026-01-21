@@ -27,18 +27,22 @@ let emailTransporter = null;
 
 if (nodemailer) {
     const EMAIL_CONFIG = {
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        secure: false, // true para 465, false para outras portas
+        host: process.env.SMTP_HOST || 'mail.olvinternacional.com.br',
+        port: parseInt(process.env.SMTP_PORT || '465'),
+        secure: true, // true para 465 (SSL/TLS), false para outras portas
         auth: {
-            user: process.env.SMTP_USER || 'seu-email@gmail.com',
-            pass: process.env.SMTP_PASS || 'sua-senha-app'
+            user: process.env.SMTP_USER || 'consultores@olvinternacional.com.br',
+            pass: process.env.SMTP_PASS || ''
+        },
+        tls: {
+            // Não rejeitar certificados não autorizados (ajuste conforme necessário)
+            rejectUnauthorized: false
         }
     };
     
     // Criar transporter de email (será inicializado se configurado)
     try {
-        if (EMAIL_CONFIG.auth.user !== 'seu-email@gmail.com' && EMAIL_CONFIG.auth.pass !== 'sua-senha-app') {
+        if (EMAIL_CONFIG.auth.user && EMAIL_CONFIG.auth.pass && EMAIL_CONFIG.auth.pass !== '') {
             emailTransporter = nodemailer.createTransport(EMAIL_CONFIG);
             console.log('✅ Email transporter configurado');
         } else {
@@ -69,6 +73,148 @@ const MIME_TYPES = {
 const server = http.createServer((req, res) => {
     try {
         // Handle API endpoints
+        if (req.method === 'POST' && req.url === '/api/contact') {
+            let body = '';
+            
+            req.on('data', chunk => {
+                body += chunk.toString();
+            });
+            
+            req.on('end', () => {
+                try {
+                    const data = JSON.parse(body);
+                    
+                    // Log the contact form
+                    console.log('\n📧 FORMULÁRIO DE CONTATO RECEBIDO:');
+                    console.log('================================');
+                    console.log(`Nome: ${data.nome}`);
+                    console.log(`Email: ${data.email}`);
+                    console.log(`Telefone: ${data.telefone}`);
+                    console.log(`Empresa: ${data.empresa || 'N/A'}`);
+                    console.log(`Cargo: ${data.cargo || 'N/A'}`);
+                    console.log(`Interesse: ${data.interesse || 'N/A'}`);
+                    console.log(`Mensagem: ${data.mensagem || 'N/A'}`);
+                    console.log('================================\n');
+                    
+                    // Prepare email content
+                    const emailSubject = `Novo Contato - ${data.empresa || data.nome}`;
+                    const emailHtml = `
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <meta charset="utf-8">
+                            <style>
+                                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                                .header { background: #0066cc; color: white; padding: 20px; text-align: center; }
+                                .content { background: #f9f9f9; padding: 20px; }
+                                .highlight { background: #fff; padding: 15px; margin: 10px 0; border-left: 4px solid #0066cc; }
+                                .field { margin: 10px 0; }
+                                .field-label { font-weight: bold; color: #0066cc; }
+                                .message-box { background: #fff; padding: 15px; border-radius: 5px; margin-top: 10px; }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="container">
+                                <div class="header">
+                                    <h1>📧 Novo Contato - OLV Internacional</h1>
+                                </div>
+                                <div class="content">
+                                    <div class="highlight">
+                                        <h2>Dados do Contato</h2>
+                                        <div class="field">
+                                            <span class="field-label">Nome:</span> ${data.nome}
+                                        </div>
+                                        <div class="field">
+                                            <span class="field-label">Email:</span> <a href="mailto:${data.email}">${data.email}</a>
+                                        </div>
+                                        <div class="field">
+                                            <span class="field-label">Telefone:</span> <a href="tel:${data.telefone}">${data.telefone}</a>
+                                        </div>
+                                        ${data.empresa ? `<div class="field"><span class="field-label">Empresa:</span> ${data.empresa}</div>` : ''}
+                                        ${data.cargo ? `<div class="field"><span class="field-label">Cargo:</span> ${data.cargo}</div>` : ''}
+                                        ${data.interesse ? `<div class="field"><span class="field-label">Área de Interesse:</span> ${data.interesse}</div>` : ''}
+                                    </div>
+                                    
+                                    ${data.mensagem ? `
+                                    <div class="highlight">
+                                        <h2>Mensagem</h2>
+                                        <div class="message-box">
+                                            ${data.mensagem.replace(/\n/g, '<br>')}
+                                        </div>
+                                    </div>
+                                    ` : ''}
+                                    
+                                    <div class="highlight">
+                                        <p><strong>Data/Hora:</strong> ${new Date().toLocaleString('pt-BR')}</p>
+                                        <p style="margin-top: 15px;">
+                                            <a href="mailto:${data.email}" style="background: #0066cc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                                                Responder ao Cliente
+                                            </a>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </body>
+                        </html>
+                    `;
+                    
+                    const emailText = `
+NOVO CONTATO - OLV INTERNACIONAL
+
+Nome: ${data.nome}
+Email: ${data.email}
+Telefone: ${data.telefone}
+${data.empresa ? `Empresa: ${data.empresa}` : ''}
+${data.cargo ? `Cargo: ${data.cargo}` : ''}
+${data.interesse ? `Área de Interesse: ${data.interesse}` : ''}
+
+${data.mensagem ? `Mensagem:\n${data.mensagem}` : ''}
+
+Data: ${new Date().toLocaleString('pt-BR')}
+                    `;
+                    
+                    // Send email if configured
+                    if (emailTransporter && nodemailer) {
+                        const emailUser = process.env.SMTP_USER || 'consultores@olvinternacional.com.br';
+                        const receiveEmail = process.env.RECEIVE_EMAIL || 'consultores@olvinternacional.com.br';
+                        const mailOptions = {
+                            from: `"OLV Internacional" <${emailUser}>`,
+                            to: receiveEmail,
+                            replyTo: data.email,
+                            subject: `📧 ${emailSubject}`,
+                            text: emailText,
+                            html: emailHtml,
+                            priority: 'high'
+                        };
+                        
+                        emailTransporter.sendMail(mailOptions)
+                            .then(info => {
+                                console.log('✅ Email de contato enviado:', info.messageId);
+                            })
+                            .catch(error => {
+                                console.error('❌ Erro ao enviar email:', error.message);
+                            });
+                    }
+                    
+                    res.writeHead(200, { 
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    });
+                    res.end(JSON.stringify({ 
+                        success: true, 
+                        message: 'Mensagem enviada com sucesso! Entraremos em contato em breve.',
+                        emailSent: emailTransporter ? true : false
+                    }), 'utf-8');
+                } catch (err) {
+                    console.error('Error processing contact form:', err);
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: 'Invalid data' }), 'utf-8');
+                }
+            });
+            return;
+        }
+        
         if (req.method === 'POST' && req.url === '/api/checklist-report') {
             let body = '';
             
@@ -201,10 +347,12 @@ Data: ${new Date().toLocaleString('pt-BR')}
                     
                 // Send email if configured (NOTIFICAÇÃO IMEDIATA)
                 if (emailTransporter && nodemailer) {
-                    const emailUser = process.env.SMTP_USER || 'seu-email@gmail.com';
+                    const emailUser = process.env.SMTP_USER || 'consultores@olvinternacional.com.br';
+                    const receiveEmail = process.env.RECEIVE_EMAIL || 'consultores@olvinternacional.com.br';
                     const mailOptions = {
                         from: `"OLV Internacional" <${emailUser}>`,
-                        to: process.env.RECEIVE_EMAIL || emailUser, // Email que receberá os relatórios
+                        to: receiveEmail, // Email que receberá os relatórios
+                        replyTo: data.email, // Email do cliente para resposta direta
                         subject: `🚨 URGENTE: ${emailSubject}`, // Marca como urgente
                         text: emailText,
                         html: emailHtml,

@@ -10,19 +10,56 @@ npm install
 
 ### 2. Configurar Variáveis de Ambiente
 
-Crie um arquivo `.env` na raiz do projeto (copie de `.env.example`):
+Crie um arquivo `.env` na raiz do projeto com o seguinte conteúdo:
 
+```env
+SMTP_HOST=mail.olvinternacional.com.br
+SMTP_PORT=465
+SMTP_USER=consultores@olvinternacional.com.br
+SMTP_PASS=sua-senha-aqui
+RECEIVE_EMAIL=consultores@olvinternacional.com.br
+```
+
+**⚠️ IMPORTANTE:** 
+- Use a senha do email `consultores@olvinternacional.com.br`
+- O arquivo `.env` já está no `.gitignore` e não será commitado
+- Nunca compartilhe suas credenciais
+- Substitua `sua-senha-aqui` pela senha real do email
+
+**Como criar o arquivo `.env`:**
+1. Na raiz do projeto, crie um novo arquivo chamado `.env`
+2. Copie o conteúdo acima
+3. Substitua `sua-senha-aqui` pela senha real do email `consultores@olvinternacional.com.br`
+4. Salve o arquivo
+
+### 3. Configuração do Servidor OLV Internacional
+
+O servidor está configurado para usar o servidor de email da OLV Internacional:
+
+**Configurações SMTP:**
+- **Servidor:** `mail.olvinternacional.com.br`
+- **Porta:** `465` (SSL/TLS)
+- **Criptografia:** SSL/TLS
+- **Autenticação:** Requerida
+- **Email de envio:** `consultores@olvinternacional.com.br`
+- **Email de recebimento:** `consultores@olvinternacional.com.br`
+
+**Configurações IMAP (para recebimento):**
+- **Servidor:** `mail.olvinternacional.com.br`
+- **Porta:** `993` (SSL/TLS)
+- **Criptografia:** SSL/TLS
+
+### 4. Outros Provedores (Alternativas)
+
+Se precisar usar outro provedor, ajuste as variáveis no `.env`:
+
+#### Gmail
 ```env
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=seu-email@gmail.com
 SMTP_PASS=sua-senha-app
-RECEIVE_EMAIL=contato@olvinternacional.com.br
 ```
-
-### 3. Configuração por Provedor
-
-#### Gmail
 1. Ative a verificação em 2 etapas na sua conta Google
 2. Acesse: https://myaccount.google.com/apppasswords
 3. Gere uma "Senha de App"
@@ -34,22 +71,6 @@ SMTP_HOST=smtp.office365.com
 SMTP_PORT=587
 SMTP_USER=seu-email@outlook.com
 SMTP_PASS=sua-senha
-```
-
-#### SendGrid
-```env
-SMTP_HOST=smtp.sendgrid.net
-SMTP_PORT=587
-SMTP_USER=apikey
-SMTP_PASS=sua-api-key-do-sendgrid
-```
-
-#### Mailgun
-```env
-SMTP_HOST=smtp.mailgun.org
-SMTP_PORT=587
-SMTP_USER=postmaster@seu-dominio.mailgun.org
-SMTP_PASS=sua-senha-mailgun
 ```
 
 ### 4. Carregar Variáveis de Ambiente

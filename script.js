@@ -595,9 +595,37 @@ Data: ${new Date().toLocaleString('pt-BR')}
             const formData = new FormData(form);
             const data = Object.fromEntries(formData);
             
-            // Here you would normally send the data to a server
-            // For now, we'll just show an alert
-            console.log('Form data:', data);
+            // Show loading state
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Enviando...';
+            
+            // Send to server
+            fetch('/api/contact', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert('✅ ' + result.message);
+                    form.reset();
+                } else {
+                    alert('❌ Erro ao enviar mensagem. Por favor, tente novamente ou entre em contato diretamente.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('❌ Erro ao enviar mensagem. Por favor, tente novamente ou entre em contato diretamente.');
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            });
             
             // Show success message
             alert('Obrigado pelo seu interesse! Entraremos em contato em breve.');
