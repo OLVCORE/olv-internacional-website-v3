@@ -71,6 +71,18 @@ const MIME_TYPES = {
 };
 
 const server = http.createServer((req, res) => {
+    // CORS headers para todas as requisições
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+        res.writeHead(200);
+        res.end();
+        return;
+    }
+    
     try {
         // Handle API endpoints
         if (req.method === 'POST' && req.url === '/api/contact') {
@@ -202,22 +214,54 @@ Data: ${new Date().toLocaleString('pt-BR')}
                             .then(info => {
                                 console.log('✅ Email de contato enviado:', info.messageId);
                                 console.log('📧 Para:', receiveEmail);
+                                console.log('📧 De:', data.email);
+                                console.log('📧 Assunto:', mailOptions.subject);
+                                
+                                // Resposta de sucesso APÓS email enviado
+                                res.writeHead(200, { 
+                                    'Content-Type': 'application/json',
+                                    'Access-Control-Allow-Origin': '*'
+                                });
+                                res.end(JSON.stringify({ 
+                                    success: true, 
+                                    message: 'Mensagem recebida com sucesso. Entraremos em contato em breve.',
+                                    emailSent: true
+                                }), 'utf-8');
                             })
                             .catch(error => {
                                 console.error('❌ Erro ao enviar email de contato:', error.message);
-                                console.error('❌ Detalhes:', error);
+                                console.error('❌ Detalhes completos:', error);
+                                console.error('❌ Código do erro:', error.code);
+                                if (error.command) {
+                                    console.error('❌ Comando SMTP:', error.command);
+                                }
+                                
+                                // Mesmo com erro no email, retornar sucesso (dados foram recebidos)
+                                res.writeHead(200, { 
+                                    'Content-Type': 'application/json',
+                                    'Access-Control-Allow-Origin': '*'
+                                });
+                                res.end(JSON.stringify({ 
+                                    success: true, 
+                                    message: 'Mensagem recebida. Entraremos em contato em breve.',
+                                    emailSent: false,
+                                    warning: 'Email pode não ter sido enviado. Verifique logs do servidor.'
+                                }), 'utf-8');
                             });
+                    } else {
+                        // Email transporter não configurado
+                        console.log('⚠️ Email transporter não configurado - dados salvos apenas em log');
+                        res.writeHead(200, { 
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
+                        });
+                        res.end(JSON.stringify({ 
+                            success: true, 
+                            message: 'Mensagem recebida. Entraremos em contato em breve.',
+                            emailSent: false,
+                            warning: 'Sistema de email não configurado'
+                        }), 'utf-8');
                     }
-                    
-                    res.writeHead(200, { 
-                        'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*'
-                    });
-                    res.end(JSON.stringify({ 
-                        success: true, 
-                        message: 'Mensagem enviada com sucesso! Entraremos em contato em breve.',
-                        emailSent: emailTransporter ? true : false
-                    }), 'utf-8');
                 } catch (err) {
                     console.error('Error processing contact form:', err);
                     res.writeHead(400, { 'Content-Type': 'application/json' });

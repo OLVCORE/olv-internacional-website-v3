@@ -680,29 +680,28 @@ document.addEventListener('click', function(e) {
                 },
                 body: JSON.stringify(data)
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(result => {
                 if (result.success) {
-                    alert('✅ ' + result.message);
+                    alert('✅ Obrigado! Sua mensagem foi enviada com sucesso. Entraremos em contato em breve.');
                     form.reset();
                 } else {
-                    alert('❌ Erro ao enviar mensagem. Por favor, tente novamente ou entre em contato diretamente.');
+                    alert('❌ Erro ao enviar mensagem. Por favor, tente novamente ou entre em contato diretamente pelo email: consultores@olvinternacional.com.br');
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
-                alert('❌ Erro ao enviar mensagem. Por favor, tente novamente ou entre em contato diretamente.');
+                console.error('Network error:', error);
+                alert('❌ Erro de conexão. Verifique sua internet e tente novamente. Se o problema persistir, entre em contato diretamente pelo email: consultores@olvinternacional.com.br ou WhatsApp: +55 11 99924-4444');
             })
             .finally(() => {
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;
             });
-            
-            // Show success message
-            alert('Obrigado pelo seu interesse! Entraremos em contato em breve.');
-            
-            // Reset form
-            form.reset();
         });
     }
 })();
