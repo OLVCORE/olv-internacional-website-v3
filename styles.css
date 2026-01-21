@@ -564,16 +564,91 @@ body {
     border-radius: 8px;
     padding: 8px 12px;
     cursor: pointer;
-    font-size: 20px;
-    transition: all 0.2s ease;
+    font-size: 18px;
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    color: var(--accent-primary);
+    position: relative;
+    overflow: hidden;
+}
+
+.theme-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    opacity: 0.1;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s ease, height 0.3s ease;
+}
+
+.theme-btn:hover::before {
+    width: 100%;
+    height: 100%;
 }
 
 .theme-btn:hover {
     background: var(--bg-tertiary);
     transform: scale(1.05);
+    color: var(--accent-hover);
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.2);
+}
+
+.theme-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease, color 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.theme-btn:hover .theme-icon {
+    transform: rotate(15deg) scale(1.1);
+}
+
+.theme-icon i {
+    font-size: 18px;
+    transition: all 0.3s ease;
+}
+
+/* Animações específicas por tema */
+[data-theme="light"] .theme-icon i.fa-sun {
+    color: #f59e0b;
+    animation: pulseGlow 2s ease-in-out infinite;
+}
+
+[data-theme="dark"] .theme-icon i.fa-moon {
+    color: #6366f1;
+    animation: subtleGlow 2s ease-in-out infinite;
+}
+
+.theme-icon i.fa-desktop {
+    color: var(--accent-primary);
+}
+
+@keyframes pulseGlow {
+    0%, 100% {
+        filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.5));
+    }
+    50% {
+        filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.8));
+    }
+}
+
+@keyframes subtleGlow {
+    0%, 100% {
+        filter: drop-shadow(0 0 3px rgba(99, 102, 241, 0.4));
+    }
+    50% {
+        filter: drop-shadow(0 0 6px rgba(99, 102, 241, 0.6));
+    }
 }
 
 /* ============================================

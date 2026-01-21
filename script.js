@@ -29,13 +29,13 @@ function initThemeToggle() {
         if (icon) {
             switch(theme) {
                 case 'light':
-                    icon.textContent = '☀️';
+                    icon.innerHTML = '<i class="fas fa-sun"></i>';
                     break;
                 case 'dark':
-                    icon.textContent = '🌙';
+                    icon.innerHTML = '<i class="fas fa-moon"></i>';
                     break;
                 case 'system':
-                    icon.textContent = '🌓';
+                    icon.innerHTML = '<i class="fas fa-desktop"></i>';
                     break;
             }
         }

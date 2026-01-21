@@ -40,7 +40,7 @@ function createHeader(currentPage = '') {
                     </nav>
                     <div class="theme-toggle">
                         <button class="theme-btn" id="themeToggle" aria-label="Alternar tema">
-                            <span class="theme-icon">🌓</span>
+                            <span class="theme-icon"><i class="fas fa-desktop"></i></span>
                         </button>
                     </div>
                 </div>
