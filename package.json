@@ -1,0 +1,14 @@
+{
+  "name": "olv-internacional-website",
+  "version": "1.0.0",
+  "description": "Website institucional OLV Internacional",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["website", "institucional", "olv"],
+  "author": "OLV Internacional",
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {}
+}

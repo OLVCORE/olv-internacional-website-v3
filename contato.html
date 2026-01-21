@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contato - OLV Internacional</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="header-placeholder"></div>
+
+    <section class="page-header">
+        <div class="container">
+            <h1>Fale com um especialista</h1>
+            <p>Entenda como a OLV pode estruturar seu comércio internacional com governança, inteligência e execução ponta a ponta</p>
+        </div>
+    </section>
+
+    <section class="content-section">
+        <div class="container">
+            <div class="contato-content">
+                <div class="contato-info">
+                    <h2>Entre em contato</h2>
+                    <p>Preencha o formulário abaixo e nossa equipe entrará em contato em até 24 horas para entender sua necessidade e apresentar como podemos ajudar.</p>
+                    
+                    <div class="info-cards">
+                        <div class="info-card">
+                            <h3>📧 E-mail</h3>
+                            <p>contato@olvinternacional.com.br</p>
+                        </div>
+                        <div class="info-card">
+                            <h3>📞 Telefone</h3>
+                            <p>+55 (11) 0000-0000</p>
+                        </div>
+                        <div class="info-card">
+                            <h3>📍 Localização</h3>
+                            <p>São Paulo, SP - Brasil</p>
+                        </div>
+                    </div>
+                </div>
+
+                <form class="contato-form">
+                    <div class="form-group">
+                        <label for="nome">Nome completo *</label>
+                        <input type="text" id="nome" name="nome" placeholder="Seu nome completo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">E-mail corporativo *</label>
+                        <input type="email" id="email" name="email" placeholder="seu.email@empresa.com.br" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="telefone">Telefone *</label>
+                        <input type="tel" id="telefone" name="telefone" placeholder="(11) 00000-0000" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="empresa">Empresa *</label>
+                        <input type="text" id="empresa" name="empresa" placeholder="Nome da sua empresa" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cargo">Cargo</label>
+                        <input type="text" id="cargo" name="cargo" placeholder="Seu cargo na empresa">
+                    </div>
+                    <div class="form-group">
+                        <label for="interesse">Área de interesse</label>
+                        <select id="interesse" name="interesse">
+                            <option value="">Selecione uma opção</option>
+                            <option value="importacao">Importação</option>
+                            <option value="exportacao">Exportação</option>
+                            <option value="supply-chain">Supply Chain 360°</option>
+                            <option value="governanca">Governança & Risk</option>
+                            <option value="completo">Gestão Completa</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="mensagem">Conte-nos sobre sua necessidade *</label>
+                        <textarea id="mensagem" name="mensagem" placeholder="Descreva brevemente sua necessidade ou desafio atual no comércio internacional..." rows="6" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Enviar mensagem</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="components.js"></script>
+    <script src="script.js"></script>
+    <script>
+        initComponents('contato');
+        setTimeout(function() {
+            if (typeof initAccordions === 'function') initAccordions();
+        }, 200);
+    </script>
+</body>
+</html>
