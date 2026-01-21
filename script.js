@@ -513,40 +513,10 @@ function initAccordions() {
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
-                    // Notificação imediata já foi enviada pelo servidor
-                    // Aqui você pode adicionar outras formas de notificação:
-                    // - Webhook para sistema de CRM (Salesforce, HubSpot, etc.)
-                    // - SMS via API (Twilio, etc.)
-                    // - Notificação push
-                    // - Integração com WhatsApp Business API
                     console.log('✅ Relatório enviado - notificação imediata ativada');
                     
-                    // Create email body for client
-                    const emailSubject = encodeURIComponent(`Relatório de Aderência OLV - ${data.empresa}`);
-                    const emailBody = encodeURIComponent(`
-RELATÓRIO DE ADERÊNCIA - OLV INTERNACIONAL
-
-Cliente: ${data.nome}
-Empresa: ${data.empresa}
-Email: ${data.email}
-Telefone: ${data.telefone}
-
-NÍVEL DE ADERÊNCIA: ${adherence}%
-
-ITENS IDENTIFICADOS:
-${selectedItems.map((item, index) => `${index + 1}. ${item.label} (Peso: ${item.weight})`).join('\n')}
-
-ANÁLISE:
-${adherence < 30 ? 'Aderência Baixa - Cliente com algumas dificuldades' : 
-  adherence < 60 ? 'Aderência Média - Cliente com várias dificuldades' :
-  adherence < 80 ? 'Aderência Alta - Cliente precisa de ajuda urgente' :
-  'Aderência Muito Alta - Cliente precisa de ajuda estratégica imediata'}
-
-Data: ${new Date().toLocaleString('pt-BR')}
-                    `);
-                    
-                    // Show success message
-                    alert(`Obrigado, ${data.nome}! Seu relatório de aderência (${adherence}%) foi enviado com sucesso. Nossa equipe entrará em contato em até 24 horas.`);
+                    // Mostrar página de confirmação formatada
+                    showConfirmationPage(data.nome, data.empresa, adherence, selectedItems);
                     
                     // Close modal and reset
                     modal.classList.remove('active');
@@ -576,6 +546,111 @@ Data: ${new Date().toLocaleString('pt-BR')}
     // Initialize
     updateAdherence();
 })();
+
+// ============================================
+// CONFIRMAÇÃO FORMATADA
+// ============================================
+function showConfirmationPage(nome, empresa, adherence, selectedItems) {
+    // Criar elemento de confirmação
+    const confirmation = document.createElement('div');
+    confirmation.id = 'confirmation-overlay';
+    confirmation.className = 'confirmation-overlay';
+    
+    const adherenceNum = parseInt(adherence);
+    const adherenceLevel = adherenceNum < 30 ? 'Baixa' : 
+                          adherenceNum < 60 ? 'Média' : 
+                          adherenceNum < 80 ? 'Alta' : 'Muito Alta';
+    
+    const adherenceColor = adherenceNum < 30 ? '#f59e0b' : 
+                          adherenceNum < 60 ? '#3b82f6' : 
+                          adherenceNum < 80 ? '#10b981' : '#ef4444';
+    
+    confirmation.innerHTML = `
+        <div class="confirmation-content">
+            <div class="confirmation-header">
+                <div class="confirmation-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h2>Relatório Enviado com Sucesso!</h2>
+            </div>
+            <div class="confirmation-body">
+                <p class="confirmation-greeting">Olá, <strong>${nome}</strong>!</p>
+                <p class="confirmation-message">
+                    Recebemos seu relatório de diagnóstico de aderência da empresa <strong>${empresa}</strong>.
+                </p>
+                
+                <div class="confirmation-adherence">
+                    <div class="adherence-badge" style="border-color: ${adherenceColor};">
+                        <div class="adherence-percentage" style="color: ${adherenceColor};">
+                            ${adherence}%
+                        </div>
+                        <div class="adherence-label">Nível de Aderência: <strong>${adherenceLevel}</strong></div>
+                    </div>
+                </div>
+                
+                <div class="confirmation-items">
+                    <p class="items-title">Itens identificados: <strong>${selectedItems.length}</strong></p>
+                    <ul class="items-preview">
+                        ${selectedItems.slice(0, 3).map(item => `<li>${item.label}</li>`).join('')}
+                        ${selectedItems.length > 3 ? `<li class="more-items">+ ${selectedItems.length - 3} outros itens</li>` : ''}
+                    </ul>
+                </div>
+                
+                <div class="confirmation-next-steps">
+                    <h3>Próximos Passos</h3>
+                    <p>Se os dados informados estiverem corretos, um consultor especializado da OLV Internacional entrará em contato com você em até <strong>24 horas úteis</strong> para:</p>
+                    <ul>
+                        <li><i class="fas fa-check"></i> Analisar seu relatório de aderência em detalhes</li>
+                        <li><i class="fas fa-check"></i> Entender melhor as necessidades da sua empresa</li>
+                        <li><i class="fas fa-check"></i> Apresentar soluções personalizadas para seus desafios</li>
+                    </ul>
+                </div>
+                
+                <div class="confirmation-contact">
+                    <p><strong>Dúvidas?</strong> Entre em contato:</p>
+                    <p>
+                        <i class="fas fa-envelope"></i> 
+                        <a href="mailto:consultores@olvinternacional.com.br">consultores@olvinternacional.com.br</a>
+                    </p>
+                    <p>
+                        <i class="fab fa-whatsapp"></i> 
+                        <a href="https://wa.me/5511999244444" target="_blank">+55 11 99924-4444</a>
+                    </p>
+                </div>
+            </div>
+            <div class="confirmation-footer">
+                <button class="btn btn-primary" onclick="closeConfirmation()">Entendi, obrigado!</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(confirmation);
+    document.body.style.overflow = 'hidden';
+    
+    // Animar entrada
+    requestAnimationFrame(() => {
+        confirmation.classList.add('active');
+    });
+}
+
+function closeConfirmation() {
+    const confirmation = document.getElementById('confirmation-overlay');
+    if (confirmation) {
+        confirmation.classList.remove('active');
+        setTimeout(() => {
+            confirmation.remove();
+            document.body.style.overflow = '';
+        }, 300);
+    }
+}
+
+// Fechar ao clicar fora
+document.addEventListener('click', function(e) {
+    const confirmation = document.getElementById('confirmation-overlay');
+    if (confirmation && e.target === confirmation) {
+        closeConfirmation();
+    }
+});
 
 // ============================================
 // FORM HANDLING

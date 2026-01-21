@@ -179,21 +179,33 @@ Data: ${new Date().toLocaleString('pt-BR')}
                         const emailUser = process.env.SMTP_USER || 'consultores@olvinternacional.com.br';
                         const receiveEmail = process.env.RECEIVE_EMAIL || 'consultores@olvinternacional.com.br';
                         const mailOptions = {
-                            from: `"OLV Internacional" <${emailUser}>`,
+                            from: `"OLV Internacional - Formulário de Contato" <${emailUser}>`,
                             to: receiveEmail,
                             replyTo: data.email,
-                            subject: `📧 ${emailSubject}`,
+                            subject: `📧 Novo Contato - ${data.nome} (${data.empresa})`,
                             text: emailText,
                             html: emailHtml,
-                            priority: 'high'
+                            priority: 'high',
+                            headers: {
+                                'X-Priority': '1',
+                                'X-MSMail-Priority': 'High',
+                                'Importance': 'high',
+                                'X-Mailer': 'OLV Internacional - Sistema de Contato'
+                            },
+                            envelope: {
+                                from: emailUser,
+                                to: receiveEmail
+                            }
                         };
                         
                         emailTransporter.sendMail(mailOptions)
                             .then(info => {
                                 console.log('✅ Email de contato enviado:', info.messageId);
+                                console.log('📧 Para:', receiveEmail);
                             })
                             .catch(error => {
-                                console.error('❌ Erro ao enviar email:', error.message);
+                                console.error('❌ Erro ao enviar email de contato:', error.message);
+                                console.error('❌ Detalhes:', error);
                             });
                     }
                     
@@ -350,23 +362,50 @@ Data: ${new Date().toLocaleString('pt-BR')}
                     const emailUser = process.env.SMTP_USER || 'consultores@olvinternacional.com.br';
                     const receiveEmail = process.env.RECEIVE_EMAIL || 'consultores@olvinternacional.com.br';
                     const mailOptions = {
-                        from: `"OLV Internacional" <${emailUser}>`,
+                        from: `"OLV Internacional - Sistema" <${emailUser}>`,
                         to: receiveEmail, // Email que receberá os relatórios
                         replyTo: data.email, // Email do cliente para resposta direta
-                        subject: `🚨 URGENTE: ${emailSubject}`, // Marca como urgente
+                        subject: `🚨 URGENTE: Relatório de Aderência - ${data.empresa} (${data.adherence})`, // Marca como urgente
                         text: emailText,
                         html: emailHtml,
-                        priority: 'high' // Prioridade alta para notificação imediata
+                        priority: 'high', // Prioridade alta para notificação imediata
+                        headers: {
+                            'X-Priority': '1',
+                            'X-MSMail-Priority': 'High',
+                            'Importance': 'high',
+                            'List-Unsubscribe': `<mailto:${emailUser}?subject=Unsubscribe>`,
+                            'X-Mailer': 'OLV Internacional - Sistema de Relatórios'
+                        },
+                        // Adicionar informações adicionais para evitar spam
+                        envelope: {
+                            from: emailUser,
+                            to: receiveEmail
+                        }
                     };
                         
                     emailTransporter.sendMail(mailOptions)
                         .then(info => {
                             console.log('✅ Email enviado IMEDIATAMENTE:', info.messageId);
+                            console.log('📧 Para:', receiveEmail);
                             console.log('📧 Cliente pronto para contato:', data.email, data.telefone);
+                            console.log('📊 Aderência:', data.adherence);
                         })
                         .catch(error => {
                             console.error('❌ Erro ao enviar email:', error.message);
+                            console.error('❌ Detalhes do erro:', error);
+                            // Tentar enviar novamente após 2 segundos
+                            setTimeout(() => {
+                                emailTransporter.sendMail(mailOptions)
+                                    .then(info => {
+                                        console.log('✅ Email reenviado com sucesso:', info.messageId);
+                                    })
+                                    .catch(retryError => {
+                                        console.error('❌ Erro no reenvio:', retryError.message);
+                                    });
+                            }, 2000);
                         });
+                } else {
+                    console.log('⚠️ Email transporter não configurado - relatório salvo apenas em arquivo');
                 } else {
                     // Log para notificação mesmo sem email configurado
                     console.log('\n🚨 NOVO LEAD - Entre em contato IMEDIATAMENTE:');
