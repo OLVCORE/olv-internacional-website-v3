@@ -66,17 +66,13 @@ function initThemeToggle() {
     });
 }
 
-// Initialize theme toggle when DOM is ready
+// Initialize theme toggle when DOM is ready (otimizado)
 (function() {
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initThemeToggle);
+        document.addEventListener('DOMContentLoaded', initThemeToggle, { once: true });
     } else {
         initThemeToggle();
     }
-    
-    // Also try after delay for dynamically loaded content
-    setTimeout(initThemeToggle, 100);
-    setTimeout(initThemeToggle, 500);
 })();
 
 // ============================================

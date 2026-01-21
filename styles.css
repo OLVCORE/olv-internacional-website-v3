@@ -1,4 +1,13 @@
 /* ============================================
+   PERFORMANCE OPTIMIZATIONS
+   ============================================ */
+/* Otimização de fontes - font-display swap para melhor FCP */
+@font-face {
+    font-family: 'Inter';
+    font-display: swap;
+}
+
+/* ============================================
    VARIÁVEIS CSS - THEME TOGGLE
    ============================================ */
 :root {
@@ -363,6 +372,38 @@ body {
     100% {
         transform: translateX(100%) translateY(100%);
     }
+}
+
+/* Otimização de performance - will-change para animações */
+.hero::before,
+.hero::after {
+    will-change: transform, opacity;
+}
+
+.card-accordion,
+.logo-link,
+.btn,
+.whatsapp-float,
+.stat-card,
+.empresa-info-card,
+.setor-card,
+.abordagem-step {
+    will-change: transform;
+    transform: translateZ(0); /* Aceleração GPU */
+}
+
+/* Otimização - content-visibility para seções abaixo da dobra */
+.content-section:not(:first-of-type) {
+    content-visibility: auto;
+    contain-intrinsic-size: 500px;
+}
+
+/* Reduzir repaints em hover */
+.card-accordion:hover,
+.logo-link:hover,
+.btn:hover,
+.whatsapp-float:hover {
+    transform: translateZ(0) translateY(-2px);
 }
 
 .hero-content {

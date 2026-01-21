@@ -138,24 +138,17 @@ function initComponents(currentPage = '') {
         footerPlaceholder.innerHTML = createFooter();
     }
     
-    // Re-initialize theme toggle after header is loaded
-    setTimeout(() => {
+    // Re-initialize theme toggle after header is loaded (otimizado)
+    requestAnimationFrame(() => {
         if (typeof initThemeToggle === 'function') {
             initThemeToggle();
         }
-    }, 50);
+    });
     
-    // Re-initialize accordions after components are loaded
-    setTimeout(() => {
+    // Re-initialize accordions after components are loaded (otimizado)
+    requestAnimationFrame(() => {
         if (typeof initAccordions === 'function') {
             initAccordions();
         }
-    }, 100);
-    
-    // One more time to be sure
-    setTimeout(() => {
-        if (typeof initAccordions === 'function') {
-            initAccordions();
-        }
-    }, 300);
+    });
 }
