@@ -2118,8 +2118,13 @@ section {
     position: relative;
     overflow: visible;
     flex-shrink: 0;
-    line-height: 0;
+    line-height: 1;
     vertical-align: middle;
+}
+
+/* Garantir que apenas o ícone seja visível, não texto */
+.step-number:not(:has(i)) {
+    font-size: 0;
 }
 
 .step-number i {
