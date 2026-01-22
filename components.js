@@ -2,6 +2,57 @@
 // COMPONENTES REUTILIZÁVEIS - HEADER E FOOTER
 // ============================================
 
+// Ordem de navegação das páginas
+const pageOrder = [
+    { key: 'index', label: 'Início', url: 'index.html' },
+    { key: 'sobre', label: 'Sobre', url: 'sobre.html' },
+    { key: 'importacao', label: 'Importação', url: 'importacao.html' },
+    { key: 'exportacao', label: 'Exportação', url: 'exportacao.html' },
+    { key: 'supply-chain', label: 'Supply Chain', url: 'supply-chain.html' },
+    { key: 'governanca', label: 'Governança', url: 'governanca.html' },
+    { key: 'metodo', label: 'Método', url: 'metodo.html' },
+    { key: 'contato', label: 'Contato', url: 'contato.html' }
+];
+
+function createNavigationButtons(currentPage = '') {
+    const currentIndex = pageOrder.findIndex(page => page.key === currentPage);
+    
+    if (currentIndex === -1) {
+        return ''; // Página não encontrada na ordem
+    }
+    
+    const prevPage = currentIndex > 0 ? pageOrder[currentIndex - 1] : null;
+    const nextPage = currentIndex < pageOrder.length - 1 ? pageOrder[currentIndex + 1] : null;
+    
+    let buttonsHTML = '<div class="page-navigation">';
+    
+    if (prevPage) {
+        buttonsHTML += `
+            <a href="${prevPage.url}" class="nav-btn nav-prev" title="Página anterior: ${prevPage.label}">
+                <i class="fas fa-chevron-left"></i>
+                <span class="nav-label">${prevPage.label}</span>
+            </a>
+        `;
+    } else {
+        buttonsHTML += '<div class="nav-btn nav-prev disabled" aria-hidden="true"></div>';
+    }
+    
+    if (nextPage) {
+        buttonsHTML += `
+            <a href="${nextPage.url}" class="nav-btn nav-next" title="Próxima página: ${nextPage.label}">
+                <span class="nav-label">${nextPage.label}</span>
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        `;
+    } else {
+        buttonsHTML += '<div class="nav-btn nav-next disabled" aria-hidden="true"></div>';
+    }
+    
+    buttonsHTML += '</div>';
+    
+    return buttonsHTML;
+}
+
 function createHeader(currentPage = '') {
     const pages = {
         'index': 'Início',
