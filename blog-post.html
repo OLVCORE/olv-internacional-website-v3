@@ -175,7 +175,7 @@
             
             try {
                 // Usar rota relativa (funciona tanto local quanto Vercel)
-                const response = await fetch(`/api/blog/post/${postId}`);
+                const response = await fetch(`/api/blog/post?id=${postId}`);
                 const post = await response.json();
 
                 // Atualizar meta tags

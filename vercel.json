@@ -24,7 +24,7 @@
     "api/blog/posts.js": {
       "maxDuration": 30
     },
-    "api/blog/post/[id].js": {
+    "api/blog/post.js": {
       "maxDuration": 30
     },
     "api/blog/process.js": {

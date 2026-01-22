@@ -152,10 +152,15 @@ const server = http.createServer((req, res) => {
                 }
             }
 
-            // GET /api/blog/post/:id
-            if (req.method === 'GET' && pathname.startsWith('/api/blog/post/')) {
+            // GET /api/blog/post?id=article-123
+            if (req.method === 'GET' && pathname === '/api/blog/post') {
                 try {
-                    const postId = pathname.split('/').pop();
+                    const postId = parsedUrl.query.id;
+                    if (!postId) {
+                        res.writeHead(400, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: 'Post ID required. Use: /api/blog/post?id=article-123' }), 'utf-8');
+                        return;
+                    }
                     blogApi.loadPost(postId).then(post => {
                         if (!post) {
                             res.writeHead(404, { 'Content-Type': 'application/json' });
