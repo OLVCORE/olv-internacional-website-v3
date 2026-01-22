@@ -127,15 +127,30 @@ function createFooter() {
 
 // Função para inicializar componentes na página
 function initComponents(currentPage = '') {
+    // Garantir que o DOM está pronto
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            loadComponents(currentPage);
+        }, { once: true });
+    } else {
+        loadComponents(currentPage);
+    }
+}
+
+function loadComponents(currentPage = '') {
     const headerPlaceholder = document.getElementById('header-placeholder');
     const footerPlaceholder = document.getElementById('footer-placeholder');
     
     if (headerPlaceholder) {
         headerPlaceholder.innerHTML = createHeader(currentPage);
+    } else {
+        console.warn('⚠️ header-placeholder não encontrado na página');
     }
     
     if (footerPlaceholder) {
         footerPlaceholder.innerHTML = createFooter();
+    } else {
+        console.warn('⚠️ footer-placeholder não encontrado na página');
     }
     
     // Re-initialize theme toggle after header is loaded (otimizado)
@@ -151,4 +166,14 @@ function initComponents(currentPage = '') {
             initAccordions();
         }
     });
+}
+
+// Auto-inicializar se o script foi carregado após o DOM estar pronto
+if (document.readyState !== 'loading') {
+    // Se já estiver pronto, tentar carregar se houver placeholder
+    const headerPlaceholder = document.getElementById('header-placeholder');
+    if (headerPlaceholder && !headerPlaceholder.innerHTML.trim()) {
+        // Se o placeholder existe mas está vazio, tentar carregar
+        // Isso será sobrescrito quando initComponents() for chamado explicitamente
+    }
 }

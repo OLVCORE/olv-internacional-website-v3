@@ -118,10 +118,23 @@
     <script src="components.js" defer></script>
     <script src="script.js" defer></script>
     <script>
-        initComponents('contato');
-        setTimeout(function() {
-            if (typeof initAccordions === 'function') initAccordions();
-        }, 200);
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof initComponents === 'function') {
+                    initComponents('contato');
+                }
+            });
+        } else {
+            if (typeof initComponents === 'function') {
+                initComponents('contato');
+            } else {
+                window.addEventListener('load', function() {
+                    if (typeof initComponents === 'function') {
+                        initComponents('contato');
+                    }
+                });
+            }
+        }
     </script>
 </body>
 </html>

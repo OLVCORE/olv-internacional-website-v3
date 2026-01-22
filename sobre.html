@@ -392,10 +392,24 @@
     <script src="components.js" defer></script>
     <script src="script.js" defer></script>
     <script>
-        initComponents('sobre');
-        requestAnimationFrame(function() {
-            if (typeof initAccordions === 'function') initAccordions();
-        });
+        // Garantir que initComponents seja chamado após todos os scripts carregarem
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof initComponents === 'function') {
+                    initComponents('sobre');
+                }
+            });
+        } else {
+            if (typeof initComponents === 'function') {
+                initComponents('sobre');
+            } else {
+                window.addEventListener('load', function() {
+                    if (typeof initComponents === 'function') {
+                        initComponents('sobre');
+                    }
+                });
+            }
+        }
     </script>
 </body>
 </html>

@@ -232,10 +232,23 @@
     <script src="components.js" defer></script>
     <script src="script.js" defer></script>
     <script>
-        initComponents('metodo');
-        setTimeout(function() {
-            if (typeof initAccordions === 'function') initAccordions();
-        }, 200);
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof initComponents === 'function') {
+                    initComponents('metodo');
+                }
+            });
+        } else {
+            if (typeof initComponents === 'function') {
+                initComponents('metodo');
+            } else {
+                window.addEventListener('load', function() {
+                    if (typeof initComponents === 'function') {
+                        initComponents('metodo');
+                    }
+                });
+            }
+        }
     </script>
 </body>
 </html>
