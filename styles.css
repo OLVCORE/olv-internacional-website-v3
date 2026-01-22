@@ -1456,24 +1456,29 @@ section {
     width: 4px;
     background: transparent;
     transition: all 0.2s ease;
+    opacity: 0.9;
 }
 
-/* Light theme gradients */
+/* Light theme gradients - padrão corporativo */
 .card-accordion {
     background: linear-gradient(to right, rgba(248, 250, 252, 0.5), rgba(241, 245, 249, 0.3));
+    border-left: 4px solid transparent;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: all 0.2s ease;
 }
 
 [data-theme="dark"] .card-accordion {
     background: linear-gradient(to right, rgba(15, 23, 42, 0.4), rgba(30, 41, 59, 0.2));
 }
 
-/* Card color variants - Emerald (verde) */
+/* Card color variants - Emerald (verde) - Padrão Corporativo */
 .card-emerald::before {
-    background: rgba(16, 185, 129, 0.9);
+    background: rgba(5, 150, 105, 0.9); /* emerald-600/90 */
 }
 
 .card-emerald {
     background: linear-gradient(to right, rgba(248, 250, 252, 0.5), rgba(241, 245, 249, 0.3));
+    border-left-color: rgba(5, 150, 105, 0.9);
 }
 
 [data-theme="dark"] .card-emerald {
@@ -1482,8 +1487,8 @@ section {
 
 .card-emerald:hover {
     background: linear-gradient(to right, rgba(236, 253, 245, 0.6), rgba(209, 250, 229, 0.4));
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
 }
 
 [data-theme="dark"] .card-emerald:hover {
@@ -1491,29 +1496,30 @@ section {
 }
 
 .card-emerald .card-header h3 {
-    color: #065f46;
+    color: #065f46; /* emerald-800 */
     font-weight: 600;
 }
 
 [data-theme="dark"] .card-emerald .card-header h3 {
-    color: #d1fae5;
+    color: #d1fae5; /* emerald-100 */
 }
 
 .card-emerald .accordion-icon {
-    color: #059669;
+    color: #059669; /* emerald-600 */
 }
 
 [data-theme="dark"] .card-emerald .accordion-icon {
-    color: #34d399;
+    color: #34d399; /* emerald-400 */
 }
 
-/* Card color variants - Rose (vermelho) */
+/* Card color variants - Rose (vermelho) - Padrão Corporativo */
 .card-rose::before {
-    background: rgba(244, 63, 94, 0.9);
+    background: rgba(225, 29, 72, 0.9); /* rose-600/90 */
 }
 
 .card-rose {
     background: linear-gradient(to right, rgba(248, 250, 252, 0.5), rgba(241, 245, 249, 0.3));
+    border-left-color: rgba(225, 29, 72, 0.9);
 }
 
 [data-theme="dark"] .card-rose {
@@ -1522,8 +1528,8 @@ section {
 
 .card-rose:hover {
     background: linear-gradient(to right, rgba(255, 241, 242, 0.6), rgba(254, 226, 226, 0.4));
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
 }
 
 [data-theme="dark"] .card-rose:hover {
@@ -1531,29 +1537,30 @@ section {
 }
 
 .card-rose .card-header h3 {
-    color: #9f1239;
+    color: #9f1239; /* rose-800 */
     font-weight: 600;
 }
 
 [data-theme="dark"] .card-rose .card-header h3 {
-    color: #ffe4e6;
+    color: #ffe4e6; /* rose-100 */
 }
 
 .card-rose .accordion-icon {
-    color: #e11d48;
+    color: #e11d48; /* rose-600 */
 }
 
 [data-theme="dark"] .card-rose .accordion-icon {
-    color: #fb7185;
+    color: #fb7185; /* rose-400 */
 }
 
-/* Card color variants - Sky (azul) */
+/* Card color variants - Sky (azul) - Padrão Corporativo */
 .card-sky::before {
-    background: rgba(14, 165, 233, 0.9);
+    background: rgba(2, 132, 199, 0.9); /* sky-600/90 */
 }
 
 .card-sky {
     background: linear-gradient(to right, rgba(248, 250, 252, 0.5), rgba(241, 245, 249, 0.3));
+    border-left-color: rgba(2, 132, 199, 0.9);
 }
 
 [data-theme="dark"] .card-sky {
@@ -1562,8 +1569,8 @@ section {
 
 .card-sky:hover {
     background: linear-gradient(to right, rgba(240, 249, 255, 0.6), rgba(224, 242, 254, 0.4));
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
 }
 
 [data-theme="dark"] .card-sky:hover {
@@ -1571,29 +1578,30 @@ section {
 }
 
 .card-sky .card-header h3 {
-    color: #0c4a6e;
+    color: #0c4a6e; /* sky-800 */
     font-weight: 600;
 }
 
 [data-theme="dark"] .card-sky .card-header h3 {
-    color: #e0f2fe;
+    color: #e0f2fe; /* sky-100 */
 }
 
 .card-sky .accordion-icon {
-    color: #0284c7;
+    color: #0284c7; /* sky-600 */
 }
 
 [data-theme="dark"] .card-sky .accordion-icon {
-    color: #38bdf8;
+    color: #38bdf8; /* sky-400 */
 }
 
-/* Card color variants - Orange (laranja) */
+/* Card color variants - Orange (laranja) - Padrão Corporativo */
 .card-orange::before {
-    background: rgba(249, 115, 22, 0.9);
+    background: rgba(234, 88, 12, 0.9); /* orange-600/90 */
 }
 
 .card-orange {
     background: linear-gradient(to right, rgba(248, 250, 252, 0.5), rgba(241, 245, 249, 0.3));
+    border-left-color: rgba(234, 88, 12, 0.9);
 }
 
 [data-theme="dark"] .card-orange {
@@ -1602,8 +1610,8 @@ section {
 
 .card-orange:hover {
     background: linear-gradient(to right, rgba(255, 247, 237, 0.6), rgba(255, 237, 213, 0.4));
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
 }
 
 [data-theme="dark"] .card-orange:hover {
@@ -1611,29 +1619,30 @@ section {
 }
 
 .card-orange .card-header h3 {
-    color: #9a3412;
+    color: #9a3412; /* orange-800 */
     font-weight: 600;
 }
 
 [data-theme="dark"] .card-orange .card-header h3 {
-    color: #ffedd5;
+    color: #ffedd5; /* orange-100 */
 }
 
 .card-orange .accordion-icon {
-    color: #ea580c;
+    color: #ea580c; /* orange-600 */
 }
 
 [data-theme="dark"] .card-orange .accordion-icon {
-    color: #fb923c;
+    color: #fb923c; /* orange-400 */
 }
 
-/* Card color variants - Indigo (roxo escuro) */
+/* Card color variants - Indigo (roxo escuro) - Padrão Corporativo */
 .card-indigo::before {
-    background: rgba(99, 102, 241, 0.9);
+    background: rgba(79, 70, 229, 0.9); /* indigo-600/90 */
 }
 
 .card-indigo {
     background: linear-gradient(to right, rgba(248, 250, 252, 0.5), rgba(241, 245, 249, 0.3));
+    border-left-color: rgba(79, 70, 229, 0.9);
 }
 
 [data-theme="dark"] .card-indigo {
@@ -1642,8 +1651,8 @@ section {
 
 .card-indigo:hover {
     background: linear-gradient(to right, rgba(238, 242, 255, 0.6), rgba(224, 231, 255, 0.4));
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
 }
 
 [data-theme="dark"] .card-indigo:hover {
@@ -1651,20 +1660,20 @@ section {
 }
 
 .card-indigo .card-header h3 {
-    color: #3730a3;
+    color: #3730a3; /* indigo-800 */
     font-weight: 600;
 }
 
 [data-theme="dark"] .card-indigo .card-header h3 {
-    color: #e0e7ff;
+    color: #e0e7ff; /* indigo-100 */
 }
 
 .card-indigo .accordion-icon {
-    color: #4f46e5;
+    color: #4f46e5; /* indigo-600 */
 }
 
 [data-theme="dark"] .card-indigo .accordion-icon {
-    color: #818cf8;
+    color: #818cf8; /* indigo-400 */
 }
 
 /* Card color variants - Purple (roxo) */
@@ -2083,97 +2092,135 @@ section {
     justify-content: center;
     width: 48px;
     height: 48px;
-    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+    background: var(--accent-primary);
     color: white;
     border-radius: 50%;
     font-size: 0;
     font-weight: 700;
     margin-right: 16px;
     box-shadow: 0 4px 12px rgba(0, 102, 204, 0.25);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s ease;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     flex-shrink: 0;
-}
-
-.step-number::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, transparent 50%);
-    border-radius: 50%;
-    pointer-events: none;
-    transition: transform 0.6s ease;
-}
-
-.step-number:hover::before {
-    transform: rotate(180deg);
 }
 
 .step-number i {
     font-size: 20px;
     z-index: 1;
     position: relative;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    display: block;
+    color: inherit;
 }
 
 .step-number:hover {
-    transform: scale(1.15) rotate(5deg);
+    transform: scale(1.1);
     box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
 }
 
-/* Step numbers com cores dos cards e gradientes elegantes */
+/* Step numbers com cores corporativas e ícones */
+/* Emerald (verde) */
 .card-emerald .step-number {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: #10b981;
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.card-emerald .step-number i {
+    color: #047857;
+}
+
+[data-theme="dark"] .card-emerald .step-number i {
+    color: #34d399;
 }
 
 .card-emerald .step-number:hover {
     box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
 }
 
+/* Rose (vermelho) */
 .card-rose .step-number {
-    background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+    background: #f43f5e;
     box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);
+}
+
+.card-rose .step-number i {
+    color: #be123c;
+}
+
+[data-theme="dark"] .card-rose .step-number i {
+    color: #fb7185;
 }
 
 .card-rose .step-number:hover {
     box-shadow: 0 6px 20px rgba(244, 63, 94, 0.4);
 }
 
+/* Sky (azul) */
 .card-sky .step-number {
-    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    background: #0ea5e9;
     box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+}
+
+.card-sky .step-number i {
+    color: #0369a1;
+}
+
+[data-theme="dark"] .card-sky .step-number i {
+    color: #38bdf8;
 }
 
 .card-sky .step-number:hover {
     box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
 }
 
+/* Orange (laranja) */
 .card-orange .step-number {
-    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    background: #f97316;
     box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+
+.card-orange .step-number i {
+    color: #c2410c;
+}
+
+[data-theme="dark"] .card-orange .step-number i {
+    color: #fb923c;
 }
 
 .card-orange .step-number:hover {
     box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
 }
 
+/* Indigo (roxo escuro) */
 .card-indigo .step-number {
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    background: #6366f1;
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.card-indigo .step-number i {
+    color: #4338ca;
+}
+
+[data-theme="dark"] .card-indigo .step-number i {
+    color: #818cf8;
 }
 
 .card-indigo .step-number:hover {
     box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
 }
 
+/* Purple (roxo) */
 .card-purple .step-number {
-    background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+    background: #a855f7;
     box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+}
+
+.card-purple .step-number i {
+    color: #7e22ce;
+}
+
+[data-theme="dark"] .card-purple .step-number i {
+    color: #a78bfa;
 }
 
 .card-purple .step-number:hover {
