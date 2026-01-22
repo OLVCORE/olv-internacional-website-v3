@@ -544,10 +544,30 @@ function initAccordions() {
             })
             .catch(error => {
                 console.error('Error:', error);
-                // Fallback: open email client
+                // Fallback: open email client com formato legível
                 const emailSubject = encodeURIComponent(`Relatório de Aderência OLV - ${data.empresa}`);
-                const emailBody = encodeURIComponent(JSON.stringify(report, null, 2));
-                window.location.href = `mailto:contato@olvinternacional.com.br?subject=${emailSubject}&body=${emailBody}`;
+                
+                // Formatar email de forma legível e profissional
+                let emailBodyText = `RELATÓRIO DE ADERÊNCIA - OLV INTERNACIONAL\n\n`;
+                emailBodyText += `DADOS DO CLIENTE:\n`;
+                emailBodyText += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+                emailBodyText += `Nome: ${data.nome}\n`;
+                emailBodyText += `Empresa: ${data.empresa}\n`;
+                emailBodyText += `Email: ${data.email}\n`;
+                emailBodyText += `Telefone: ${data.telefone}\n\n`;
+                emailBodyText += `NÍVEL DE ADERÊNCIA: ${adherence}%\n\n`;
+                emailBodyText += `ITENS IDENTIFICADOS (${selectedItems.length}):\n`;
+                emailBodyText += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+                selectedItems.forEach((item, index) => {
+                    emailBodyText += `${index + 1}. ${item.label}\n`;
+                });
+                emailBodyText += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+                emailBodyText += `Data/Hora: ${new Date().toLocaleString('pt-BR')}\n\n`;
+                emailBodyText += `Este relatório foi gerado automaticamente pelo sistema de diagnóstico OLV Internacional.\n`;
+                emailBodyText += `Para mais informações, entre em contato: consultores@olvinternacional.com.br`;
+                
+                const emailBody = encodeURIComponent(emailBodyText);
+                window.location.href = `mailto:consultores@olvinternacional.com.br?subject=${emailSubject}&body=${emailBody}`;
                 alert(`Obrigado, ${data.nome}! Seu relatório de aderência (${adherence}%) foi preparado. Um email foi aberto para envio.`);
                 modal.classList.remove('active');
                 document.body.style.overflow = '';
