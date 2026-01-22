@@ -547,8 +547,7 @@ Data: ${new Date().toLocaleString('pt-BR')}
             return;
         }
         
-        // Parse URL
-        const parsedUrl = url.parse(req.url, true);
+        // Parse URL (já foi feito acima, reutilizar)
         let pathname = parsedUrl.pathname;
         
         // Default to index.html for root
