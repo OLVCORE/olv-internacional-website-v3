@@ -1747,6 +1747,18 @@ section {
     flex: 1;
 }
 
+.card-header h3 .step-number {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.card-header h3 .step-number i {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
 /* Título destacado com gradiente para cards longos */
 .card-accordion.card-long-content .card-header {
     background: linear-gradient(135deg, rgba(0, 102, 204, 0.08) 0%, rgba(0, 102, 204, 0.03) 100%);
@@ -2093,6 +2105,8 @@ section {
     justify-content: center;
     width: auto;
     height: auto;
+    min-width: 32px;
+    min-height: 32px;
     background: transparent;
     border: none;
     border-radius: 0;
@@ -2105,19 +2119,22 @@ section {
     overflow: visible;
     flex-shrink: 0;
     line-height: 0;
+    vertical-align: middle;
 }
 
 .step-number i {
     font-size: 32px !important;
     z-index: 2;
     position: relative;
-    display: block !important;
+    display: inline-block !important;
     color: var(--accent-primary) !important;
     line-height: 1 !important;
-    width: auto;
-    height: auto;
+    width: 32px !important;
+    height: 32px !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .step-number:hover i {
