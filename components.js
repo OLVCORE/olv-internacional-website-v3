@@ -127,6 +127,7 @@ function createFooter() {
                         <ul>
                             <li><a href="index.html">Início</a></li>
                             <li><a href="sobre.html">Sobre</a></li>
+                            <li><a href="inteligencia-global.html">Inteligência Global</a></li>
                             <li><a href="importacao.html">Importação</a></li>
                             <li><a href="exportacao.html">Exportação</a></li>
                             <li><a href="supply-chain.html">Supply Chain</a></li>
