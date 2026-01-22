@@ -201,6 +201,82 @@ function initAccordions() {
     const modal = document.getElementById('checklistModal');
     const modalClose = document.querySelector('.modal-close');
     const checklistForm = document.getElementById('checklistForm');
+    const checklistSection = document.querySelector('.diagnostico');
+    
+    // Função para tornar o botão flutuante quando o usuário scrollar
+    function makeButtonFloating() {
+        if (!submitBtn || !checklistSection) return;
+        
+        const originalPosition = submitBtn.getBoundingClientRect();
+        let isFloating = false;
+        let hasCheckedItem = false;
+        
+        // Verificar se há pelo menos um checkbox marcado
+        function checkHasCheckedItems() {
+            hasCheckedItem = Array.from(checkboxes).some(cb => cb.checked);
+            updateButtonVisibility();
+        }
+        
+        // Atualizar visibilidade do botão flutuante
+        function updateButtonVisibility() {
+            if (hasCheckedItem && isFloating) {
+                submitBtn.classList.add('floating');
+            } else if (!isFloating) {
+                submitBtn.classList.remove('floating');
+            }
+        }
+        
+        // Listener para scroll
+        function handleScroll() {
+            if (!checklistSection) return;
+            
+            const sectionTop = checklistSection.getBoundingClientRect().top;
+            const sectionBottom = checklistSection.getBoundingClientRect().bottom;
+            const viewportHeight = window.innerHeight;
+            
+            // Se a seção está visível e o usuário scrollou além do botão original
+            if (sectionTop < viewportHeight && sectionBottom > 0) {
+                const buttonTop = originalPosition.top + window.scrollY;
+                const currentScroll = window.scrollY + viewportHeight;
+                
+                // Tornar flutuante se scrollou além do botão original E há checkbox marcado
+                if (currentScroll > buttonTop + 100 && hasCheckedItem) {
+                    if (!isFloating) {
+                        isFloating = true;
+                        submitBtn.classList.add('floating');
+                    }
+                } else {
+                    if (isFloating) {
+                        isFloating = false;
+                        submitBtn.classList.remove('floating');
+                    }
+                }
+            } else {
+                // Se a seção não está visível, remover flutuante
+                if (isFloating) {
+                    isFloating = false;
+                    submitBtn.classList.remove('floating');
+                }
+            }
+        }
+        
+        // Verificar checkboxes inicialmente e quando mudarem
+        checkHasCheckedItems();
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', checkHasCheckedItems);
+        });
+        
+        // Listener de scroll
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        handleScroll(); // Verificar posição inicial
+    }
+    
+    // Inicializar botão flutuante quando o DOM estiver pronto
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', makeButtonFloating);
+    } else {
+        makeButtonFloating();
+    }
     
     // Total possible score (all items checked)
     const maxScore = Array.from(checkboxes).reduce((sum, cb) => {
@@ -564,8 +640,11 @@ function initAccordions() {
             }
             
             // Preparar dados para o template EmailJS
+            // IMPORTANTE: O template no EmailJS deve ter "To Email" configurado como: consultores@olvinternacional.com.br
+            // OU usar a variável {{to_email}} no campo "To Email" do template
             const templateParams = {
                 to_email: 'consultores@olvinternacional.com.br',
+                reply_to: data.email, // Email para resposta
                 from_name: data.nome,
                 from_email: data.email,
                 from_phone: data.telefone,

@@ -1991,6 +1991,50 @@ section {
     margin-top: 32px;
 }
 
+/* Botão flutuante para checklist */
+#checklistSubmitBtn {
+    transition: all 0.3s ease;
+}
+
+#checklistSubmitBtn.floating {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    box-shadow: 0 8px 24px rgba(0, 102, 204, 0.4);
+    animation: floatPulse 2s ease-in-out infinite;
+    min-width: auto;
+    padding: 16px 24px;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+#checklistSubmitBtn.floating:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 12px 32px rgba(0, 102, 204, 0.5);
+}
+
+@keyframes floatPulse {
+    0%, 100% {
+        box-shadow: 0 8px 24px rgba(0, 102, 204, 0.4);
+    }
+    50% {
+        box-shadow: 0 12px 32px rgba(0, 102, 204, 0.6);
+    }
+}
+
+@media (max-width: 768px) {
+    #checklistSubmitBtn.floating {
+        bottom: 16px;
+        right: 16px;
+        left: 16px;
+        width: auto;
+        padding: 14px 20px;
+        font-size: 14px;
+    }
+}
+
 /* ============================================
    SUPPLY CHAIN IMPACT SECTION
    ============================================ */
