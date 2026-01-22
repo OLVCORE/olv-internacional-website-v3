@@ -42,16 +42,36 @@ if (nodemailer) {
     
     // Criar transporter de email (será inicializado se configurado)
     try {
-        if (EMAIL_CONFIG.auth.user && EMAIL_CONFIG.auth.pass && EMAIL_CONFIG.auth.pass !== '') {
+        // Verificar se as credenciais estão configuradas
+        const hasCredentials = EMAIL_CONFIG.auth.user && EMAIL_CONFIG.auth.pass && EMAIL_CONFIG.auth.pass !== '';
+        
+        if (hasCredentials) {
             emailTransporter = nodemailer.createTransport(EMAIL_CONFIG);
             console.log('✅ Email transporter configurado');
+            console.log('   Host:', EMAIL_CONFIG.host);
+            console.log('   Port:', EMAIL_CONFIG.port);
+            console.log('   User:', EMAIL_CONFIG.auth.user);
+            console.log('   Secure:', EMAIL_CONFIG.secure);
+            
+            // Testar conexão SMTP
+            emailTransporter.verify(function(error, success) {
+                if (error) {
+                    console.log('⚠️  Erro ao verificar conexão SMTP:', error.message);
+                    console.log('   Verifique as credenciais no arquivo .env');
+                } else {
+                    console.log('✅ Conexão SMTP verificada com sucesso');
+                }
+            });
         } else {
             console.log('⚠️  Email não configurado - usando apenas salvamento em arquivo');
             console.log('   Configure SMTP_USER e SMTP_PASS no arquivo .env');
             console.log('   Veja email-config.md para instruções');
+            console.log('   SMTP_USER atual:', EMAIL_CONFIG.auth.user || 'não definido');
+            console.log('   SMTP_PASS definido:', EMAIL_CONFIG.auth.pass ? 'sim' : 'não');
         }
     } catch (err) {
         console.log('⚠️  Erro ao configurar email:', err.message);
+        console.log('   Detalhes:', err);
     }
 } else {
     console.log('⚠️  nodemailer não disponível - usando apenas salvamento em arquivo');
@@ -210,12 +230,18 @@ Data: ${new Date().toLocaleString('pt-BR')}
                             }
                         };
                         
+                        console.log('\n📧 Tentando enviar email de contato...');
+                        console.log('   De:', emailUser);
+                        console.log('   Para:', receiveEmail);
+                        console.log('   Cliente:', data.nome, `(${data.empresa})`);
+                        
                         emailTransporter.sendMail(mailOptions)
                             .then(info => {
                                 console.log('✅ Email de contato enviado:', info.messageId);
                                 console.log('📧 Para:', receiveEmail);
                                 console.log('📧 De:', data.email);
                                 console.log('📧 Assunto:', mailOptions.subject);
+                                console.log('📧 Resposta do servidor:', info.response || 'N/A');
                                 
                                 // Resposta de sucesso APÓS email enviado
                                 res.writeHead(200, { 
@@ -229,12 +255,12 @@ Data: ${new Date().toLocaleString('pt-BR')}
                                 }), 'utf-8');
                             })
                             .catch(error => {
-                                console.error('❌ Erro ao enviar email de contato:', error.message);
-                                console.error('❌ Detalhes completos:', error);
-                                console.error('❌ Código do erro:', error.code);
-                                if (error.command) {
-                                    console.error('❌ Comando SMTP:', error.command);
-                                }
+                                console.error('\n❌ ERRO AO ENVIAR EMAIL DE CONTATO:');
+                                console.error('   Mensagem:', error.message);
+                                console.error('   Código:', error.code);
+                                console.error('   Comando:', error.command || 'N/A');
+                                console.error('   Resposta:', error.response || 'N/A');
+                                console.error('   Detalhes completos:', error);
                                 
                                 // Mesmo com erro no email, retornar sucesso (dados foram recebidos)
                                 res.writeHead(200, { 
