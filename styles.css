@@ -1729,27 +1729,49 @@ section {
     .card-accordion.card-long-content[aria-expanded="true"] .card-content {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 32px;
+        gap: 0;
         align-items: start;
         column-gap: 40px;
+        row-gap: 0;
     }
     
     /* Primeiro parágrafo ocupa toda a largura */
     .card-accordion.card-long-content[aria-expanded="true"] .card-content > p:first-of-type {
         grid-column: 1 / -1;
-        margin-bottom: 0;
+        margin-bottom: 0 !important;
         padding-bottom: 24px;
         border-bottom: 1px solid var(--border-color);
     }
     
-    /* Seções com subtítulos ocupam coluna inteira */
-    .card-accordion.card-long-content[aria-expanded="true"] .card-content > p:has(+ p > strong) {
+    /* Subtítulos (strong) ocupam coluna inteira e começam nova linha */
+    .card-accordion.card-long-content[aria-expanded="true"] .card-content > strong {
         grid-column: 1 / -1;
+        margin-top: 24px !important;
+        margin-bottom: 10px !important;
     }
     
-    /* Agrupar parágrafos relacionados em colunas */
+    /* Parágrafos após subtítulos se distribuem nas colunas */
     .card-accordion.card-long-content[aria-expanded="true"] .card-content > p:not(:first-of-type) {
         break-inside: avoid;
+        page-break-inside: avoid;
+    }
+    
+    /* Agrupar seções: parágrafo após strong vai para coluna 1 */
+    .card-accordion.card-long-content[aria-expanded="true"] .card-content > strong + p {
+        grid-column: 1;
+    }
+    
+    /* Próximos parágrafos alternam entre colunas */
+    .card-accordion.card-long-content[aria-expanded="true"] .card-content > strong + p + p {
+        grid-column: 2;
+    }
+    
+    .card-accordion.card-long-content[aria-expanded="true"] .card-content > strong + p + p + p {
+        grid-column: 1;
+    }
+    
+    .card-accordion.card-long-content[aria-expanded="true"] .card-content > strong + p + p + p + p {
+        grid-column: 2;
     }
 }
 
