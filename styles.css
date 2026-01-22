@@ -2104,15 +2104,18 @@ section {
     position: relative;
     overflow: visible;
     flex-shrink: 0;
+    line-height: 0;
 }
 
 .step-number i {
     font-size: 20px !important;
     z-index: 1;
     position: relative;
-    display: inline-block !important;
+    display: block !important;
     color: white !important;
-    line-height: 1;
+    line-height: 1 !important;
+    width: 20px;
+    height: 20px;
 }
 
 .step-number:hover {
