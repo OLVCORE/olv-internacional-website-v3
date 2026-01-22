@@ -2089,13 +2089,29 @@ section {
     
     .card-accordion.card-long-content[aria-expanded="true"] .card-header h3 {
         font-size: 20px;
+        color: var(--text-primary);
+    }
+    
+    .card-accordion.card-long-content[aria-expanded="true"] .card-header h3:not(:has(.step-number)) {
         background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-primary) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
     }
     
+    .card-accordion.card-long-content[aria-expanded="true"] .card-header h3 .step-number,
+    .card-accordion.card-long-content[aria-expanded="true"] .card-header h3 .step-number i {
+        -webkit-text-fill-color: initial !important;
+        background: none !important;
+        -webkit-background-clip: initial !important;
+        background-clip: initial !important;
+    }
+    
     [data-theme="dark"] .card-accordion.card-long-content[aria-expanded="true"] .card-header h3 {
+        color: #ffffff;
+    }
+    
+    [data-theme="dark"] .card-accordion.card-long-content[aria-expanded="true"] .card-header h3:not(:has(.step-number)) {
         background: linear-gradient(135deg, #ffffff 0%, var(--accent-primary) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
