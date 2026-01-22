@@ -2176,6 +2176,15 @@ section {
     vertical-align: middle !important;
 }
 
+/* Garantir que o ícone dentro do step-number tenha font-size próprio */
+.step-number:has(i) {
+    font-size: 0 !important;
+}
+
+.step-number:has(i) i {
+    font-size: 32px !important;
+}
+
 /* REGRA MÁXIMA PARA GARANTIR VISIBILIDADE DOS ÍCONES */
 .step-number i,
 .card-header h3 .step-number i,
