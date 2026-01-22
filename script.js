@@ -1063,7 +1063,13 @@ document.addEventListener('click', function(e) {
             })
             .finally(() => {
                 submitBtn.disabled = false;
-                submitBtn.textContent = originalText;
+                submitBtn.innerHTML = originalText;
+                
+                // Resetar progresso
+                if (formProgress && progressFill && progressText) {
+                    formProgress.style.display = 'none';
+                    progressFill.style.width = '0%';
+                }
             });
         });
     }
