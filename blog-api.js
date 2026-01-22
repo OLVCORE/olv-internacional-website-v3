@@ -3,6 +3,9 @@ const axios = require('axios');
 const fs = require('fs').promises;
 const path = require('path');
 
+// Detectar se está rodando no Vercel
+const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
+
 // Configuração de APIs
 const API_CONFIG = {
     comexstat: {
@@ -27,15 +30,30 @@ const API_CONFIG = {
 };
 
 // Diretório para armazenar artigos gerados
-const BLOG_DATA_DIR = path.join(__dirname, 'blog-data');
+// No Vercel, usar /tmp (único diretório gravável)
+const BLOG_DATA_DIR = isVercel 
+    ? '/tmp/blog-data' 
+    : path.join(__dirname, 'blog-data');
 const POSTS_FILE = path.join(BLOG_DATA_DIR, 'posts.json');
 
 // Garantir que o diretório existe
 async function ensureBlogDataDir() {
     try {
         await fs.mkdir(BLOG_DATA_DIR, { recursive: true });
+        // Verificar se consegue escrever (teste de permissão)
+        const testFile = path.join(BLOG_DATA_DIR, '.test');
+        try {
+            await fs.writeFile(testFile, 'test', 'utf8');
+            await fs.unlink(testFile);
+        } catch (writeError) {
+            console.warn('Aviso: Diretório pode não ter permissão de escrita:', writeError.message);
+        }
     } catch (error) {
         console.error('Erro ao criar diretório blog-data:', error);
+        // No Vercel, se /tmp não funcionar, usar diretório alternativo
+        if (isVercel && error.code === 'EACCES') {
+            console.warn('Usando diretório alternativo no Vercel');
+        }
     }
 }
 
