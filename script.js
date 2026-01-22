@@ -531,7 +531,7 @@ function initAccordions() {
             // ============================================
             const EMAILJS_CONFIG = {
                 serviceId: 'service_kwstqkk', // ✅ Service ID configurado
-                templateId: 'COLE_AQUI_O_TEMPLATE_ID_ADERENCIA', // Exemplo: 'template_xyz789abc'
+                templateId: 'template_ybtzkne', // ✅ Template ID Relatório de Aderência configurado
                 publicKey: 'V9ZQTo5rB4dcZ-oJ3' // ✅ Public Key configurada
             };
             
@@ -770,7 +770,7 @@ document.addEventListener('click', function(e) {
             // ============================================
             const EMAILJS_CONFIG = {
                 serviceId: 'service_kwstqkk', // ✅ Service ID configurado
-                templateId: 'COLE_AQUI_O_TEMPLATE_ID_CONTATO', // Exemplo: 'template_abc123xyz'
+                templateId: 'template_iigrj2c', // ✅ Template ID Formulário de Contato configurado
                 publicKey: 'V9ZQTo5rB4dcZ-oJ3' // ✅ Public Key configurada
             };
             
