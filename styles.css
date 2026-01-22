@@ -2091,15 +2091,15 @@ section {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 52px;
-    height: 52px;
+    width: auto;
+    height: auto;
     background: transparent;
-    border: 2.5px solid var(--accent-primary);
-    border-radius: 50%;
+    border: none;
+    border-radius: 0;
     font-size: 0;
     font-weight: 700;
-    margin-right: 16px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-right: 20px;
+    box-shadow: none;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: visible;
@@ -2107,217 +2107,127 @@ section {
     line-height: 0;
 }
 
-.step-number::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.step-number:hover::before {
-    opacity: 1;
-}
-
 .step-number i {
-    font-size: 22px !important;
+    font-size: 32px !important;
     z-index: 2;
     position: relative;
     display: block !important;
     color: var(--accent-primary) !important;
     line-height: 1 !important;
-    width: 22px;
-    height: 22px;
-    transition: all 0.3s ease;
-}
-
-.step-number:hover {
-    transform: scale(1.08);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-    border-width: 3px;
+    width: auto;
+    height: auto;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .step-number:hover i {
-    transform: scale(1.1);
+    transform: scale(1.15);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
 }
 
-/* Step numbers com design corporativo sofisticado - Molduras com gradiente */
-/* Cores corporativas neutras e elegantes */
+/* Ícones elegantes e futuristas - Sem círculos */
+/* Design corporativo sofisticado com ícones grandes e destacados */
 
-/* Emerald - Verde corporativo suave */
-.card-emerald .step-number {
-    border-color: #059669;
-    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.15);
-}
-
+/* Emerald - Verde corporativo */
 .card-emerald .step-number i {
     color: #059669 !important;
-}
-
-[data-theme="dark"] .card-emerald .step-number {
-    border-color: #34d399;
-    box-shadow: 0 2px 8px rgba(52, 211, 153, 0.2);
 }
 
 [data-theme="dark"] .card-emerald .step-number i {
     color: #34d399 !important;
 }
 
-.card-emerald .step-number:hover {
-    border-color: #047857;
-    box-shadow: 0 4px 16px rgba(5, 150, 105, 0.25);
+.card-emerald .step-number:hover i {
+    color: #047857 !important;
 }
 
-[data-theme="dark"] .card-emerald .step-number:hover {
-    border-color: #6ee7b7;
-    box-shadow: 0 4px 16px rgba(52, 211, 153, 0.3);
+[data-theme="dark"] .card-emerald .step-number:hover i {
+    color: #6ee7b7 !important;
 }
 
-/* Sky - Azul corporativo profissional */
-.card-sky .step-number {
-    border-color: #0284c7;
-    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15);
-}
-
+/* Sky - Azul corporativo */
 .card-sky .step-number i {
     color: #0284c7 !important;
-}
-
-[data-theme="dark"] .card-sky .step-number {
-    border-color: #38bdf8;
-    box-shadow: 0 2px 8px rgba(56, 189, 248, 0.2);
 }
 
 [data-theme="dark"] .card-sky .step-number i {
     color: #38bdf8 !important;
 }
 
-.card-sky .step-number:hover {
-    border-color: #0369a1;
-    box-shadow: 0 4px 16px rgba(2, 132, 199, 0.25);
+.card-sky .step-number:hover i {
+    color: #0369a1 !important;
 }
 
-[data-theme="dark"] .card-sky .step-number:hover {
-    border-color: #7dd3fc;
-    box-shadow: 0 4px 16px rgba(56, 189, 248, 0.3);
+[data-theme="dark"] .card-sky .step-number:hover i {
+    color: #7dd3fc !important;
 }
 
-/* Indigo - Roxo corporativo elegante */
-.card-indigo .step-number {
-    border-color: #4f46e5;
-    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.15);
-}
-
+/* Indigo - Roxo corporativo */
 .card-indigo .step-number i {
     color: #4f46e5 !important;
-}
-
-[data-theme="dark"] .card-indigo .step-number {
-    border-color: #818cf8;
-    box-shadow: 0 2px 8px rgba(129, 140, 248, 0.2);
 }
 
 [data-theme="dark"] .card-indigo .step-number i {
     color: #818cf8 !important;
 }
 
-.card-indigo .step-number:hover {
-    border-color: #4338ca;
-    box-shadow: 0 4px 16px rgba(79, 70, 229, 0.25);
+.card-indigo .step-number:hover i {
+    color: #4338ca !important;
 }
 
-[data-theme="dark"] .card-indigo .step-number:hover {
-    border-color: #a5b4fc;
-    box-shadow: 0 4px 16px rgba(129, 140, 248, 0.3);
+[data-theme="dark"] .card-indigo .step-number:hover i {
+    color: #a5b4fc !important;
 }
 
 /* Purple - Roxo sofisticado */
-.card-purple .step-number {
-    border-color: #9333ea;
-    box-shadow: 0 2px 8px rgba(147, 51, 234, 0.15);
-}
-
 .card-purple .step-number i {
     color: #9333ea !important;
-}
-
-[data-theme="dark"] .card-purple .step-number {
-    border-color: #a78bfa;
-    box-shadow: 0 2px 8px rgba(167, 139, 250, 0.2);
 }
 
 [data-theme="dark"] .card-purple .step-number i {
     color: #a78bfa !important;
 }
 
-.card-purple .step-number:hover {
-    border-color: #7e22ce;
-    box-shadow: 0 4px 16px rgba(147, 51, 234, 0.25);
+.card-purple .step-number:hover i {
+    color: #7e22ce !important;
 }
 
-[data-theme="dark"] .card-purple .step-number:hover {
-    border-color: #c4b5fd;
-    box-shadow: 0 4px 16px rgba(167, 139, 250, 0.3);
+[data-theme="dark"] .card-purple .step-number:hover i {
+    color: #c4b5fd !important;
 }
 
-/* Orange - Laranja corporativo suave */
-.card-orange .step-number {
-    border-color: #ea580c;
-    box-shadow: 0 2px 8px rgba(234, 88, 12, 0.15);
-}
-
+/* Orange - Laranja corporativo */
 .card-orange .step-number i {
     color: #ea580c !important;
-}
-
-[data-theme="dark"] .card-orange .step-number {
-    border-color: #fb923c;
-    box-shadow: 0 2px 8px rgba(251, 146, 60, 0.2);
 }
 
 [data-theme="dark"] .card-orange .step-number i {
     color: #fb923c !important;
 }
 
-.card-orange .step-number:hover {
-    border-color: #c2410c;
-    box-shadow: 0 4px 16px rgba(234, 88, 12, 0.25);
+.card-orange .step-number:hover i {
+    color: #c2410c !important;
 }
 
-[data-theme="dark"] .card-orange .step-number:hover {
-    border-color: #fdba74;
-    box-shadow: 0 4px 16px rgba(251, 146, 60, 0.3);
+[data-theme="dark"] .card-orange .step-number:hover i {
+    color: #fdba74 !important;
 }
 
-/* Rose - Vermelho corporativo discreto */
-.card-rose .step-number {
-    border-color: #e11d48;
-    box-shadow: 0 2px 8px rgba(225, 29, 72, 0.15);
-}
-
+/* Rose - Vermelho corporativo */
 .card-rose .step-number i {
     color: #e11d48 !important;
-}
-
-[data-theme="dark"] .card-rose .step-number {
-    border-color: #fb7185;
-    box-shadow: 0 2px 8px rgba(251, 113, 133, 0.2);
 }
 
 [data-theme="dark"] .card-rose .step-number i {
     color: #fb7185 !important;
 }
 
-.card-rose .step-number:hover {
-    border-color: #be123c;
-    box-shadow: 0 4px 16px rgba(225, 29, 72, 0.25);
+.card-rose .step-number:hover i {
+    color: #be123c !important;
 }
 
-[data-theme="dark"] .card-rose .step-number:hover {
-    border-color: #fda4af;
-    box-shadow: 0 4px 16px rgba(251, 113, 133, 0.3);
+[data-theme="dark"] .card-rose .step-number:hover i {
+    color: #fda4af !important;
 }
 
 /* ============================================
