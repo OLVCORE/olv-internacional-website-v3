@@ -526,7 +526,20 @@ function initAccordions() {
                 },
                 body: JSON.stringify(report)
             })
-            .then(response => response.json())
+            .then(response => {
+                // Verificar se a resposta é JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    // Se não for JSON, provavelmente é um erro 404 ou HTML
+                    throw new Error(`Servidor retornou ${response.status}: ${response.statusText}. Verifique se o servidor está rodando.`);
+                }
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return response.json();
+            })
             .then(result => {
                 if (result.success) {
                     console.log('✅ Relatório enviado - notificação imediata ativada');
@@ -535,19 +548,27 @@ function initAccordions() {
                     showConfirmationPage(data.nome, data.empresa, adherence, selectedItems);
                     
                     // Close modal and reset
-                    modal.classList.remove('active');
-                    document.body.style.overflow = '';
-                    checklistForm.reset();
+                    if (modal) modal.classList.remove('active');
+                    if (document.body) document.body.style.overflow = '';
+                    if (checklistForm) checklistForm.reset();
                 } else {
                     alert('Erro ao enviar relatório. Por favor, tente novamente.');
+                    if (modal) modal.classList.remove('active');
+                    if (document.body) document.body.style.overflow = '';
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
+                console.error('Detalhes:', error.message);
+                
                 // Não usar fallback de mailto - mostrar mensagem de erro amigável
-                alert(`Desculpe, ${data.nome}. Ocorreu um erro ao enviar seu relatório automaticamente. Por favor, entre em contato diretamente:\n\nEmail: consultores@olvinternacional.com.br\nWhatsApp: +55 11 99924-4444\n\nNossa equipe está pronta para ajudar!`);
-                modal.classList.remove('active');
-                document.body.style.overflow = '';
+                const errorMessage = error.message && error.message.includes('Servidor retornou') 
+                    ? `O servidor não está respondendo corretamente. Por favor, verifique se o servidor está rodando (npm start) e tente novamente.\n\nSe o problema persistir, entre em contato diretamente:\n\nEmail: consultores@olvinternacional.com.br\nWhatsApp: +55 11 99924-4444`
+                    : `Desculpe, ${data.nome}. Ocorreu um erro ao enviar seu relatório automaticamente. Por favor, entre em contato diretamente:\n\nEmail: consultores@olvinternacional.com.br\nWhatsApp: +55 11 99924-4444\n\nNossa equipe está pronta para ajudar!`;
+                
+                alert(errorMessage);
+                if (modal) modal.classList.remove('active');
+                if (document.body) document.body.style.overflow = '';
             });
             
             // Optionally reset checkboxes
@@ -751,15 +772,19 @@ document.addEventListener('click', function(e) {
 // ============================================
 (function() {
     const header = document.querySelector('.header');
+    if (!header) return; // Se header não existe, não fazer nada
+    
     let lastScroll = 0;
     
     window.addEventListener('scroll', function() {
         const currentScroll = window.pageYOffset;
         
-        if (currentScroll > 100) {
-            header.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
-        } else {
-            header.style.boxShadow = 'none';
+        if (header) { // Verificação adicional
+            if (currentScroll > 100) {
+                header.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
+            } else {
+                header.style.boxShadow = 'none';
+            }
         }
         
         lastScroll = currentScroll;
