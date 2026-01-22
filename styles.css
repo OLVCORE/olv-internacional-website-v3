@@ -2176,7 +2176,11 @@ section {
     vertical-align: middle !important;
 }
 
-.step-number i {
+/* REGRA MÁXIMA PARA GARANTIR VISIBILIDADE DOS ÍCONES */
+.step-number i,
+.card-header h3 .step-number i,
+.card-accordion .card-header h3 .step-number i,
+.card-accordion.card-long-content .card-header h3 .step-number i {
     font-size: 32px !important;
     z-index: 10 !important;
     position: relative !important;
@@ -2198,6 +2202,9 @@ section {
     background: none !important;
     -webkit-background-clip: initial !important;
     background-clip: initial !important;
+    text-decoration: none !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
 }
 
 .step-number:hover i {
