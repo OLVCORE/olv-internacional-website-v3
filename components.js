@@ -6,6 +6,7 @@
 const pageOrder = [
     { key: 'index', label: 'Início', url: 'index.html' },
     { key: 'sobre', label: 'Sobre', url: 'sobre.html' },
+    { key: 'inteligencia-global', label: 'Inteligência Global', url: 'inteligencia-global.html' },
     { key: 'importacao', label: 'Importação', url: 'importacao.html' },
     { key: 'exportacao', label: 'Exportação', url: 'exportacao.html' },
     { key: 'supply-chain', label: 'Supply Chain', url: 'supply-chain.html' },
@@ -57,6 +58,7 @@ function createHeader(currentPage = '') {
     const pages = {
         'index': 'Início',
         'sobre': 'Sobre',
+        'inteligencia-global': 'Inteligência Global',
         'importacao': 'Importação',
         'exportacao': 'Exportação',
         'supply-chain': 'Supply Chain',
