@@ -78,4 +78,26 @@
         <priority>0.3</priority>
     </url>
     
+    <!-- Landing Pages para Google Ads -->
+    <url>
+        <loc>https://www.olvinternacional.com.br/importacao-gratis.html</loc>
+        <lastmod>2026-01-22</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
+        <loc>https://www.olvinternacional.com.br/exportacao-gratis.html</loc>
+        <lastmod>2026-01-22</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    
+    <url>
+        <loc>https://www.olvinternacional.com.br/diagnostico-gratis.html</loc>
+        <lastmod>2026-01-22</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    
 </urlset>
