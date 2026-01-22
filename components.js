@@ -12,6 +12,7 @@ const pageOrder = [
     { key: 'supply-chain', label: 'Supply Chain', url: 'supply-chain.html' },
     { key: 'governanca', label: 'Governança', url: 'governanca.html' },
     { key: 'metodo', label: 'Método', url: 'metodo.html' },
+    { key: 'blog', label: 'Blog', url: 'blog.html' },
     { key: 'contato', label: 'Contato', url: 'contato.html' }
 ];
 
@@ -64,6 +65,7 @@ function createHeader(currentPage = '') {
         'supply-chain': 'Supply Chain',
         'governanca': 'Governança',
         'metodo': 'Método',
+        'blog': 'Blog',
         'contato': 'Contato'
     };
 
@@ -133,6 +135,7 @@ function createFooter() {
                             <li><a href="supply-chain.html">Supply Chain</a></li>
                             <li><a href="governanca.html">Governança</a></li>
                             <li><a href="metodo.html">Método</a></li>
+                            <li><a href="blog.html">Blog</a></li>
                             <li><a href="contato.html">Contato</a></li>
                         </ul>
                     </div>
