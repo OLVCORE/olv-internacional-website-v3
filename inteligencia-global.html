@@ -29,18 +29,117 @@
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "Service",
-      "name": "Inteligência Global de Mercado & Supply Chain",
-      "description": "Transformação de dados globais complexos em decisões executáveis de importação, exportação e supply chain",
-      "provider": {
-        "@type": "Organization",
-        "name": "OLV Internacional"
-      },
-      "serviceType": "Consultoria em Inteligência de Mercado Internacional",
-      "areaServed": {
-        "@type": "Place",
-        "name": "Global"
-      }
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://www.olvinternacional.com.br/#organization",
+          "name": "OLV Internacional",
+          "url": "https://www.olvinternacional.com.br",
+          "logo": "https://raw.githubusercontent.com/OLVCORE/olv-internacional-website-v3/main/logo-olv.jpeg",
+          "description": "Gestora estratégica de importação, exportação e cadeias globais de suprimentos (Supply Chain 360°). Consultoria especializada em comércio exterior com inteligência global aplicada.",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Avenida Paulista, 1471 - Conj 1110",
+            "addressLocality": "São Paulo",
+            "addressRegion": "SP",
+            "postalCode": "01311-927",
+            "addressCountry": "BR"
+          },
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+55-11-2675-1446",
+            "email": "consultores@olvinternacional.com.br",
+            "contactType": "customer service"
+          }
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://www.olvinternacional.com.br/inteligencia-global.html#webpage",
+          "url": "https://www.olvinternacional.com.br/inteligencia-global.html",
+          "name": "Inteligência Global de Mercado & Supply Chain | OLV Internacional",
+          "description": "Inteligência global aplicada ao comércio exterior. Transformamos dados globais complexos em decisões executáveis de importação, exportação e supply chain. Análises que cruzam milhões de perfis e bilhões de eventos comerciais.",
+          "inLanguage": "pt-BR",
+          "isPartOf": {
+            "@id": "https://www.olvinternacional.com.br/#website"
+          },
+          "about": {
+            "@id": "https://www.olvinternacional.com.br/#organization"
+          },
+          "breadcrumb": {
+            "@id": "https://www.olvinternacional.com.br/inteligencia-global.html#breadcrumb"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://www.olvinternacional.com.br/inteligencia-global.html#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Início",
+              "item": "https://www.olvinternacional.com.br/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Inteligência Global",
+              "item": "https://www.olvinternacional.com.br/inteligencia-global.html"
+            }
+          ]
+        },
+        {
+          "@type": "Service",
+          "@id": "https://www.olvinternacional.com.br/inteligencia-global.html#service",
+          "name": "Inteligência Global de Mercado & Supply Chain",
+          "description": "Transformação de dados globais complexos em decisões executáveis de importação, exportação e supply chain. Análises estratégicas baseadas em ecossistemas globais de dados de comércio internacional.",
+          "provider": {
+            "@id": "https://www.olvinternacional.com.br/#organization"
+          },
+          "serviceType": "Consultoria em Inteligência de Mercado Internacional",
+          "areaServed": {
+            "@type": "Place",
+            "name": "Global"
+          },
+          "hasOfferCatalog": {
+            "@type": "OfferCatalog",
+            "name": "Serviços de Inteligência Global",
+            "itemListElement": [
+              {
+                "@type": "Offer",
+                "itemOffered": {
+                  "@type": "Service",
+                  "name": "Análise de Dados Globais de Comércio",
+                  "description": "Análises que cruzam bilhões de registros transacionais, milhões de empresas e relacionamentos comerciais globais"
+                }
+              },
+              {
+                "@type": "Offer",
+                "itemOffered": {
+                  "@type": "Service",
+                  "name": "Inteligência para Importação Estratégica",
+                  "description": "Identificação de fornecedores consolidados e rotas eficientes com base em dados globais"
+                }
+              },
+              {
+                "@type": "Offer",
+                "itemOffered": {
+                  "@type": "Service",
+                  "name": "Inteligência para Exportação com Controle",
+                  "description": "Seleção de importadores confiáveis e estruturação de canais sustentáveis com análise de dados"
+                }
+              },
+              {
+                "@type": "Offer",
+                "itemOffered": {
+                  "@type": "Service",
+                  "name": "Supply Chain 360° com Inteligência Global",
+                  "description": "Mapeamento completo de cadeias globais com análise de alternativas e mitigação de risco"
+                }
+              }
+            ]
+          }
+        }
+      ]
     }
     </script>
 </head>
