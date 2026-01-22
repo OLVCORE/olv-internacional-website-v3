@@ -244,67 +244,80 @@ function initAccordions() {
         });
     }
     
-    // Update adherence meter - SISTEMA PROGRESSIVO
+    // Update adherence meter - SISTEMA INTELIGENTE BASEADO EM VALOR ESTRATÉGICO
     function updateAdherence() {
         let score = 0;
         const checkedItems = [];
         let checkedCount = 0;
-        const checkedIndices = [];
         
-        // Sistema progressivo baseado na POSIÇÃO do item na lista (não ordem de marcação)
-        // Primeiros itens da lista valem muito mais - reflete dores mais comuns
+        // TODOS os itens têm ALTA importância estratégica
+        // Sistema baseado em valor estratégico, não apenas posição
+        // Cada item selecionado indica um desafio real que a OLV pode resolver
+        
         checkboxes.forEach((checkbox, index) => {
             if (checkbox.checked) {
                 checkedCount++;
                 
-                // Sistema progressivo: primeiros itens da lista valem muito mais
-                let progressiveWeight;
-                if (index === 0) {
-                    // Primeiro item da lista: 25% (mais comum)
-                    progressiveWeight = 25;
-                } else if (index === 1) {
-                    // Segundo item da lista: 22% (muito comum)
-                    progressiveWeight = 22;
-                } else if (index === 2) {
-                    // Terceiro item da lista: 20% (comum)
-                    progressiveWeight = 20;
-                } else if (index === 3) {
-                    // Quarto item da lista: 15% (frequente)
-                    progressiveWeight = 15;
-                } else if (index === 4) {
-                    // Quinto item da lista: 10% (ocasional)
-                    progressiveWeight = 10;
-                } else if (index === 5) {
-                    // Sexto item da lista: 8% (menos comum)
-                    progressiveWeight = 8;
-                } else {
-                    // Itens restantes: 5% cada
-                    progressiveWeight = 5;
+                // Sistema de peso estratégico: TODOS os itens têm grande importância
+                // Baseado na importância estratégica do problema, não apenas frequência
+                let strategicWeight;
+                
+                // Itens críticos (impacto direto em custos e margem)
+                if (index === 0 || index === 3 || index === 4) { // Custos ocultos, margem, negociação
+                    strategicWeight = 18;
+                }
+                // Itens de governança e risco (impacto em segurança operacional)
+                else if (index === 1 || index === 5 || index === 10 || index === 11) { // Dependência, inadimplência, contratos, mercados
+                    strategicWeight = 17;
+                }
+                // Itens de visibilidade e controle (impacto em eficiência)
+                else if (index === 2 || index === 6 || index === 7 || index === 8 || index === 9 || index === 12) { // TCO, incêndios, visibilidade, regimes, parceiros, oportunidades
+                    strategicWeight = 16;
+                }
+                else {
+                    // Fallback: mesmo itens não categorizados têm peso significativo
+                    strategicWeight = 15;
                 }
                 
-                score += progressiveWeight;
+                score += strategicWeight;
                 checkedItems.push({
                     id: checkbox.id,
                     label: checkbox.nextElementSibling.textContent.trim(),
-                    weight: progressiveWeight,
+                    weight: strategicWeight,
                     originalWeight: parseInt(checkbox.dataset.weight || 1),
                     position: index + 1
                 });
             }
         });
         
-        // Calcular porcentagem (máximo 100%)
-        let percentage = Math.min(score, 100);
+        // Sistema de cálculo inteligente que reconhece valor estratégico
+        let percentage;
         
-        // Se 4 ou mais checkboxes marcados, garantir mínimo de 60%
-        if (checkedCount >= 4 && percentage < 60) {
-            percentage = 60;
-        }
-        
-        // Se 6 ou mais checkboxes marcados, aderência = 100%
-        if (checkedCount >= 6) {
+        if (checkedCount === 0) {
+            percentage = 0;
+        } else if (checkedCount === 1) {
+            // 1 item = 35% (qualquer item sozinho já indica necessidade significativa)
+            percentage = 35;
+        } else if (checkedCount === 2) {
+            // 2 itens = 55% (dois desafios indicam necessidade clara)
+            percentage = 55;
+        } else if (checkedCount === 3) {
+            // 3 itens = 70% (múltiplos desafios indicam necessidade alta)
+            percentage = 70;
+        } else if (checkedCount === 4) {
+            // 4 itens = 85% (vários desafios indicam necessidade muito alta)
+            percentage = 85;
+        } else if (checkedCount >= 5) {
+            // 5+ itens = 100% (múltiplos desafios indicam necessidade máxima)
             percentage = 100;
         }
+        
+        // Garantir que nunca fique abaixo do mínimo baseado em itens selecionados
+        const minPercentage = Math.min(checkedCount * 20, 100);
+        percentage = Math.max(percentage, minPercentage);
+        
+        // Limitar a 100%
+        percentage = Math.min(percentage, 100);
         const scoreElement = document.getElementById('adherenceScore');
         const fillElement = document.getElementById('adherenceFill');
         const levelElement = document.getElementById('adherenceLevel');
@@ -351,19 +364,22 @@ function initAccordions() {
             }
         }
         
-        // Update level description
+        // Update level description - MENSAGENS MAIS PERSUASIVAS E REALISTAS
         if (levelElement) {
             let levelText = 'Marque os itens que se aplicam à sua empresa';
             let levelDesc = '';
             
             if (percentage === 0) {
                 levelText = 'Nível de Aderência';
-                levelDesc = 'Comece marcando os itens que se aplicam';
-            } else if (percentage < 30) {
-                levelText = 'Aderência Baixa';
-                levelDesc = 'Sua empresa tem algumas dificuldades que podemos ajudar a resolver';
+                levelDesc = 'Comece marcando os itens que se aplicam à sua empresa';
+            } else if (percentage < 40) {
+                levelText = 'Potencial Identificado';
+                levelDesc = `Você identificou ${checkedCount} ${checkedCount === 1 ? 'desafio estratégico' : 'desafios estratégicos'} que a OLV pode resolver. Cada item representa uma oportunidade significativa de melhoria.`;
             } else if (percentage < 60) {
-                levelText = 'Aderência Média';
+                levelText = 'Alto Potencial';
+                levelDesc = `Você identificou ${checkedCount} desafios estratégicos. A OLV tem soluções específicas para cada um deles, com impacto direto em custos, margem e competitividade.`;
+            } else if (percentage < 80) {
+                levelText = 'Muito Alto Potencial';
                 levelDesc = 'Sua empresa tem várias dificuldades - a OLV pode fazer a diferença';
             } else if (percentage < 80) {
                 levelText = 'Aderência Alta';
