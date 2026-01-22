@@ -18,10 +18,11 @@ O erro `422 - The recipients address is empty` acontece porque o template de ade
 consultores@olvinternacional.com.br
 ```
 
-**Opção 2 (Email Dinâmico - se quiser usar variável):**
+**Opção 2 (Email Dinâmico - usando variável):**
 ```
-{{to_email}}
+{{email}}
 ```
+*(O código já está configurado para enviar o campo `email` com o valor `consultores@olvinternacional.com.br`)*
 
 ### Passo 2: Salvar
 
