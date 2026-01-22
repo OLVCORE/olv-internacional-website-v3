@@ -80,7 +80,7 @@ function createHeader(currentPage = '') {
                     <div class="logo">
                         <a href="index.html" class="logo-link">
                             <div class="logo-circle">
-                                <img src="https://raw.githubusercontent.com/OLVCORE/olv-internacional-website-v3/main/logo-olv.jpeg" alt="OLV Internacional" class="logo-img">
+                                <img src="https://raw.githubusercontent.com/OLVCORE/olv-internacional-website-v3/main/logo-olv.jpeg" alt="OLV Internacional - Consultoria especializada em comércio exterior, importação, exportação e Supply Chain Global" class="logo-img" loading="lazy">
                             </div>
                             <div class="logo-text">
                                 <h1>OLV Internacional</h1>

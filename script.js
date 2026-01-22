@@ -1,4 +1,72 @@
 // ============================================
+// CONVERSION TRACKING - GOOGLE TAG MANAGER / GOOGLE ADS
+// ============================================
+/**
+ * Função auxiliar para disparar eventos de conversão no GTM
+ * Compatível com Google Ads conversion tracking
+ */
+function trackConversion(eventName, eventData = {}) {
+    // Verificar se dataLayer existe (GTM)
+    if (typeof window.dataLayer !== 'undefined') {
+        window.dataLayer.push({
+            'event': eventName,
+            ...eventData
+        });
+        console.log('✅ Conversion tracked:', eventName, eventData);
+    } else {
+        console.warn('⚠️ dataLayer não encontrado. GTM pode não estar carregado.');
+    }
+    
+    // Também disparar evento customizado para Google Ads (se configurado)
+    // Este evento será capturado pelo GTM e pode ser usado como conversão no Google Ads
+    if (typeof gtag !== 'undefined') {
+        gtag('event', eventName, eventData);
+    }
+}
+
+/**
+ * Tracking de tempo na página (engajamento)
+ */
+function trackPageEngagement() {
+    let timeOnPage = 0;
+    const engagementThresholds = [30, 60, 120, 300]; // 30s, 1min, 2min, 5min
+    let thresholdsTracked = [];
+    
+    const interval = setInterval(() => {
+        timeOnPage += 10;
+        
+        engagementThresholds.forEach(threshold => {
+            if (timeOnPage >= threshold && !thresholdsTracked.includes(threshold)) {
+                thresholdsTracked.push(threshold);
+                trackConversion('page_engagement', {
+                    'engagement_time': threshold,
+                    'page_path': window.location.pathname,
+                    'page_title': document.title
+                });
+            }
+        });
+    }, 10000); // A cada 10 segundos
+    
+    // Limpar intervalo quando sair da página
+    window.addEventListener('beforeunload', () => {
+        clearInterval(interval);
+        trackConversion('page_exit', {
+            'time_on_page': timeOnPage,
+            'page_path': window.location.pathname
+        });
+    });
+}
+
+// Iniciar tracking de engajamento quando DOM estiver pronto
+(function() {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', trackPageEngagement);
+    } else {
+        trackPageEngagement();
+    }
+})();
+
+// ============================================
 // THEME TOGGLE (Dark / Light / System)
 // ============================================
 function initThemeToggle() {
@@ -675,6 +743,14 @@ function initAccordions() {
             .then((response) => {
                 console.log('✅ Email enviado com sucesso!', response.status, response.text);
                 
+                // TRACKING: Conversão - Formulário de Aderência enviado
+                trackConversion('form_submit_adherence', {
+                    'form_id': 'checklist_adherence',
+                    'adherence_level': adherence,
+                    'items_count': selectedItems.length,
+                    'page_path': window.location.pathname
+                });
+                
                 // Mostrar página de confirmação formatada
                 showConfirmationPage(data.nome, data.empresa, adherence, selectedItems);
                 
@@ -909,6 +985,14 @@ document.addEventListener('click', function(e) {
             )
             .then((response) => {
                 console.log('✅ Email de contato enviado com sucesso!', response.status, response.text);
+                
+                // TRACKING: Conversão - Formulário de Contato enviado
+                trackConversion('form_submit_contact', {
+                    'form_id': 'contact_form',
+                    'page_path': window.location.pathname,
+                    'interesse': data.interesse || 'Não informado'
+                });
+                
                 alert('✅ Obrigado! Sua mensagem foi enviada com sucesso. Entraremos em contato em breve.');
                 form.reset();
             })

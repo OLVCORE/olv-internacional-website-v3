@@ -1,0 +1,28 @@
+# robots.txt para OLV Internacional
+# https://www.olvinternacional.com.br/robots.txt
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://www.olvinternacional.com.br/sitemap.xml
+
+# Bloquear arquivos de configuração e documentação
+Disallow: /node_modules/
+Disallow: /*.md$
+Disallow: /*.txt$
+Disallow: /mapas/
+
+# Permitir recursos estáticos
+Allow: /styles.css
+Allow: /script.js
+Allow: /components.js
+Allow: /dynamic-cards-config.js
+Allow: /*.jpeg
+Allow: /*.jpg
+Allow: /*.png
+Allow: /*.svg
+Allow: /*.webp
+
+# Crawl-delay (opcional, remover se não necessário)
+# Crawl-delay: 1
