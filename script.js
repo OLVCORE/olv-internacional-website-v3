@@ -570,11 +570,16 @@ function initAccordions() {
             .catch(error => {
                 console.error('Error:', error);
                 console.error('Detalhes:', error.message);
+                console.error('Ambiente:', isDevelopment ? 'Desenvolvimento' : 'Produção');
+                console.error('URL tentada:', `${apiBaseUrl}/api/checklist-report`);
                 
-                // Não usar fallback de mailto - mostrar mensagem de erro amigável
-                const errorMessage = error.message && error.message.includes('Servidor retornou') 
-                    ? `O servidor não está respondendo corretamente. Por favor, verifique se o servidor está rodando (npm start) e tente novamente.\n\nSe o problema persistir, entre em contato diretamente:\n\nEmail: consultores@olvinternacional.com.br\nWhatsApp: +55 11 99924-4444`
-                    : `Desculpe, ${data.nome}. Ocorreu um erro ao enviar seu relatório automaticamente. Por favor, entre em contato diretamente:\n\nEmail: consultores@olvinternacional.com.br\nWhatsApp: +55 11 99924-4444\n\nNossa equipe está pronta para ajudar!`;
+                // Mensagem de erro baseada no ambiente
+                let errorMessage;
+                if (isDevelopment) {
+                    errorMessage = `O servidor local não está respondendo. Por favor:\n\n1. Verifique se o servidor está rodando (npm start)\n2. Acesse via http://localhost:3000\n3. Tente novamente\n\nSe o problema persistir, entre em contato:\nEmail: consultores@olvinternacional.com.br\nWhatsApp: +55 11 99924-4444`;
+                } else {
+                    errorMessage = `Desculpe, ${data.nome}. O sistema de envio automático não está disponível no momento.\n\nPor favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444\n\nNossa equipe está pronta para ajudar e analisar seu relatório de aderência!`;
+                }
                 
                 alert(errorMessage);
                 if (modal) modal.classList.remove('active');
