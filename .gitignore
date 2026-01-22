@@ -5,4 +5,5 @@ reports/
 .env
 .env.local
 .env.*
+blog-data/
 !.env.example
