@@ -453,38 +453,75 @@ Data: ${new Date().toLocaleString('pt-BR')}
                         }
                     };
                         
+                    console.log('\n📧 Tentando enviar email de relatório...');
+                    console.log('   De:', emailUser);
+                    console.log('   Para:', receiveEmail);
+                    console.log('   Cliente:', data.nome, `(${data.empresa})`);
+                    
                     emailTransporter.sendMail(mailOptions)
                         .then(info => {
                             console.log('✅ Email enviado IMEDIATAMENTE:', info.messageId);
                             console.log('📧 Para:', receiveEmail);
                             console.log('📧 Cliente pronto para contato:', data.email, data.telefone);
                             console.log('📊 Aderência:', data.adherence);
+                            console.log('📋 Itens identificados:', data.selectedItems.length);
+                            console.log('📧 Resposta do servidor:', info.response || 'N/A');
+                            
+                            // Resposta de sucesso APÓS email enviado
+                            res.writeHead(200, { 
+                                'Content-Type': 'application/json',
+                                'Access-Control-Allow-Origin': '*'
+                            });
+                            res.end(JSON.stringify({ 
+                                success: true, 
+                                message: 'Relatório recebido com sucesso! Entraremos em contato em breve.',
+                                emailSent: true
+                            }), 'utf-8');
                         })
                         .catch(error => {
-                            console.error('❌ Erro ao enviar email:', error.message);
-                            console.error('❌ Detalhes do erro:', error);
-                            // Tentar enviar novamente após 2 segundos
-                            setTimeout(() => {
-                                emailTransporter.sendMail(mailOptions)
-                                    .then(info => {
-                                        console.log('✅ Email reenviado com sucesso:', info.messageId);
-                                    })
-                                    .catch(retryError => {
-                                        console.error('❌ Erro no reenvio:', retryError.message);
-                                    });
-                            }, 2000);
+                            console.error('\n❌ ERRO AO ENVIAR EMAIL DE RELATÓRIO:');
+                            console.error('   Mensagem:', error.message);
+                            console.error('   Código:', error.code);
+                            console.error('   Comando:', error.command || 'N/A');
+                            console.error('   Resposta:', error.response || 'N/A');
+                            console.error('   Detalhes completos:', error);
+                            
+                            // Log para notificação mesmo com erro no email
+                            console.log('\n🚨 NOVO LEAD - Entre em contato IMEDIATAMENTE:');
+                            console.log(`   Nome: ${data.nome}`);
+                            console.log(`   Empresa: ${data.empresa}`);
+                            console.log(`   Email: ${data.email}`);
+                            console.log(`   Telefone: ${data.telefone}`);
+                            console.log(`   Aderência: ${data.adherence}%`);
+                            console.log(`   Itens: ${data.selectedItems.length}`);
+                            
+                            // Mesmo com erro no email, retornar sucesso (dados foram recebidos)
+                            res.writeHead(200, { 
+                                'Content-Type': 'application/json',
+                                'Access-Control-Allow-Origin': '*'
+                            });
+                            res.end(JSON.stringify({ 
+                                success: true, 
+                                message: 'Relatório recebido. Entraremos em contato em breve.',
+                                emailSent: false,
+                                warning: 'Email pode não ter sido enviado. Verifique logs do servidor.'
+                            }), 'utf-8');
                         });
                 } else {
-                    console.log('⚠️ Email transporter não configurado - relatório salvo apenas em arquivo');
-                } else {
+                    // Email transporter não configurado
+                    console.log('\n⚠️ Email transporter não configurado - relatório salvo apenas em arquivo');
+                    console.log('   Verifique se o arquivo .env está configurado corretamente');
+                    console.log('   SMTP_USER:', process.env.SMTP_USER || 'não definido');
+                    console.log('   SMTP_PASS:', process.env.SMTP_PASS ? 'definido' : 'não definido');
+                    
                     // Log para notificação mesmo sem email configurado
                     console.log('\n🚨 NOVO LEAD - Entre em contato IMEDIATAMENTE:');
                     console.log(`   Nome: ${data.nome}`);
                     console.log(`   Empresa: ${data.empresa}`);
                     console.log(`   Email: ${data.email}`);
                     console.log(`   Telefone: ${data.telefone}`);
-                    console.log(`   Aderência: ${data.adherence}%\n`);
-                }
+                    console.log(`   Aderência: ${data.adherence}%`);
+                    console.log(`   Itens: ${data.selectedItems.length}`);
                     
                     res.writeHead(200, { 
                         'Content-Type': 'application/json',
@@ -492,10 +529,11 @@ Data: ${new Date().toLocaleString('pt-BR')}
                     });
                     res.end(JSON.stringify({ 
                         success: true, 
-                        message: 'Relatório recebido com sucesso',
-                        filename: filename,
-                        emailSent: emailTransporter ? true : false
+                        message: 'Relatório recebido. Entraremos em contato em breve.',
+                        emailSent: false,
+                        warning: 'Sistema de email não configurado'
                     }), 'utf-8');
+                }
                 } catch (err) {
                     console.error('Error processing report:', err);
                     res.writeHead(400, { 'Content-Type': 'application/json' });
