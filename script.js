@@ -532,11 +532,11 @@ function initAccordions() {
             const EMAILJS_CONFIG = {
                 serviceId: 'service_kwstqkk', // ✅ Service ID configurado
                 templateId: 'COLE_AQUI_O_TEMPLATE_ID_ADERENCIA', // Exemplo: 'template_xyz789abc'
-                publicKey: 'COLE_AQUI_A_PUBLIC_KEY' // Exemplo: 'user_abc123xyz'
+                publicKey: 'V9ZQTo5rB4dcZ-oJ3' // ✅ Public Key configurada
             };
             
             // Validação: Verificar se a Public Key foi configurada
-            if (!EMAILJS_CONFIG.publicKey || EMAILJS_CONFIG.publicKey === 'YOUR_PUBLIC_KEY' || EMAILJS_CONFIG.publicKey.trim() === '') {
+            if (!EMAILJS_CONFIG.publicKey || EMAILJS_CONFIG.publicKey === 'YOUR_PUBLIC_KEY' || EMAILJS_CONFIG.publicKey === 'COLE_AQUI_A_PUBLIC_KEY' || EMAILJS_CONFIG.publicKey.trim() === '') {
                 console.error('❌ EmailJS Public Key não configurada!');
                 console.error('📋 Para configurar:');
                 console.error('   1. Acesse: https://dashboard.emailjs.com/admin/account');
@@ -771,11 +771,11 @@ document.addEventListener('click', function(e) {
             const EMAILJS_CONFIG = {
                 serviceId: 'service_kwstqkk', // ✅ Service ID configurado
                 templateId: 'COLE_AQUI_O_TEMPLATE_ID_CONTATO', // Exemplo: 'template_abc123xyz'
-                publicKey: 'COLE_AQUI_A_PUBLIC_KEY' // Exemplo: 'user_abc123xyz'
+                publicKey: 'V9ZQTo5rB4dcZ-oJ3' // ✅ Public Key configurada
             };
             
             // Validação: Verificar se a Public Key foi configurada
-            if (!EMAILJS_CONFIG.publicKey || EMAILJS_CONFIG.publicKey === 'YOUR_PUBLIC_KEY' || EMAILJS_CONFIG.publicKey.trim() === '') {
+            if (!EMAILJS_CONFIG.publicKey || EMAILJS_CONFIG.publicKey === 'YOUR_PUBLIC_KEY' || EMAILJS_CONFIG.publicKey === 'COLE_AQUI_A_PUBLIC_KEY' || EMAILJS_CONFIG.publicKey.trim() === '') {
                 console.error('❌ EmailJS Public Key não configurada!');
                 console.error('📋 Para configurar:');
                 console.error('   1. Acesse: https://dashboard.emailjs.com/admin/account');
