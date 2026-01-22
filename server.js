@@ -646,8 +646,7 @@ Data: ${new Date().toLocaleString('pt-BR')}
             return;
         }
         
-        // Parse URL (já foi feito acima, reutilizar)
-        let pathname = parsedUrl.pathname;
+        // Reutilizar pathname já declarado acima
         
         // Default to index.html for root
         if (pathname === '/' || pathname === '') {

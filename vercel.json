@@ -1,0 +1,40 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*\\.(html|css|js|json|ico|png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|eot))",
+      "dest": "/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "functions": {
+    "api/blog/posts.js": {
+      "maxDuration": 30
+    },
+    "api/blog/post/[id].js": {
+      "maxDuration": 30
+    },
+    "api/blog/process.js": {
+      "maxDuration": 60
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/blog/process",
+      "schedule": "0 8 * * *"
+    }
+  ]
+}

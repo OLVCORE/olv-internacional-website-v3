@@ -174,10 +174,8 @@
             const container = document.getElementById('blog-post-content');
             
             try {
-                const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                const apiBaseUrl = isDevelopment ? '' : 'https://api.olvinternacional.com.br';
-                
-                const response = await fetch(`${apiBaseUrl}/api/blog/post/${postId}`);
+                // Usar rota relativa (funciona tanto local quanto Vercel)
+                const response = await fetch(`/api/blog/post/${postId}`);
                 const post = await response.json();
 
                 // Atualizar meta tags

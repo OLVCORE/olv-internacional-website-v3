@@ -235,10 +235,8 @@
             const container = document.getElementById('blog-posts-container');
             
             try {
-                const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                const apiBaseUrl = isDevelopment ? '' : 'https://api.olvinternacional.com.br';
-                
-                const response = await fetch(`${apiBaseUrl}/api/blog/posts?category=${category}`);
+                // Usar rota relativa (funciona tanto local quanto Vercel)
+                const response = await fetch(`/api/blog/posts?category=${category}`);
                 const posts = await response.json();
 
                 if (posts.length === 0) {
