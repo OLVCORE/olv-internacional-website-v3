@@ -2246,19 +2246,27 @@ section {
 
 .adherence-level {
     text-align: center;
-    color: var(--text-secondary);
+    margin-top: 20px;
     font-size: 14px;
+    color: var(--text-secondary);
 }
 
 .adherence-level .level-text {
     display: block;
-    margin-bottom: 8px;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text-primary);
+    margin-bottom: 10px;
 }
 
-.adherence-level .level-description {
-    font-weight: 600;
-    color: var(--accent-primary);
-    font-size: 16px;
+.adherence-level .level-desc {
+    display: block;
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 20px;
 }
 
 /* ============================================
