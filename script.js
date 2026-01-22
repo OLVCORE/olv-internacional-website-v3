@@ -518,8 +518,18 @@ function initAccordions() {
                 timestamp: new Date().toISOString()
             };
             
+            // Detectar ambiente (desenvolvimento ou produção)
+            const isDevelopment = window.location.hostname === 'localhost' || 
+                                 window.location.hostname === '127.0.0.1' ||
+                                 window.location.port === '3000';
+            
+            // URL base da API
+            const apiBaseUrl = isDevelopment 
+                ? '' // Usar URL relativa em desenvolvimento
+                : 'https://api.olvinternacional.com.br'; // Em produção, usar subdomínio de API ou ajustar conforme necessário
+            
             // Send to server (NOTIFICAÇÃO IMEDIATA - email é enviado automaticamente)
-            fetch('/api/checklist-report', {
+            fetch(`${apiBaseUrl}/api/checklist-report`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -706,8 +716,18 @@ document.addEventListener('click', function(e) {
             submitBtn.disabled = true;
             submitBtn.textContent = 'Enviando...';
             
+            // Detectar ambiente (desenvolvimento ou produção)
+            const isDevelopment = window.location.hostname === 'localhost' || 
+                                 window.location.hostname === '127.0.0.1' ||
+                                 window.location.port === '3000';
+            
+            // URL base da API
+            const apiBaseUrl = isDevelopment 
+                ? '' // Usar URL relativa em desenvolvimento
+                : 'https://api.olvinternacional.com.br'; // Em produção, usar subdomínio de API ou ajustar conforme necessário
+            
             // Send to server
-            fetch('/api/contact', {
+            fetch(`${apiBaseUrl}/api/contact`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
