@@ -903,6 +903,33 @@ document.addEventListener('click', function(e) {
     const form = document.querySelector('.contato-form');
     
     if (form) {
+        // Melhorar UX do formulário com indicador de progresso
+        const formProgress = form.querySelector('.form-progress');
+        const progressFill = form.querySelector('.progress-fill');
+        const progressText = form.querySelector('.progress-text');
+        
+        function updateFormProgress() {
+            if (!formProgress || !progressFill || !progressText) return;
+            
+            const requiredFields = form.querySelectorAll('[required]');
+            const filledFields = Array.from(requiredFields).filter(field => field.value.trim() !== '');
+            const progress = (filledFields.length / requiredFields.length) * 100;
+            
+            if (filledFields.length > 0) {
+                formProgress.style.display = 'block';
+                progressFill.style.width = progress + '%';
+                progressText.textContent = `${filledFields.length} de ${requiredFields.length} campos obrigatórios preenchidos`;
+            } else {
+                formProgress.style.display = 'none';
+            }
+        }
+        
+        // Atualizar progresso quando campos mudarem
+        form.querySelectorAll('input, textarea, select').forEach(field => {
+            field.addEventListener('input', updateFormProgress);
+            field.addEventListener('change', updateFormProgress);
+        });
+        
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -912,9 +939,15 @@ document.addEventListener('click', function(e) {
             
             // Show loading state
             const submitBtn = form.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;
+            const originalText = submitBtn.innerHTML;
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Enviando...';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i> Enviando...';
+            
+            // Atualizar progresso para 100%
+            if (formProgress && progressFill && progressText) {
+                progressFill.style.width = '100%';
+                progressText.textContent = 'Enviando sua mensagem...';
+            }
             
             // ============================================
             // CONFIGURAÇÃO EMAILJS - FORMULÁRIO DE CONTATO
@@ -951,7 +984,13 @@ document.addEventListener('click', function(e) {
                 console.error('EmailJS não está carregado. Verifique se o CDN está incluído.');
                 alert('Erro: Sistema de email não configurado. Por favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444');
                 submitBtn.disabled = false;
-                submitBtn.textContent = originalText;
+                submitBtn.innerHTML = originalText;
+                
+                // Resetar progresso em caso de erro
+                if (formProgress && progressFill && progressText) {
+                    formProgress.style.display = 'none';
+                    progressFill.style.width = '0%';
+                }
                 return;
             }
             
@@ -993,8 +1032,16 @@ document.addEventListener('click', function(e) {
                     'interesse': data.interesse || 'Não informado'
                 });
                 
+                // Resetar progresso
+                if (formProgress && progressFill && progressText) {
+                    formProgress.style.display = 'none';
+                    progressFill.style.width = '0%';
+                }
+                
                 alert('✅ Obrigado! Sua mensagem foi enviada com sucesso. Entraremos em contato em breve.');
                 form.reset();
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
             })
             .catch((error) => {
                 console.error('❌ Erro ao enviar email de contato:', error);
