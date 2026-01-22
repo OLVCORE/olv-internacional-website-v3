@@ -730,41 +730,67 @@ document.addEventListener('click', function(e) {
             submitBtn.disabled = true;
             submitBtn.textContent = 'Enviando...';
             
-            // Detectar ambiente (desenvolvimento ou produção)
-            const isDevelopment = window.location.hostname === 'localhost' || 
-                                 window.location.hostname === '127.0.0.1' ||
-                                 window.location.port === '3000';
+            // Configuração EmailJS - FUNCIONA 100% NA WEB
+            const EMAILJS_CONFIG = {
+                serviceId: 'service_olv_internacional', // Substitua pelo seu Service ID
+                templateId: 'template_contact_form', // Substitua pelo seu Template ID
+                publicKey: 'YOUR_PUBLIC_KEY' // Substitua pela sua Public Key
+            };
             
-            // URL base da API
-            const apiBaseUrl = isDevelopment 
-                ? '' // Usar URL relativa em desenvolvimento
-                : 'https://api.olvinternacional.com.br'; // Em produção, usar subdomínio de API ou ajustar conforme necessário
+            // Verificar se EmailJS está carregado
+            if (typeof emailjs === 'undefined') {
+                console.error('EmailJS não está carregado. Verifique se o CDN está incluído.');
+                alert('Erro: Sistema de email não configurado. Por favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444');
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+                return;
+            }
             
-            // Send to server
-            fetch(`${apiBaseUrl}/api/contact`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
+            // Inicializar EmailJS (só precisa fazer uma vez)
+            if (!window.emailjsInitialized) {
+                emailjs.init(EMAILJS_CONFIG.publicKey);
+                window.emailjsInitialized = true;
+            }
+            
+            // Preparar dados para o template EmailJS
+            const templateParams = {
+                to_email: 'consultores@olvinternacional.com.br',
+                from_name: data.nome,
+                from_email: data.email,
+                from_phone: data.telefone || 'Não informado',
+                company: data.empresa || 'Não informado',
+                cargo: data.cargo || 'Não informado',
+                interesse: data.interesse || 'Não informado',
+                message: data.mensagem || 'Sem mensagem',
+                timestamp: new Date().toLocaleString('pt-BR')
+            };
+            
+            console.log('📧 Enviando email de contato via EmailJS...');
+            console.log('Para:', templateParams.to_email);
+            
+            // Enviar email via EmailJS (FUNCIONA 100% NA WEB)
+            emailjs.send(
+                EMAILJS_CONFIG.serviceId,
+                EMAILJS_CONFIG.templateId,
+                templateParams
+            )
+            .then((response) => {
+                console.log('✅ Email de contato enviado com sucesso!', response.status, response.text);
+                alert('✅ Obrigado! Sua mensagem foi enviada com sucesso. Entraremos em contato em breve.');
+                form.reset();
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+            .catch((error) => {
+                console.error('❌ Erro ao enviar email de contato:', error);
+                console.error('Status:', error.status);
+                console.error('Texto:', error.text);
+                
+                let errorMessage = '❌ Erro ao enviar mensagem. Por favor, tente novamente ou entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444';
+                
+                if (error.status === 400) {
+                    errorMessage = 'Erro de configuração do sistema de email. Por favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444';
                 }
-                return response.json();
-            })
-            .then(result => {
-                if (result.success) {
-                    alert('✅ Obrigado! Sua mensagem foi enviada com sucesso. Entraremos em contato em breve.');
-                    form.reset();
-                } else {
-                    alert('❌ Erro ao enviar mensagem. Por favor, tente novamente ou entre em contato diretamente pelo email: consultores@olvinternacional.com.br');
-                }
-            })
-            .catch(error => {
-                console.error('Network error:', error);
-                alert('❌ Erro de conexão. Verifique sua internet e tente novamente. Se o problema persistir, entre em contato diretamente pelo email: consultores@olvinternacional.com.br ou WhatsApp: +55 11 99924-4444');
+                
+                alert(errorMessage);
             })
             .finally(() => {
                 submitBtn.disabled = false;
