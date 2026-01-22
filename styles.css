@@ -1698,8 +1698,8 @@ section {
 }
 
 .card-accordion[aria-expanded="true"] .card-content {
-    max-height: 1000px;
-    padding: 0 24px 24px;
+    max-height: 5000px;
+    padding: 24px;
     opacity: 1;
 }
 
@@ -1707,6 +1707,128 @@ section {
     color: var(--text-secondary);
     line-height: 1.7;
     margin: 0;
+}
+
+/* Cards longos com layout horizontal para melhor aproveitamento de espaço */
+.card-accordion.card-long-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.card-accordion.card-long-content[aria-expanded="true"] {
+    min-height: auto;
+}
+
+.card-accordion.card-long-content .card-content {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Layout horizontal em 2 colunas para cards com muito conteúdo em desktop */
+@media (min-width: 992px) {
+    .card-accordion.card-long-content[aria-expanded="true"] .card-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+        align-items: start;
+        column-gap: 40px;
+    }
+    
+    /* Primeiro parágrafo ocupa toda a largura */
+    .card-accordion.card-long-content[aria-expanded="true"] .card-content > p:first-of-type {
+        grid-column: 1 / -1;
+        margin-bottom: 0;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    /* Seções com subtítulos ocupam coluna inteira */
+    .card-accordion.card-long-content[aria-expanded="true"] .card-content > p:has(+ p > strong) {
+        grid-column: 1 / -1;
+    }
+    
+    /* Agrupar parágrafos relacionados em colunas */
+    .card-accordion.card-long-content[aria-expanded="true"] .card-content > p:not(:first-of-type) {
+        break-inside: avoid;
+    }
+}
+
+/* Melhorias de tipografia para cards longos */
+.card-accordion.card-long-content .card-content {
+    font-size: 15px;
+    line-height: 1.75;
+    padding: 24px !important;
+}
+
+.card-accordion.card-long-content .card-content p {
+    margin-bottom: 0;
+    margin-top: 0;
+}
+
+.card-accordion.card-long-content .card-content > p:first-of-type {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 24px !important;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+    line-height: 1.6;
+}
+
+.card-accordion.card-long-content .card-content strong {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-top: 24px !important;
+    margin-bottom: 10px !important;
+    padding-top: 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Resetar margens inline que podem conflitar */
+.card-accordion.card-long-content .card-content p[style*="margin-top"] {
+    margin-top: 12px !important;
+}
+
+.card-accordion.card-long-content .card-content p[style*="margin-top"]:first-of-type {
+    margin-top: 0 !important;
+}
+
+.card-accordion.card-long-content .card-content p[style*="margin-top"] + strong {
+    margin-top: 24px !important;
+}
+
+[data-theme="dark"] .card-accordion.card-long-content .card-content > p:first-of-type {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .card-accordion.card-long-content .card-content strong {
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Melhor espaçamento entre parágrafos em cards longos */
+.card-accordion.card-long-content .card-content p + p {
+    margin-top: 12px;
+}
+
+.card-accordion.card-long-content .card-content p + strong {
+    margin-top: 24px;
+}
+
+/* Responsivo: voltar para vertical em tablets e mobile */
+@media (max-width: 991px) {
+    .card-accordion.card-long-content[aria-expanded="true"] .card-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .card-accordion.card-long-content .card-content > p:first-of-type {
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+    }
 }
 
 .step-number {
