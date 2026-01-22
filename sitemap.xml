@@ -100,4 +100,12 @@
         <priority>0.8</priority>
     </url>
     
+    <!-- Blog -->
+    <url>
+        <loc>https://www.olvinternacional.com.br/blog.html</loc>
+        <lastmod>2026-01-22</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.9</priority>
+    </url>
+    
 </urlset>

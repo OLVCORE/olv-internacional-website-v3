@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-T3P68DR');</script>
+    <!-- End Google Tag Manager -->
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carregando artigo...</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <style>
+        .blog-post-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .blog-post-header {
+            margin-bottom: 40px;
+        }
+        .blog-post-category {
+            display: inline-block;
+            padding: 6px 16px;
+            background: var(--accent-primary);
+            color: white;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        .blog-post-title {
+            font-size: clamp(28px, 5vw, 40px);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            line-height: 1.3;
+        }
+        .blog-post-meta {
+            display: flex;
+            gap: 24px;
+            color: var(--text-tertiary);
+            font-size: 14px;
+            margin-bottom: 32px;
+        }
+        .blog-post-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .blog-post-image {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-hover) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 64px;
+            margin-bottom: 40px;
+        }
+        .blog-post-content {
+            font-size: 16px;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+        .blog-post-content h2 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 40px;
+            margin-bottom: 16px;
+        }
+        .blog-post-content h3 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-top: 32px;
+            margin-bottom: 12px;
+        }
+        .blog-post-content p {
+            margin-bottom: 20px;
+        }
+        .blog-post-content ul,
+        .blog-post-content ol {
+            margin: 20px 0;
+            padding-left: 32px;
+        }
+        .blog-post-content li {
+            margin-bottom: 12px;
+        }
+        .blog-post-content blockquote {
+            border-left: 4px solid var(--accent-primary);
+            padding-left: 24px;
+            margin: 32px 0;
+            font-style: italic;
+            color: var(--text-secondary);
+        }
+        .blog-post-navigation {
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 2px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        .blog-post-nav-btn {
+            padding: 12px 24px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--card-bg);
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .blog-post-nav-btn:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+        .blog-post-loading {
+            text-align: center;
+            padding: 100px 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T3P68DR"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    
+    <div id="header-placeholder"></div>
+
+    <section class="content-section" style="padding-top: 120px;">
+        <div class="blog-post-container">
+            <div id="blog-post-content">
+                <div class="blog-post-loading">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 48px; margin-bottom: 16px; color: var(--accent-primary);"></i>
+                    <p>Carregando artigo...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="components.js" defer></script>
+    <script src="script.js" defer></script>
+    <script>
+        async function loadBlogPost() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const postId = urlParams.get('id');
+            
+            if (!postId) {
+                window.location.href = 'blog.html';
+                return;
+            }
+
+            const container = document.getElementById('blog-post-content');
+            
+            try {
+                const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                const apiBaseUrl = isDevelopment ? '' : 'https://api.olvinternacional.com.br';
+                
+                const response = await fetch(`${apiBaseUrl}/api/blog/post/${postId}`);
+                const post = await response.json();
+
+                // Atualizar meta tags
+                document.title = `${post.title} | Blog OLV Internacional`;
+                document.querySelector('meta[name="description"]').setAttribute('content', post.excerpt);
+
+                // Article Schema
+                const articleSchema = {
+                    "@context": "https://schema.org",
+                    "@type": "Article",
+                    "headline": post.title,
+                    "description": post.excerpt,
+                    "image": post.image || "https://raw.githubusercontent.com/OLVCORE/olv-internacional-website-v3/main/logo-olv.jpeg",
+                    "datePublished": post.datePublished,
+                    "dateModified": post.dateModified || post.datePublished,
+                    "author": {
+                        "@type": "Organization",
+                        "name": "OLV Internacional"
+                    },
+                    "publisher": {
+                        "@type": "Organization",
+                        "name": "OLV Internacional",
+                        "logo": {
+                            "@type": "ImageObject",
+                            "url": "https://raw.githubusercontent.com/OLVCORE/olv-internacional-website-v3/main/logo-olv.jpeg"
+                        }
+                    }
+                };
+
+                let schemaScript = document.querySelector('script[type="application/ld+json"][data-article]');
+                if (!schemaScript) {
+                    schemaScript = document.createElement('script');
+                    schemaScript.type = 'application/ld+json';
+                    schemaScript.setAttribute('data-article', 'true');
+                    document.head.appendChild(schemaScript);
+                }
+                schemaScript.textContent = JSON.stringify(articleSchema);
+
+                // Renderizar artigo
+                container.innerHTML = `
+                    <div class="blog-post-header">
+                        <span class="blog-post-category">${post.category}</span>
+                        <h1 class="blog-post-title">${post.title}</h1>
+                        <div class="blog-post-meta">
+                            <span><i class="fas fa-calendar"></i> ${new Date(post.datePublished).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                            <span><i class="fas fa-clock"></i> ${post.readTime || '5'} min de leitura</span>
+                            <span><i class="fas fa-tag"></i> ${post.category}</span>
+                        </div>
+                    </div>
+                    <div class="blog-post-image">
+                        <i class="${post.icon || 'fas fa-chart-line'}"></i>
+                    </div>
+                    <div class="blog-post-content">
+                        ${post.content}
+                    </div>
+                    <div class="blog-post-navigation">
+                        <a href="blog.html" class="blog-post-nav-btn">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Voltar ao Blog</span>
+                        </a>
+                        <a href="contato.html" class="blog-post-nav-btn">
+                            <span>Falar com Especialista</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Erro ao carregar artigo:', error);
+                container.innerHTML = `
+                    <div class="blog-post-loading">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 16px; color: var(--accent-primary);"></i>
+                        <p>Erro ao carregar artigo. <a href="blog.html">Voltar ao blog</a></p>
+                    </div>
+                `;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBlogPost();
+            if (typeof initComponents === 'function') {
+                initComponents('blog-post');
+            }
+        });
+    </script>
+</body>
+</html>

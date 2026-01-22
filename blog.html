@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-T3P68DR');</script>
+    <!-- End Google Tag Manager -->
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Blog OLV Internacional - Análises de mercado, guias práticos, notícias e insights sobre comércio exterior, importação, exportação e Supply Chain Global.">
+    <meta name="keywords" content="blog comércio exterior, análises importação exportação, notícias comércio internacional, tendências supply chain, dados comércio exterior Brasil">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+    <link rel="canonical" href="https://www.olvinternacional.com.br/blog.html">
+    <meta property="og:title" content="Blog OLV Internacional - Comércio Exterior e Supply Chain">
+    <meta property="og:description" content="Análises de mercado, guias práticos, notícias e insights sobre comércio exterior, importação, exportação e Supply Chain Global.">
+    <meta property="og:url" content="https://www.olvinternacional.com.br/blog.html">
+    <title>Blog OLV Internacional - Comércio Exterior e Supply Chain</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      "name": "Blog OLV Internacional",
+      "description": "Análises de mercado, guias práticos, notícias e insights sobre comércio exterior, importação, exportação e Supply Chain Global",
+      "url": "https://www.olvinternacional.com.br/blog.html",
+      "publisher": {
+        "@type": "Organization",
+        "name": "OLV Internacional",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://raw.githubusercontent.com/OLVCORE/olv-internacional-website-v3/main/logo-olv.jpeg"
+        }
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Início",
+          "item": "https://www.olvinternacional.com.br/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Blog",
+          "item": "https://www.olvinternacional.com.br/blog.html"
+        }
+      ]
+    }
+    </script>
+    <style>
+        .blog-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .blog-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        .blog-header h1 {
+            font-size: clamp(32px, 5vw, 48px);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+        .blog-header p {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .blog-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-primary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+        .blog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 32px;
+            margin-bottom: 60px;
+        }
+        .blog-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .blog-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+        .blog-card-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-hover) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+        }
+        .blog-card-content {
+            padding: 24px;
+        }
+        .blog-card-category {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--accent-primary);
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .blog-card-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        .blog-card-excerpt {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        .blog-card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+        .blog-card-date {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .blog-loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+        .blog-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+        @media (max-width: 768px) {
+            .blog-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T3P68DR"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    
+    <div id="header-placeholder"></div>
+
+    <section class="content-section" style="padding-top: 120px;">
+        <div class="blog-container">
+            <div class="blog-header">
+                <h1>Blog OLV Internacional</h1>
+                <p>Análises de mercado, guias práticos, notícias e insights sobre comércio exterior, importação, exportação e Supply Chain Global</p>
+            </div>
+
+            <div class="blog-filters">
+                <button class="filter-btn active" data-category="all">Todos</button>
+                <button class="filter-btn" data-category="analises">Análises de Mercado</button>
+                <button class="filter-btn" data-category="guias">Guias Práticos</button>
+                <button class="filter-btn" data-category="noticias">Notícias</button>
+                <button class="filter-btn" data-category="insights">Insights</button>
+            </div>
+
+            <div id="blog-posts-container">
+                <div class="blog-loading">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 32px; margin-bottom: 16px;"></i>
+                    <p>Carregando artigos...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="components.js" defer></script>
+    <script src="script.js" defer></script>
+    <script>
+        // Carregar artigos do blog
+        async function loadBlogPosts(category = 'all') {
+            const container = document.getElementById('blog-posts-container');
+            
+            try {
+                const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                const apiBaseUrl = isDevelopment ? '' : 'https://api.olvinternacional.com.br';
+                
+                const response = await fetch(`${apiBaseUrl}/api/blog/posts?category=${category}`);
+                const posts = await response.json();
+
+                if (posts.length === 0) {
+                    container.innerHTML = `
+                        <div class="blog-empty">
+                            <i class="fas fa-newspaper" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
+                            <p>Nenhum artigo encontrado nesta categoria.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div class="blog-grid">
+                        ${posts.map(post => `
+                            <div class="blog-card" onclick="window.location.href='blog-post.html?id=${post.id}'">
+                                <div class="blog-card-image">
+                                    <i class="${post.icon || 'fas fa-chart-line'}"></i>
+                                </div>
+                                <div class="blog-card-content">
+                                    <span class="blog-card-category">${post.category}</span>
+                                    <h3 class="blog-card-title">${post.title}</h3>
+                                    <p class="blog-card-excerpt">${post.excerpt}</p>
+                                    <div class="blog-card-meta">
+                                        <span class="blog-card-date">
+                                            <i class="fas fa-calendar"></i>
+                                            ${new Date(post.datePublished).toLocaleDateString('pt-BR')}
+                                        </span>
+                                        <span><i class="fas fa-arrow-right"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Erro ao carregar posts:', error);
+                container.innerHTML = `
+                    <div class="blog-empty">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 16px; color: var(--accent-primary);"></i>
+                        <p>Erro ao carregar artigos. Tente novamente mais tarde.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Filtros de categoria
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBlogPosts();
+
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    const category = this.dataset.category;
+                    loadBlogPosts(category);
+                });
+            });
+
+            if (typeof initComponents === 'function') {
+                initComponents('blog');
+            }
+        });
+    </script>
+</body>
+</html>

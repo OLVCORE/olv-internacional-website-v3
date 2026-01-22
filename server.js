@@ -108,6 +108,105 @@ const server = http.createServer((req, res) => {
         const parsedUrl = url.parse(req.url, true);
         const pathname = parsedUrl.pathname;
         
+        // Handle Blog API endpoints
+        if (pathname.startsWith('/api/blog/')) {
+            // Carregar módulos do blog (com tratamento de erro)
+            let blogApi, blogProcessor;
+            try {
+                blogApi = require('./blog-api');
+                blogProcessor = require('./blog-processor');
+            } catch (error) {
+                console.error('Erro ao carregar módulos do blog:', error.message);
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ 
+                    success: false, 
+                    error: 'Módulos do blog não disponíveis. Execute: npm install axios' 
+                }), 'utf-8');
+                return;
+            }
+
+            // GET /api/blog/posts?category=all
+            if (req.method === 'GET' && pathname === '/api/blog/posts') {
+                try {
+                    const category = parsedUrl.query.category || 'all';
+                    blogApi.loadPosts().then(posts => {
+                        let filteredPosts = posts;
+                        if (category !== 'all') {
+                            filteredPosts = posts.filter(p => p.category === category);
+                        }
+                        res.writeHead(200, { 
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
+                        });
+                        res.end(JSON.stringify(filteredPosts), 'utf-8');
+                    }).catch(error => {
+                        console.error('Erro ao carregar posts:', error);
+                        res.writeHead(500, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ success: false, error: error.message }), 'utf-8');
+                    });
+                    return;
+                } catch (error) {
+                    res.writeHead(500, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: error.message }), 'utf-8');
+                    return;
+                }
+            }
+
+            // GET /api/blog/post/:id
+            if (req.method === 'GET' && pathname.startsWith('/api/blog/post/')) {
+                try {
+                    const postId = pathname.split('/').pop();
+                    blogApi.loadPost(postId).then(post => {
+                        if (!post) {
+                            res.writeHead(404, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify({ success: false, error: 'Post não encontrado' }), 'utf-8');
+                            return;
+                        }
+                        res.writeHead(200, { 
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
+                        });
+                        res.end(JSON.stringify(post), 'utf-8');
+                    }).catch(error => {
+                        console.error('Erro ao carregar post:', error);
+                        res.writeHead(500, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ success: false, error: error.message }), 'utf-8');
+                    });
+                    return;
+                } catch (error) {
+                    res.writeHead(500, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: error.message }), 'utf-8');
+                    return;
+                }
+            }
+
+            // POST /api/blog/process - Processar fontes manualmente
+            if (req.method === 'POST' && pathname === '/api/blog/process') {
+                try {
+                    blogProcessor.processAndPublish().then(articles => {
+                        res.writeHead(200, { 
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
+                        });
+                        res.end(JSON.stringify({ 
+                            success: true, 
+                            message: `${articles.length} artigos processados`,
+                            articles: articles.length
+                        }), 'utf-8');
+                    }).catch(error => {
+                        console.error('Erro ao processar artigos:', error);
+                        res.writeHead(500, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ success: false, error: error.message }), 'utf-8');
+                    });
+                    return;
+                } catch (error) {
+                    res.writeHead(500, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: false, error: error.message }), 'utf-8');
+                    return;
+                }
+            }
+        }
+
         // Handle API endpoints
         if (req.method === 'POST' && pathname === '/api/contact') {
             let body = '';
@@ -660,5 +759,19 @@ server.listen(PORT, () => {
     } else {
         console.log('📧 Email não configurado - veja email-config.md para instruções');
     }
+    
+    // Inicializar cron jobs do blog (se disponível)
+    try {
+        const blogCron = require('./blog-cron');
+        blogCron.initCronJobs();
+        // Executar processamento inicial após 5 segundos
+        setTimeout(() => {
+            blogCron.runInitialProcess();
+        }, 5000);
+        console.log('📝 Sistema de blog com atualização automática ativado');
+    } catch (error) {
+        console.log('⚠️  Sistema de blog não disponível - execute: npm install axios node-cron rss-parser');
+    }
+    
     console.log('\n💡 Pressione Ctrl+C para parar o servidor\n');
 });
