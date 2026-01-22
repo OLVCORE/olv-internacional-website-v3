@@ -2222,6 +2222,35 @@ section {
 /* Ícones elegantes e futuristas com gradientes sofisticados */
 /* Design corporativo sofisticado com ícones grandes e destacados */
 
+/* Emerald - Verde corporativo com gradiente */
+.card-emerald .step-number i {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+}
+
+[data-theme="dark"] .card-emerald .step-number i {
+    background: linear-gradient(135deg, #34d399 0%, #6ee7b7 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+}
+
+.card-emerald .step-number:hover i {
+    background: linear-gradient(135deg, #047857 0%, #059669 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+}
+
+[data-theme="dark"] .card-emerald .step-number:hover i {
+    background: linear-gradient(135deg, #6ee7b7 0%, #a7f3d0 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+}
+
 /* Sky - Azul corporativo com gradiente */
 .card-sky .step-number i {
     background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%) !important;
