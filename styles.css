@@ -1486,13 +1486,13 @@ section {
 }
 
 .card-emerald:hover {
-    background: linear-gradient(to right, rgba(236, 253, 245, 0.6), rgba(209, 250, 229, 0.4));
+    background: linear-gradient(to right, rgba(248, 250, 252, 0.7), rgba(241, 245, 249, 0.5));
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     transition: all 0.2s ease;
 }
 
 [data-theme="dark"] .card-emerald:hover {
-    background: linear-gradient(to right, rgba(16, 185, 129, 0.6), rgba(52, 211, 153, 0.4));
+    background: linear-gradient(to right, rgba(15, 23, 42, 0.5), rgba(30, 41, 59, 0.3));
 }
 
 .card-emerald .card-header h3 {
@@ -1527,13 +1527,13 @@ section {
 }
 
 .card-rose:hover {
-    background: linear-gradient(to right, rgba(255, 241, 242, 0.6), rgba(254, 226, 226, 0.4));
+    background: linear-gradient(to right, rgba(248, 250, 252, 0.7), rgba(241, 245, 249, 0.5));
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     transition: all 0.2s ease;
 }
 
 [data-theme="dark"] .card-rose:hover {
-    background: linear-gradient(to right, rgba(244, 63, 94, 0.6), rgba(251, 113, 133, 0.4));
+    background: linear-gradient(to right, rgba(15, 23, 42, 0.5), rgba(30, 41, 59, 0.3));
 }
 
 .card-rose .card-header h3 {
@@ -1568,13 +1568,13 @@ section {
 }
 
 .card-sky:hover {
-    background: linear-gradient(to right, rgba(240, 249, 255, 0.6), rgba(224, 242, 254, 0.4));
+    background: linear-gradient(to right, rgba(248, 250, 252, 0.7), rgba(241, 245, 249, 0.5));
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     transition: all 0.2s ease;
 }
 
 [data-theme="dark"] .card-sky:hover {
-    background: linear-gradient(to right, rgba(14, 165, 233, 0.6), rgba(56, 189, 248, 0.4));
+    background: linear-gradient(to right, rgba(15, 23, 42, 0.5), rgba(30, 41, 59, 0.3));
 }
 
 .card-sky .card-header h3 {
@@ -1609,13 +1609,13 @@ section {
 }
 
 .card-orange:hover {
-    background: linear-gradient(to right, rgba(255, 247, 237, 0.6), rgba(255, 237, 213, 0.4));
+    background: linear-gradient(to right, rgba(248, 250, 252, 0.7), rgba(241, 245, 249, 0.5));
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     transition: all 0.2s ease;
 }
 
 [data-theme="dark"] .card-orange:hover {
-    background: linear-gradient(to right, rgba(249, 115, 22, 0.6), rgba(251, 146, 60, 0.4));
+    background: linear-gradient(to right, rgba(15, 23, 42, 0.5), rgba(30, 41, 59, 0.3));
 }
 
 .card-orange .card-header h3 {
@@ -1650,13 +1650,13 @@ section {
 }
 
 .card-indigo:hover {
-    background: linear-gradient(to right, rgba(238, 242, 255, 0.6), rgba(224, 231, 255, 0.4));
+    background: linear-gradient(to right, rgba(248, 250, 252, 0.7), rgba(241, 245, 249, 0.5));
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     transition: all 0.2s ease;
 }
 
 [data-theme="dark"] .card-indigo:hover {
-    background: linear-gradient(to right, rgba(99, 102, 241, 0.6), rgba(129, 140, 248, 0.4));
+    background: linear-gradient(to right, rgba(15, 23, 42, 0.5), rgba(30, 41, 59, 0.3));
 }
 
 .card-indigo .card-header h3 {
@@ -1691,13 +1691,13 @@ section {
 }
 
 .card-purple:hover {
-    background: linear-gradient(to right, rgba(250, 245, 255, 0.6), rgba(243, 232, 255, 0.4));
+    background: linear-gradient(to right, rgba(248, 250, 252, 0.7), rgba(241, 245, 249, 0.5));
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     transition: all 0.2s ease;
 }
 
 [data-theme="dark"] .card-purple:hover {
-    background: linear-gradient(to right, rgba(168, 85, 247, 0.6), rgba(196, 181, 253, 0.4));
+    background: linear-gradient(to right, rgba(15, 23, 42, 0.5), rgba(30, 41, 59, 0.3));
 }
 
 .card-purple .card-header h3 {
