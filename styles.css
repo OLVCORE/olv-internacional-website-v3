@@ -2212,11 +2212,6 @@ section {
     text-decoration: none !important;
     font-family: "Font Awesome 6 Free" !important;
     font-weight: 900 !important;
-    /* Gradiente aplicado via background-clip */
-    background: linear-gradient(135deg, currentColor 0%, currentColor 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
 }
 
 .step-number:hover i {
@@ -2224,25 +2219,8 @@ section {
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
 }
 
-/* Ícones elegantes e futuristas - Sem círculos */
+/* Ícones elegantes e futuristas com gradientes sofisticados */
 /* Design corporativo sofisticado com ícones grandes e destacados */
-
-/* Emerald - Verde corporativo */
-.card-emerald .step-number i {
-    color: #059669 !important;
-}
-
-[data-theme="dark"] .card-emerald .step-number i {
-    color: #34d399 !important;
-}
-
-.card-emerald .step-number:hover i {
-    color: #047857 !important;
-}
-
-[data-theme="dark"] .card-emerald .step-number:hover i {
-    color: #6ee7b7 !important;
-}
 
 /* Sky - Azul corporativo com gradiente */
 .card-sky .step-number i {
