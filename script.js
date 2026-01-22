@@ -518,67 +518,76 @@ function initAccordions() {
                 timestamp: new Date().toISOString()
             };
             
-            // Detectar ambiente (desenvolvimento ou produção)
-            const isDevelopment = window.location.hostname === 'localhost' || 
-                                 window.location.hostname === '127.0.0.1' ||
-                                 window.location.port === '3000';
+            // Configuração EmailJS - FUNCIONA 100% NA WEB
+            // IMPORTANTE: Configure suas credenciais EmailJS em https://www.emailjs.com/
+            const EMAILJS_CONFIG = {
+                serviceId: 'service_olv_internacional', // Substitua pelo seu Service ID
+                templateId: 'template_checklist_report', // Substitua pelo seu Template ID
+                publicKey: 'YOUR_PUBLIC_KEY' // Substitua pela sua Public Key
+            };
             
-            // URL base da API
-            const apiBaseUrl = isDevelopment 
-                ? '' // Usar URL relativa em desenvolvimento
-                : 'https://api.olvinternacional.com.br'; // Em produção, usar subdomínio de API ou ajustar conforme necessário
+            // Verificar se EmailJS está carregado
+            if (typeof emailjs === 'undefined') {
+                console.error('EmailJS não está carregado. Verifique se o CDN está incluído.');
+                alert('Erro: Sistema de email não configurado. Por favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444');
+                if (modal) modal.classList.remove('active');
+                if (document.body) document.body.style.overflow = '';
+                return;
+            }
             
-            // Send to server (NOTIFICAÇÃO IMEDIATA - email é enviado automaticamente)
-            fetch(`${apiBaseUrl}/api/checklist-report`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(report)
-            })
-            .then(response => {
-                // Verificar se a resposta é JSON
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    // Se não for JSON, provavelmente é um erro 404 ou HTML
-                    throw new Error(`Servidor retornou ${response.status}: ${response.statusText}. Verifique se o servidor está rodando.`);
-                }
+            // Inicializar EmailJS (só precisa fazer uma vez)
+            if (!window.emailjsInitialized) {
+                emailjs.init(EMAILJS_CONFIG.publicKey);
+                window.emailjsInitialized = true;
+            }
+            
+            // Preparar dados para o template EmailJS
+            const templateParams = {
+                to_email: 'consultores@olvinternacional.com.br',
+                from_name: data.nome,
+                from_email: data.email,
+                from_phone: data.telefone,
+                company: data.empresa,
+                adherence: adherence + '%',
+                adherence_level: adherence < 30 ? 'Baixa' : 
+                                adherence < 60 ? 'Média' :
+                                adherence < 80 ? 'Alta' : 'Muito Alta',
+                items_count: selectedItems.length,
+                items_list: selectedItems.map((item, index) => `${index + 1}. ${item.label}`).join('\n'),
+                timestamp: new Date().toLocaleString('pt-BR'),
+                message: `Relatório de Aderência recebido de ${data.nome} (${data.empresa}).\n\nNível de Aderência: ${adherence}%\nItens Identificados: ${selectedItems.length}\n\nEntre em contato:\nEmail: ${data.email}\nTelefone: ${data.telefone}`
+            };
+            
+            console.log('📧 Enviando email via EmailJS...');
+            console.log('Para:', templateParams.to_email);
+            
+            // Enviar email via EmailJS (FUNCIONA 100% NA WEB)
+            emailjs.send(
+                EMAILJS_CONFIG.serviceId,
+                EMAILJS_CONFIG.templateId,
+                templateParams
+            )
+            .then((response) => {
+                console.log('✅ Email enviado com sucesso!', response.status, response.text);
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                // Mostrar página de confirmação formatada
+                showConfirmationPage(data.nome, data.empresa, adherence, selectedItems);
                 
-                return response.json();
+                // Close modal and reset
+                if (modal) modal.classList.remove('active');
+                if (document.body) document.body.style.overflow = '';
+                if (checklistForm) checklistForm.reset();
             })
-            .then(result => {
-                if (result.success) {
-                    console.log('✅ Relatório enviado - notificação imediata ativada');
-                    
-                    // Mostrar página de confirmação formatada
-                    showConfirmationPage(data.nome, data.empresa, adherence, selectedItems);
-                    
-                    // Close modal and reset
-                    if (modal) modal.classList.remove('active');
-                    if (document.body) document.body.style.overflow = '';
-                    if (checklistForm) checklistForm.reset();
-                } else {
-                    alert('Erro ao enviar relatório. Por favor, tente novamente.');
-                    if (modal) modal.classList.remove('active');
-                    if (document.body) document.body.style.overflow = '';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                console.error('Detalhes:', error.message);
-                console.error('Ambiente:', isDevelopment ? 'Desenvolvimento' : 'Produção');
-                console.error('URL tentada:', `${apiBaseUrl}/api/checklist-report`);
+            .catch((error) => {
+                console.error('❌ Erro ao enviar email:', error);
+                console.error('Status:', error.status);
+                console.error('Texto:', error.text);
                 
-                // Mensagem de erro baseada no ambiente
-                let errorMessage;
-                if (isDevelopment) {
-                    errorMessage = `O servidor local não está respondendo. Por favor:\n\n1. Verifique se o servidor está rodando (npm start)\n2. Acesse via http://localhost:3000\n3. Tente novamente\n\nSe o problema persistir, entre em contato:\nEmail: consultores@olvinternacional.com.br\nWhatsApp: +55 11 99924-4444`;
-                } else {
-                    errorMessage = `Desculpe, ${data.nome}. O sistema de envio automático não está disponível no momento.\n\nPor favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444\n\nNossa equipe está pronta para ajudar e analisar seu relatório de aderência!`;
+                // Mensagem de erro amigável
+                let errorMessage = `Desculpe, ${data.nome}. Ocorreu um erro ao enviar seu relatório automaticamente.\n\nPor favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444\n\nNossa equipe está pronta para ajudar e analisar seu relatório de aderência!`;
+                
+                if (error.status === 400) {
+                    errorMessage = `Erro de configuração do sistema de email. Por favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444`;
                 }
                 
                 alert(errorMessage);
