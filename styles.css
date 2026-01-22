@@ -1366,6 +1366,13 @@ section {
     margin-bottom: 32px;
 }
 
+/* Cards longos ocupam largura completa em desktop */
+@media (min-width: 992px) {
+    .cards-grid .card-accordion.card-long-content {
+        grid-column: 1 / -1;
+    }
+}
+
 .card-accordion {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
@@ -1724,8 +1731,40 @@ section {
     flex-direction: column;
 }
 
-/* Layout horizontal em 2 colunas para cards com muito conteúdo em desktop */
+/* Layout horizontal completo para cards longos em desktop */
 @media (min-width: 992px) {
+    /* Card longo expandido: header e conteúdo lado a lado */
+    .card-accordion.card-long-content[aria-expanded="true"] {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        align-items: start;
+    }
+    
+    /* Header fica fixo na lateral esquerda */
+    .card-accordion.card-long-content[aria-expanded="true"] .card-header {
+        position: sticky;
+        top: 24px;
+        height: fit-content;
+        padding: 24px;
+        border-right: 1px solid var(--border-color);
+        background: var(--bg-secondary);
+        border-radius: 0;
+    }
+    
+    .card-accordion.card-long-content[aria-expanded="true"] .card-header h3 {
+        font-size: 18px;
+        line-height: 1.4;
+        margin-bottom: 8px;
+    }
+    
+    .card-accordion.card-long-content[aria-expanded="true"] .accordion-icon {
+        position: static;
+        transform: rotate(45deg);
+        margin-top: 12px;
+        align-self: flex-start;
+    }
+    
+    /* Conteúdo ocupa o restante em 2 colunas */
     .card-accordion.card-long-content[aria-expanded="true"] .card-content {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -1733,6 +1772,7 @@ section {
         align-items: start;
         column-gap: 40px;
         row-gap: 0;
+        padding: 24px 32px !important;
     }
     
     /* Primeiro parágrafo ocupa toda a largura */
@@ -1741,6 +1781,9 @@ section {
         margin-bottom: 0 !important;
         padding-bottom: 24px;
         border-bottom: 1px solid var(--border-color);
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--text-primary);
     }
     
     /* Subtítulos (strong) ocupam coluna inteira e começam nova linha */
@@ -1840,6 +1883,17 @@ section {
 
 /* Responsivo: voltar para vertical em tablets e mobile */
 @media (max-width: 991px) {
+    .card-accordion.card-long-content[aria-expanded="true"] {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .card-accordion.card-long-content[aria-expanded="true"] .card-header {
+        position: static;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
     .card-accordion.card-long-content[aria-expanded="true"] .card-content {
         display: flex;
         flex-direction: column;
