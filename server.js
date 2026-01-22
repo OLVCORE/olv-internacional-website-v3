@@ -104,8 +104,12 @@ const server = http.createServer((req, res) => {
     }
     
     try {
+        // Parse URL to handle query strings
+        const parsedUrl = url.parse(req.url, true);
+        const pathname = parsedUrl.pathname;
+        
         // Handle API endpoints
-        if (req.method === 'POST' && req.url === '/api/contact') {
+        if (req.method === 'POST' && pathname === '/api/contact') {
             let body = '';
             
             req.on('data', chunk => {
@@ -297,7 +301,7 @@ Data: ${new Date().toLocaleString('pt-BR')}
             return;
         }
         
-        if (req.method === 'POST' && req.url === '/api/checklist-report') {
+        if (req.method === 'POST' && pathname === '/api/checklist-report') {
             let body = '';
             
             req.on('data', chunk => {
