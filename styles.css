@@ -2081,39 +2081,103 @@ section {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
-    background: var(--accent-primary);
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
     color: white;
-    border-radius: 6px;
-    font-size: 14px;
+    border-radius: 50%;
+    font-size: 0;
     font-weight: 700;
-    margin-right: 8px;
+    margin-right: 16px;
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.25);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
 }
 
-/* Step numbers com cores dos cards */
+.step-number::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, transparent 50%);
+    border-radius: 50%;
+    pointer-events: none;
+    transition: transform 0.6s ease;
+}
+
+.step-number:hover::before {
+    transform: rotate(180deg);
+}
+
+.step-number i {
+    font-size: 20px;
+    z-index: 1;
+    position: relative;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.step-number:hover {
+    transform: scale(1.15) rotate(5deg);
+    box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
+}
+
+/* Step numbers com cores dos cards e gradientes elegantes */
 .card-emerald .step-number {
-    background: #10b981;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.card-emerald .step-number:hover {
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
 }
 
 .card-rose .step-number {
-    background: #f43f5e;
+    background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+    box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);
+}
+
+.card-rose .step-number:hover {
+    box-shadow: 0 6px 20px rgba(244, 63, 94, 0.4);
 }
 
 .card-sky .step-number {
-    background: #0ea5e9;
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+}
+
+.card-sky .step-number:hover {
+    box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
 }
 
 .card-orange .step-number {
-    background: #f97316;
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+
+.card-orange .step-number:hover {
+    box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
 }
 
 .card-indigo .step-number {
-    background: #6366f1;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.card-indigo .step-number:hover {
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
 }
 
 .card-purple .step-number {
-    background: #a855f7;
+    background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+}
+
+.card-purple .step-number:hover {
+    box-shadow: 0 6px 20px rgba(168, 85, 247, 0.4);
 }
 
 /* ============================================
