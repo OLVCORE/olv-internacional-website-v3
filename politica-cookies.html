@@ -84,11 +84,23 @@
     <script src="components.js" defer></script>
     <script src="script.js" defer></script>
     <script>
-        // Determinar página atual para highlight no menu
-        const currentPage = 'politica-cookies';
-        document.addEventListener('DOMContentLoaded', () => {
-            initComponents(currentPage);
-        });
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof initComponents === 'function') {
+                    initComponents('');
+                }
+            });
+        } else {
+            if (typeof initComponents === 'function') {
+                initComponents('');
+            } else {
+                window.addEventListener('load', function() {
+                    if (typeof initComponents === 'function') {
+                        initComponents('');
+                    }
+                });
+            }
+        }
     </script>
 </body>
 </html>

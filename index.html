@@ -578,19 +578,30 @@
 
     <div id="footer-placeholder"></div>
 
-    <script src="components.js"></script>
-    <script src="dynamic-cards-config.js"></script>
-    <script src="script.js"></script>
+    <script src="components.js" defer></script>
+    <script src="dynamic-cards-config.js" defer></script>
+    <script src="script.js" defer></script>
     <script>
-        // Initialize components first
-        initComponents('index');
-        
-        // Then initialize accordions after components are loaded
-        setTimeout(function() {
-            if (typeof initAccordions === 'function') {
-                initAccordions();
+        // Garantir que initComponents seja chamado após todos os scripts carregarem
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof initComponents === 'function') {
+                    initComponents('index');
+                }
+            });
+        } else {
+            // DOM já está pronto
+            if (typeof initComponents === 'function') {
+                initComponents('index');
+            } else {
+                // Se components.js ainda não carregou, aguardar
+                window.addEventListener('load', function() {
+                    if (typeof initComponents === 'function') {
+                        initComponents('index');
+                    }
+                });
             }
-        }, 100);
+        }
     </script>
 </body>
 </html>
