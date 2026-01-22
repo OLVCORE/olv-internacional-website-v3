@@ -518,13 +518,35 @@ function initAccordions() {
                 timestamp: new Date().toISOString()
             };
             
-            // Configuração EmailJS - FUNCIONA 100% NA WEB
-            // IMPORTANTE: Configure suas credenciais EmailJS em https://www.emailjs.com/
+            // ============================================
+            // CONFIGURAÇÃO EMAILJS - RELATÓRIO DE ADERÊNCIA
+            // ============================================
+            // INSTRUÇÕES COMPLETAS: Veja CONFIGURAR-EMAIL-OLV-SIMPLES.md
+            // 
+            // 1. Crie conta em https://www.emailjs.com/
+            // 2. Configure "Custom SMTP" com mail.olvinternacional.com.br
+            // 3. Crie templates de email
+            // 4. Copie Service ID, Template ID e Public Key
+            // 5. Cole os valores abaixo:
+            // ============================================
             const EMAILJS_CONFIG = {
-                serviceId: 'service_olv_internacional', // Substitua pelo seu Service ID
-                templateId: 'template_checklist_report', // Substitua pelo seu Template ID
-                publicKey: 'YOUR_PUBLIC_KEY' // Substitua pela sua Public Key
+                serviceId: 'service_kwstqkk', // ✅ Service ID configurado
+                templateId: 'COLE_AQUI_O_TEMPLATE_ID_ADERENCIA', // Exemplo: 'template_xyz789abc'
+                publicKey: 'COLE_AQUI_A_PUBLIC_KEY' // Exemplo: 'user_abc123xyz'
             };
+            
+            // Validação: Verificar se a Public Key foi configurada
+            if (!EMAILJS_CONFIG.publicKey || EMAILJS_CONFIG.publicKey === 'YOUR_PUBLIC_KEY' || EMAILJS_CONFIG.publicKey.trim() === '') {
+                console.error('❌ EmailJS Public Key não configurada!');
+                console.error('📋 Para configurar:');
+                console.error('   1. Acesse: https://dashboard.emailjs.com/admin/account');
+                console.error('   2. Copie sua Public Key');
+                console.error('   3. Atualize script.js linha ~526 com sua Public Key');
+                alert('⚠️ Configuração de Email Necessária\n\nO sistema de email ainda não foi configurado.\n\nPor favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444\n\nOu configure EmailJS seguindo as instruções em EMAILJS-CONFIG.md');
+                if (modal) modal.classList.remove('active');
+                if (document.body) document.body.style.overflow = '';
+                return;
+            }
             
             // Verificar se EmailJS está carregado
             if (typeof emailjs === 'undefined') {
@@ -587,7 +609,12 @@ function initAccordions() {
                 let errorMessage = `Desculpe, ${data.nome}. Ocorreu um erro ao enviar seu relatório automaticamente.\n\nPor favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444\n\nNossa equipe está pronta para ajudar e analisar seu relatório de aderência!`;
                 
                 if (error.status === 400) {
-                    errorMessage = `Erro de configuração do sistema de email. Por favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444`;
+                    if (error.text && error.text.includes('Public Key is invalid')) {
+                        console.error('🔑 Public Key inválida! Configure em: https://dashboard.emailjs.com/admin/account');
+                        errorMessage = `⚠️ Erro de configuração do sistema de email.\n\nA Public Key do EmailJS precisa ser configurada.\n\nPor favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444`;
+                    } else {
+                        errorMessage = `Erro de configuração do sistema de email. Por favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444`;
+                    }
                 }
                 
                 alert(errorMessage);
@@ -730,12 +757,35 @@ document.addEventListener('click', function(e) {
             submitBtn.disabled = true;
             submitBtn.textContent = 'Enviando...';
             
-            // Configuração EmailJS - FUNCIONA 100% NA WEB
+            // ============================================
+            // CONFIGURAÇÃO EMAILJS - FORMULÁRIO DE CONTATO
+            // ============================================
+            // INSTRUÇÕES COMPLETAS: Veja CONFIGURAR-EMAIL-OLV-SIMPLES.md
+            // 
+            // 1. Crie conta em https://www.emailjs.com/
+            // 2. Configure "Custom SMTP" com mail.olvinternacional.com.br
+            // 3. Crie templates de email
+            // 4. Copie Service ID, Template ID e Public Key
+            // 5. Cole os valores abaixo:
+            // ============================================
             const EMAILJS_CONFIG = {
-                serviceId: 'service_olv_internacional', // Substitua pelo seu Service ID
-                templateId: 'template_contact_form', // Substitua pelo seu Template ID
-                publicKey: 'YOUR_PUBLIC_KEY' // Substitua pela sua Public Key
+                serviceId: 'service_kwstqkk', // ✅ Service ID configurado
+                templateId: 'COLE_AQUI_O_TEMPLATE_ID_CONTATO', // Exemplo: 'template_abc123xyz'
+                publicKey: 'COLE_AQUI_A_PUBLIC_KEY' // Exemplo: 'user_abc123xyz'
             };
+            
+            // Validação: Verificar se a Public Key foi configurada
+            if (!EMAILJS_CONFIG.publicKey || EMAILJS_CONFIG.publicKey === 'YOUR_PUBLIC_KEY' || EMAILJS_CONFIG.publicKey.trim() === '') {
+                console.error('❌ EmailJS Public Key não configurada!');
+                console.error('📋 Para configurar:');
+                console.error('   1. Acesse: https://dashboard.emailjs.com/admin/account');
+                console.error('   2. Copie sua Public Key');
+                console.error('   3. Atualize script.js linha ~737 com sua Public Key');
+                alert('⚠️ Configuração de Email Necessária\n\nO sistema de email ainda não foi configurado.\n\nPor favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444\n\nOu configure EmailJS seguindo as instruções em EMAILJS-CONFIG.md');
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+                return;
+            }
             
             // Verificar se EmailJS está carregado
             if (typeof emailjs === 'undefined') {
@@ -787,7 +837,12 @@ document.addEventListener('click', function(e) {
                 let errorMessage = '❌ Erro ao enviar mensagem. Por favor, tente novamente ou entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444';
                 
                 if (error.status === 400) {
-                    errorMessage = 'Erro de configuração do sistema de email. Por favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444';
+                    if (error.text && error.text.includes('Public Key is invalid')) {
+                        console.error('🔑 Public Key inválida! Configure em: https://dashboard.emailjs.com/admin/account');
+                        errorMessage = '⚠️ Erro de configuração do sistema de email.\n\nA Public Key do EmailJS precisa ser configurada.\n\nPor favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444';
+                    } else {
+                        errorMessage = 'Erro de configuração do sistema de email. Por favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444';
+                    }
                 }
                 
                 alert(errorMessage);

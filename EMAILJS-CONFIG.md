@@ -143,32 +143,42 @@ O sistema agora usa **EmailJS** que funciona 100% na web, sem necessidade de ser
 </html>
 ```
 
-### 4. Obter Public Key
+### 4. Obter Public Key ⚠️ **OBRIGATÓRIO**
 
-1. Vá em **Account** > **General**
-2. Copie sua **Public Key** (ex: `abc123xyz`)
+1. Vá em **Account** > **General** (ou acesse diretamente: https://dashboard.emailjs.com/admin/account)
+2. Copie sua **Public Key** (ex: `abc123xyz` ou `user_abc123xyz`)
+3. **IMPORTANTE:** Esta é a chave que permite o envio de emails. Sem ela, os formulários não funcionarão!
 
-### 5. Configurar no Código
+### 5. Configurar no Código 🔧
+
+**⚠️ ATENÇÃO: Sem configurar a Public Key, os formulários NÃO funcionarão!**
 
 Abra o arquivo `script.js` e atualize as configurações:
 
-**Linha ~521 (Checklist Report):**
+**Linha ~526 (Checklist Report):**
 ```javascript
 const EMAILJS_CONFIG = {
     serviceId: 'service_abc123', // SEU SERVICE ID AQUI
     templateId: 'template_checklist_report', // SEU TEMPLATE ID AQUI
-    publicKey: 'abc123xyz' // SUA PUBLIC KEY AQUI
+    publicKey: 'abc123xyz' // ⚠️ SUBSTITUA PELA SUA PUBLIC KEY REAL!
 };
 ```
 
-**Linha ~710 (Contact Form):**
+**Linha ~737 (Contact Form):**
 ```javascript
 const EMAILJS_CONFIG = {
     serviceId: 'service_abc123', // SEU SERVICE ID AQUI
     templateId: 'template_contact_form', // SEU TEMPLATE ID AQUI
-    publicKey: 'abc123xyz' // SUA PUBLIC KEY AQUI
+    publicKey: 'abc123xyz' // ⚠️ SUBSTITUA PELA SUA PUBLIC KEY REAL!
 };
 ```
+
+**⚠️ ERRO COMUM:** Se você ver o erro `"The Public Key is invalid"`, significa que:
+- A Public Key não foi configurada (ainda está como `'YOUR_PUBLIC_KEY'`)
+- A Public Key foi copiada incorretamente
+- A Public Key foi revogada ou expirada
+
+**Solução:** Acesse https://dashboard.emailjs.com/admin/account e copie novamente a Public Key.
 
 ### 6. Testar
 

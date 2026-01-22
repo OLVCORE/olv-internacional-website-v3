@@ -1,0 +1,51 @@
+<div style="font-family: system-ui, sans-serif, Arial; font-size: 14px; color: #333; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+  <div style="background-color: #0066cc; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
+    <h2 style="margin: 0; font-size: 24px;">📧 Novo Contato - OLV Internacional</h2>
+  </div>
+  
+  <div style="background-color: #f9f9f9; padding: 20px; border: 1px solid #e0e0e0; border-top: none;">
+    <div style="background-color: white; padding: 20px; margin-bottom: 15px; border-left: 4px solid #0066cc; border-radius: 4px;">
+      <h3 style="margin-top: 0; color: #0066cc; font-size: 18px;">Dados do Cliente</h3>
+      
+      <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px 0; width: 120px; font-weight: bold; color: #555;">Nome:</td>
+          <td style="padding: 8px 0; color: #333;">{{from_name}}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; font-weight: bold; color: #555;">Empresa:</td>
+          <td style="padding: 8px 0; color: #333;">{{company}}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; font-weight: bold; color: #555;">Email:</td>
+          <td style="padding: 8px 0; color: #333;"><a href="mailto:{{from_email}}" style="color: #0066cc; text-decoration: none;">{{from_email}}</a></td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; font-weight: bold; color: #555;">Telefone:</td>
+          <td style="padding: 8px 0; color: #333;">{{from_phone}}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; font-weight: bold; color: #555;">Cargo:</td>
+          <td style="padding: 8px 0; color: #333;">{{cargo}}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; font-weight: bold; color: #555;">Área de Interesse:</td>
+          <td style="padding: 8px 0; color: #333;">{{interesse}}</td>
+        </tr>
+      </table>
+    </div>
+    
+    <div style="background-color: white; padding: 20px; margin-bottom: 15px; border-left: 4px solid #0066cc; border-radius: 4px;">
+      <h3 style="margin-top: 0; color: #0066cc; font-size: 18px;">Mensagem</h3>
+      <div style="background-color: #f5f5f5; padding: 15px; border-radius: 4px; white-space: pre-wrap; font-size: 14px; line-height: 1.6;">{{message}}</div>
+    </div>
+    
+    <div style="text-align: center; padding: 15px; background-color: #f0f0f0; border-radius: 4px; margin-top: 20px;">
+      <p style="margin: 0; color: #666; font-size: 12px;">📅 Enviado em: {{timestamp}}</p>
+    </div>
+  </div>
+  
+  <div style="background-color: #0066cc; color: white; padding: 15px; text-align: center; border-radius: 0 0 5px 5px; font-size: 12px;">
+    <p style="margin: 0;">OLV Internacional - Consultoria em Supply Chain Global</p>
+  </div>
+</div>
