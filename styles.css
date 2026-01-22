@@ -3937,19 +3937,7 @@ section {
     box-shadow: 0 8px 24px var(--card-hover-shadow);
 }
 
-.step-number {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: var(--accent-primary);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    font-weight: 900;
-    margin: 0 auto 20px;
-}
+/* CSS antigo removido - usando apenas ícones sem círculos */
 
 .abordagem-step h3 {
     font-size: 20px;
