@@ -2036,20 +2036,94 @@ section {
 }
 
 .region-shape {
-    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-hover) 100%);
+    background: linear-gradient(to right, rgba(248, 250, 252, 0.5), rgba(241, 245, 249, 0.3));
     border-radius: 12px;
     padding: 32px 24px;
     text-align: center;
-    color: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
-    border: 3px solid transparent;
+    border-left: 4px solid;
+    border-left-color: rgba(16, 185, 129, 0.9);
+    position: relative;
+    overflow: hidden;
+}
+
+[data-theme="dark"] .region-shape {
+    background: linear-gradient(to right, rgba(15, 23, 42, 0.4), rgba(30, 41, 59, 0.2));
 }
 
 .map-region:hover .region-shape {
-    border-color: var(--accent-hover);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
     transform: translateY(-4px);
+}
+
+.region-map-wrapper {
+    margin-bottom: 16px;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.region-map-image {
+    width: 100%;
+    max-width: 120px;
+    height: auto;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    transition: transform 0.3s ease;
+}
+
+.map-region:hover .region-map-image {
+    transform: scale(1.1);
+}
+
+.region-map-fallback {
+    font-size: 48px;
+    opacity: 0.7;
+    color: inherit;
+}
+
+.region-card-emerald .region-map-fallback {
+    color: #059669;
+}
+
+[data-theme="dark"] .region-card-emerald .region-map-fallback {
+    color: #34d399;
+}
+
+.region-card-sky .region-map-fallback {
+    color: #0284c7;
+}
+
+[data-theme="dark"] .region-card-sky .region-map-fallback {
+    color: #38bdf8;
+}
+
+.region-card-orange .region-map-fallback {
+    color: #ea580c;
+}
+
+[data-theme="dark"] .region-card-orange .region-map-fallback {
+    color: #fb923c;
+}
+
+.region-card-indigo .region-map-fallback {
+    color: #6366f1;
+}
+
+[data-theme="dark"] .region-card-indigo .region-map-fallback {
+    color: #818cf8;
+}
+
+.region-card-purple .region-map-fallback {
+    color: #9333ea;
+}
+
+[data-theme="dark"] .region-card-purple .region-map-fallback {
+    color: #c084fc;
 }
 
 .region-shape i {
@@ -2065,26 +2139,142 @@ section {
     display: block;
     text-transform: uppercase;
     letter-spacing: 1px;
+    color: #065f46;
+    transition: color 0.3s ease;
 }
 
-.americas-shape {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+[data-theme="dark"] .region-shape span {
+    color: #d1fae5;
 }
 
-.europe-shape {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+/* Padrão visual corporativo - Emerald (Américas) */
+.region-card-emerald {
+    border-left-color: rgba(16, 185, 129, 0.9);
+    background: linear-gradient(to right, rgba(248, 250, 252, 0.5), rgba(241, 245, 249, 0.3));
 }
 
-.asia-shape {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+[data-theme="dark"] .region-card-emerald {
+    background: linear-gradient(to right, rgba(15, 23, 42, 0.4), rgba(30, 41, 59, 0.2));
 }
 
-.africa-shape {
-    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+.region-card-emerald:hover {
+    background: linear-gradient(to right, rgba(236, 253, 245, 0.6), rgba(209, 250, 229, 0.4));
 }
 
-.oceania-shape {
-    background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+[data-theme="dark"] .region-card-emerald:hover {
+    background: linear-gradient(to right, rgba(16, 185, 129, 0.6), rgba(52, 211, 153, 0.4));
+}
+
+.region-card-emerald span {
+    color: #065f46;
+}
+
+[data-theme="dark"] .region-card-emerald span {
+    color: #d1fae5;
+}
+
+/* Padrão visual corporativo - Sky (Europa) */
+.region-card-sky {
+    border-left-color: rgba(14, 165, 233, 0.9);
+    background: linear-gradient(to right, rgba(248, 250, 252, 0.5), rgba(241, 245, 249, 0.3));
+}
+
+[data-theme="dark"] .region-card-sky {
+    background: linear-gradient(to right, rgba(15, 23, 42, 0.4), rgba(30, 41, 59, 0.2));
+}
+
+.region-card-sky:hover {
+    background: linear-gradient(to right, rgba(240, 249, 255, 0.6), rgba(224, 242, 254, 0.4));
+}
+
+[data-theme="dark"] .region-card-sky:hover {
+    background: linear-gradient(to right, rgba(14, 165, 233, 0.6), rgba(56, 189, 248, 0.4));
+}
+
+.region-card-sky span {
+    color: #0c4a6e;
+}
+
+[data-theme="dark"] .region-card-sky span {
+    color: #e0f2fe;
+}
+
+/* Padrão visual corporativo - Orange (Ásia) */
+.region-card-orange {
+    border-left-color: rgba(249, 115, 22, 0.9);
+    background: linear-gradient(to right, rgba(248, 250, 252, 0.5), rgba(241, 245, 249, 0.3));
+}
+
+[data-theme="dark"] .region-card-orange {
+    background: linear-gradient(to right, rgba(15, 23, 42, 0.4), rgba(30, 41, 59, 0.2));
+}
+
+.region-card-orange:hover {
+    background: linear-gradient(to right, rgba(255, 247, 237, 0.6), rgba(254, 243, 199, 0.4));
+}
+
+[data-theme="dark"] .region-card-orange:hover {
+    background: linear-gradient(to right, rgba(249, 115, 22, 0.6), rgba(251, 146, 60, 0.4));
+}
+
+.region-card-orange span {
+    color: #9a3412;
+}
+
+[data-theme="dark"] .region-card-orange span {
+    color: #ffedd5;
+}
+
+/* Padrão visual corporativo - Indigo (África) */
+.region-card-indigo {
+    border-left-color: rgba(99, 102, 241, 0.9);
+    background: linear-gradient(to right, rgba(248, 250, 252, 0.5), rgba(241, 245, 249, 0.3));
+}
+
+[data-theme="dark"] .region-card-indigo {
+    background: linear-gradient(to right, rgba(15, 23, 42, 0.4), rgba(30, 41, 59, 0.2));
+}
+
+.region-card-indigo:hover {
+    background: linear-gradient(to right, rgba(238, 242, 255, 0.6), rgba(224, 231, 255, 0.4));
+}
+
+[data-theme="dark"] .region-card-indigo:hover {
+    background: linear-gradient(to right, rgba(99, 102, 241, 0.6), rgba(129, 140, 248, 0.4));
+}
+
+.region-card-indigo span {
+    color: #3730a3;
+}
+
+[data-theme="dark"] .region-card-indigo span {
+    color: #e0e7ff;
+}
+
+/* Padrão visual corporativo - Purple (Oceania) */
+.region-card-purple {
+    border-left-color: rgba(168, 85, 247, 0.9);
+    background: linear-gradient(to right, rgba(248, 250, 252, 0.5), rgba(241, 245, 249, 0.3));
+}
+
+[data-theme="dark"] .region-card-purple {
+    background: linear-gradient(to right, rgba(15, 23, 42, 0.4), rgba(30, 41, 59, 0.2));
+}
+
+.region-card-purple:hover {
+    background: linear-gradient(to right, rgba(250, 245, 255, 0.6), rgba(243, 232, 255, 0.4));
+}
+
+[data-theme="dark"] .region-card-purple:hover {
+    background: linear-gradient(to right, rgba(168, 85, 247, 0.6), rgba(196, 181, 253, 0.4));
+}
+
+.region-card-purple span {
+    color: #6b21a8;
+}
+
+[data-theme="dark"] .region-card-purple span {
+    color: #f3e8ff;
 }
 
 .map-info-panel {
@@ -2134,8 +2324,24 @@ section {
         padding: 24px 16px;
     }
     
+    .region-map-wrapper {
+        min-height: 60px;
+    }
+    
+    .region-map-image {
+        max-width: 80px;
+    }
+    
+    .region-map-fallback {
+        font-size: 36px;
+    }
+    
     .region-shape i {
         font-size: 36px;
+    }
+    
+    .region-shape span {
+        font-size: 16px;
     }
     
     .map-info-panel.active {
