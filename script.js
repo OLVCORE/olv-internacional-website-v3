@@ -380,18 +380,18 @@ function initAccordions() {
                 levelDesc = `Você identificou ${checkedCount} desafios estratégicos. A OLV tem soluções específicas para cada um deles, com impacto direto em custos, margem e competitividade.`;
             } else if (percentage < 80) {
                 levelText = 'Muito Alto Potencial';
-                levelDesc = 'Sua empresa tem várias dificuldades - a OLV pode fazer a diferença';
-            } else if (percentage < 80) {
-                levelText = 'Aderência Alta';
-                levelDesc = 'Sua empresa tem muitas dificuldades - precisamos conversar urgentemente';
+                levelDesc = `Você identificou ${checkedCount} desafios estratégicos. A OLV pode estruturar uma solução integrada que resolve múltiplos problemas simultaneamente, transformando desafios em vantagem competitiva.`;
+            } else if (percentage < 100) {
+                levelText = 'Potencial Máximo';
+                levelDesc = `Você identificou ${checkedCount} desafios estratégicos. A OLV pode estruturar uma solução completa de Supply Chain 360° que integra estratégia, operação e resultado para transformar sua cadeia de suprimentos.`;
             } else {
-                levelText = 'Aderência Muito Alta';
-                levelDesc = 'Sua empresa precisa de ajuda estratégica imediata - vamos resolver isso';
+                levelText = 'Potencial Estratégico Completo';
+                levelDesc = `Você identificou ${checkedCount} desafios estratégicos. A OLV pode estruturar uma solução completa e integrada que resolve todos esses desafios, transformando sua operação internacional em vantagem competitiva sustentável.`;
             }
             
             levelElement.innerHTML = `
                 <span class="level-text">${levelText}</span>
-                <span class="level-description">${levelDesc}</span>
+                <span class="level-desc">${levelDesc}</span>
             `;
         }
         
