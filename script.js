@@ -203,72 +203,75 @@ function initAccordions() {
     const checklistForm = document.getElementById('checklistForm');
     const checklistSection = document.querySelector('.diagnostico');
     
-    // Função para tornar o botão flutuante quando o usuário scrollar
+    // Função para tornar o botão flutuante quando houver checkbox marcado
     function makeButtonFloating() {
-        if (!submitBtn || !checklistSection) return;
+        if (!submitBtn) return;
         
-        const originalPosition = submitBtn.getBoundingClientRect();
-        let isFloating = false;
-        let hasCheckedItem = false;
+        const originalButtonContainer = submitBtn.closest('.checklist-cta');
+        let originalButtonTop = 0;
         
-        // Verificar se há pelo menos um checkbox marcado
-        function checkHasCheckedItems() {
-            hasCheckedItem = Array.from(checkboxes).some(cb => cb.checked);
-            updateButtonVisibility();
-        }
-        
-        // Atualizar visibilidade do botão flutuante
-        function updateButtonVisibility() {
-            if (hasCheckedItem && isFloating) {
-                submitBtn.classList.add('floating');
-            } else if (!isFloating) {
-                submitBtn.classList.remove('floating');
+        // Calcular posição original do botão
+        function updateOriginalPosition() {
+            if (originalButtonContainer) {
+                originalButtonTop = originalButtonContainer.getBoundingClientRect().top + window.scrollY;
             }
         }
         
-        // Listener para scroll
-        function handleScroll() {
-            if (!checklistSection) return;
+        // Verificar se há pelo menos um checkbox marcado e tornar botão flutuante
+        function checkHasCheckedItems() {
+            const hasCheckedItem = Array.from(checkboxes).some(cb => cb.checked);
             
-            const sectionTop = checklistSection.getBoundingClientRect().top;
-            const sectionBottom = checklistSection.getBoundingClientRect().bottom;
-            const viewportHeight = window.innerHeight;
-            
-            // Se a seção está visível e o usuário scrollou além do botão original
-            if (sectionTop < viewportHeight && sectionBottom > 0) {
-                const buttonTop = originalPosition.top + window.scrollY;
-                const currentScroll = window.scrollY + viewportHeight;
+            if (hasCheckedItem) {
+                updateOriginalPosition();
                 
-                // Tornar flutuante se scrollou além do botão original E há checkbox marcado
-                if (currentScroll > buttonTop + 100 && hasCheckedItem) {
-                    if (!isFloating) {
-                        isFloating = true;
-                        submitBtn.classList.add('floating');
-                    }
+                // Verificar se o botão original está visível na tela
+                const buttonRect = submitBtn.getBoundingClientRect();
+                const isButtonVisible = buttonRect.top < window.innerHeight && buttonRect.bottom > 0;
+                const scrollPosition = window.scrollY + window.innerHeight;
+                
+                // Se o botão original não está visível OU scrollou além dele, tornar flutuante
+                if (!isButtonVisible || scrollPosition > originalButtonTop + 150) {
+                    submitBtn.classList.add('floating');
                 } else {
-                    if (isFloating) {
-                        isFloating = false;
-                        submitBtn.classList.remove('floating');
-                    }
-                }
-            } else {
-                // Se a seção não está visível, remover flutuante
-                if (isFloating) {
-                    isFloating = false;
+                    // Botão original ainda visível, manter normal
                     submitBtn.classList.remove('floating');
                 }
+            } else {
+                // Nenhum checkbox marcado, remover flutuante
+                submitBtn.classList.remove('floating');
             }
         }
         
         // Verificar checkboxes inicialmente e quando mudarem
         checkHasCheckedItems();
         checkboxes.forEach(cb => {
-            cb.addEventListener('change', checkHasCheckedItems);
+            cb.addEventListener('change', function() {
+                // Pequeno delay para garantir que o DOM atualizou
+                setTimeout(checkHasCheckedItems, 10);
+            });
         });
         
-        // Listener de scroll
+        // Listener de scroll para atualizar estado do botão
+        function handleScroll() {
+            if (Array.from(checkboxes).some(cb => cb.checked)) {
+                updateOriginalPosition();
+                const scrollPosition = window.scrollY + window.innerHeight;
+                const buttonRect = submitBtn.getBoundingClientRect();
+                const isButtonVisible = buttonRect.top < window.innerHeight && buttonRect.bottom > 0;
+                
+                // Se o botão original não está visível, tornar flutuante
+                if (!isButtonVisible || scrollPosition > originalButtonTop + 150) {
+                    submitBtn.classList.add('floating');
+                } else if (scrollPosition < originalButtonTop - 50) {
+                    // Se voltou para perto do botão original, remover flutuante
+                    submitBtn.classList.remove('floating');
+                }
+            }
+        }
+        
         window.addEventListener('scroll', handleScroll, { passive: true });
-        handleScroll(); // Verificar posição inicial
+        window.addEventListener('resize', updateOriginalPosition);
+        updateOriginalPosition();
     }
     
     // Inicializar botão flutuante quando o DOM estiver pronto
@@ -641,9 +644,10 @@ function initAccordions() {
             
             // Preparar dados para o template EmailJS
             // IMPORTANTE: O template no EmailJS deve ter "To Email" configurado como: consultores@olvinternacional.com.br
-            // OU usar a variável {{to_email}} no campo "To Email" do template
+            // OU usar a variável {{email}} no campo "To Email" do template (se usar variável, enviar como 'email')
             const templateParams = {
-                to_email: 'consultores@olvinternacional.com.br',
+                email: 'consultores@olvinternacional.com.br', // Para template que usa {{email}}
+                to_email: 'consultores@olvinternacional.com.br', // Para template que usa {{to_email}}
                 reply_to: data.email, // Email para resposta
                 from_name: data.nome,
                 from_email: data.email,
