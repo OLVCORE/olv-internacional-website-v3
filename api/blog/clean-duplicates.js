@@ -34,17 +34,13 @@ module.exports = async (req, res) => {
             });
         }
 
-        const { sql } = require('@neondatabase/serverless');
-        const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
-        
-        if (!databaseUrl) {
+        // Usar o método correto do banco de dados
+        if (!db || !db.executeQuery) {
             return res.status(200).json({ 
-                message: 'DATABASE_URL não configurado',
+                message: 'Banco não disponível ou executeQuery não encontrado',
                 cleaned: 0 
             });
         }
-
-        const neon = sql(databaseUrl);
         
         // Normalizar título para comparação
         const normalizeTitle = (title) => {
@@ -77,29 +73,26 @@ module.exports = async (req, res) => {
         for (const keyword of testKeywords) {
             const deleteTestQuery = `
                 DELETE FROM blog_posts
-                WHERE LOWER(title) LIKE '%${keyword.toLowerCase()}%'
-                   OR LOWER(excerpt) LIKE '%${keyword.toLowerCase()}%'
-                   OR LOWER(id) LIKE '%${keyword.toLowerCase()}%'
+                WHERE LOWER(title) LIKE '%${keyword.toLowerCase().replace(/'/g, "''")}%'
+                   OR LOWER(excerpt) LIKE '%${keyword.toLowerCase().replace(/'/g, "''")}%'
+                   OR LOWER(id) LIKE '%${keyword.toLowerCase().replace(/'/g, "''")}%'
             `;
-            const result = await neon(deleteTestQuery);
-            testRemoved += result.rowCount || 0;
+            const result = await db.executeQuery(deleteTestQuery);
+            const rowCount = Array.isArray(result) ? result.length : (result?.rowCount || 0);
+            testRemoved += rowCount;
         }
         
         // Remover artigos com source='manual' (artigos fake)
-        const deleteManualQuery = `
-            DELETE FROM blog_posts
-            WHERE source = 'manual'
-        `;
-        const manualResult = await neon(deleteManualQuery);
-        testRemoved += manualResult.rowCount || 0;
+        const deleteManualQuery = `DELETE FROM blog_posts WHERE source = 'manual'`;
+        const manualResult = await db.executeQuery(deleteManualQuery);
+        const manualRowCount = Array.isArray(manualResult) ? manualResult.length : (manualResult?.rowCount || 0);
+        testRemoved += manualRowCount;
         
         // Remover artigos com ID contendo 'article-example'
-        const deleteExampleIdQuery = `
-            DELETE FROM blog_posts
-            WHERE id LIKE '%article-example%'
-        `;
-        const exampleIdResult = await neon(deleteExampleIdQuery);
-        testRemoved += exampleIdResult.rowCount || 0;
+        const deleteExampleIdQuery = `DELETE FROM blog_posts WHERE id LIKE '%article-example%'`;
+        const exampleIdResult = await db.executeQuery(deleteExampleIdQuery);
+        const exampleRowCount = Array.isArray(exampleIdResult) ? exampleIdResult.length : (exampleIdResult?.rowCount || 0);
+        testRemoved += exampleRowCount;
         
         // Remover artigos com fonte 'OLV Blog' (fake)
         const deleteOLVBlogQuery = `
@@ -107,8 +100,9 @@ module.exports = async (req, res) => {
             WHERE data_source::text LIKE '%"OLV Blog"%'
                OR data_source::text LIKE '%OLV Blog%'
         `;
-        const olvBlogResult = await neon(deleteOLVBlogQuery);
-        testRemoved += olvBlogResult.rowCount || 0;
+        const olvBlogResult = await db.executeQuery(deleteOLVBlogQuery);
+        const olvRowCount = Array.isArray(olvBlogResult) ? olvBlogResult.length : (olvBlogResult?.rowCount || 0);
+        testRemoved += olvRowCount;
         
         console.log(`✅ Removidos ${testRemoved} posts de teste/exemplo/fake`);
         

@@ -2,7 +2,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const url = require('url');
+// Removido: const url = require('url'); - usando WHATWG URL API agora
 
 // Tentar carregar dotenv se disponível
 try {
@@ -104,9 +104,10 @@ const server = http.createServer((req, res) => {
     }
     
     try {
-        // Parse URL to handle query strings
-        const parsedUrl = url.parse(req.url, true);
-        const pathname = parsedUrl.pathname;
+        // Parse URL to handle query strings (usando WHATWG URL API)
+        const urlObj = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+        const pathname = urlObj.pathname;
+        const query = Object.fromEntries(urlObj.searchParams);
         
         // Handle Blog API endpoints
         if (pathname.startsWith('/api/blog/')) {
