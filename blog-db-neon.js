@@ -293,7 +293,7 @@ async function loadPostsFromDB(limit = 100) {
             const query = `
                 SELECT 
                     id, title, excerpt, content, category,
-                    date_published, date_modified, icon, read_time, source,
+                    date_published, date_modified, icon, read_time, source, image,
                     CASE 
                         WHEN data_source::text LIKE '<%' OR data_source::text LIKE '<!%' 
                         THEN '{}'::jsonb
@@ -309,7 +309,7 @@ async function loadPostsFromDB(limit = 100) {
             result = await sql`
                 SELECT 
                     id, title, excerpt, content, category,
-                    date_published, date_modified, icon, read_time, source, data_source
+                    date_published, date_modified, icon, read_time, source, data_source, image
                 FROM blog_posts
                 ORDER BY date_published DESC
                 LIMIT ${limit}
@@ -355,7 +355,8 @@ async function loadPostsFromDB(limit = 100) {
                 icon: row.icon,
                 readTime: row.read_time,
                 source: row.source,
-                dataSource: dataSource
+                dataSource: dataSource,
+                image: row.image || null
             };
         });
     } catch (error) {
@@ -375,7 +376,7 @@ async function loadPostFromDB(postId) {
         const query = `
             SELECT 
                 id, title, excerpt, content, category,
-                date_published, date_modified, icon, read_time, source, data_source, image
+                date_published, date_modified, icon, read_time, source, data_source, COALESCE(image, NULL) as image
             FROM blog_posts
             WHERE id = $1
             LIMIT 1
