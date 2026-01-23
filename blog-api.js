@@ -238,19 +238,36 @@ async function fetchRSSFeed(feedUrl) {
                     
                     // Extrair imagem de várias fontes
                     if (!item.image) {
-                        // Tentar media:content
-                        if (item['media:content'] && item['media:content'].$.url) {
-                            item.image = item['media:content'].$.url;
+                        // Tentar media:content (pode ser objeto ou array)
+                        if (item['media:content']) {
+                            const mediaContent = Array.isArray(item['media:content']) ? item['media:content'][0] : item['media:content'];
+                            if (mediaContent && mediaContent.$ && mediaContent.$.url) {
+                                item.image = mediaContent.$.url;
+                                console.log(`🖼️  Imagem extraída de media:content: ${mediaContent.$.url.substring(0, 80)}`);
+                            } else if (mediaContent && typeof mediaContent === 'string') {
+                                item.image = mediaContent;
+                            } else if (mediaContent && mediaContent.url) {
+                                item.image = mediaContent.url;
+                            }
                         }
                         // Tentar media:thumbnail
-                        if (!item.image && item['media:thumbnail'] && item['media:thumbnail'].$.url) {
-                            item.image = item['media:thumbnail'].$.url;
+                        if (!item.image && item['media:thumbnail']) {
+                            const mediaThumb = Array.isArray(item['media:thumbnail']) ? item['media:thumbnail'][0] : item['media:thumbnail'];
+                            if (mediaThumb && mediaThumb.$ && mediaThumb.$.url) {
+                                item.image = mediaThumb.$.url;
+                                console.log(`🖼️  Imagem extraída de media:thumbnail: ${mediaThumb.$.url.substring(0, 80)}`);
+                            } else if (mediaThumb && typeof mediaThumb === 'string') {
+                                item.image = mediaThumb;
+                            } else if (mediaThumb && mediaThumb.url) {
+                                item.image = mediaThumb.url;
+                            }
                         }
                         // Tentar enclosure
                         if (!item.image && item.enclosure) {
                             const enclosure = Array.isArray(item.enclosure) ? item.enclosure[0] : item.enclosure;
                             if (enclosure && enclosure.type && enclosure.type.startsWith('image/')) {
                                 item.image = enclosure.url;
+                                console.log(`🖼️  Imagem extraída de enclosure: ${enclosure.url.substring(0, 80)}`);
                             }
                         }
                         // Tentar primeira img no content
@@ -258,6 +275,7 @@ async function fetchRSSFeed(feedUrl) {
                             const imgMatch = item.content.match(/<img[^>]*src=["']([^"']+)["']/i);
                             if (imgMatch) {
                                 item.image = imgMatch[1];
+                                console.log(`🖼️  Imagem extraída de content: ${imgMatch[1].substring(0, 80)}`);
                             }
                         }
                         // Tentar primeira img no contentSnippet
@@ -265,8 +283,24 @@ async function fetchRSSFeed(feedUrl) {
                             const imgMatch = item.contentSnippet.match(/<img[^>]*src=["']([^"']+)["']/i);
                             if (imgMatch) {
                                 item.image = imgMatch[1];
+                                console.log(`🖼️  Imagem extraída de contentSnippet: ${imgMatch[1].substring(0, 80)}`);
                             }
                         }
+                        // Tentar primeira img no description
+                        if (!item.image && item.description) {
+                            const imgMatch = item.description.match(/<img[^>]*src=["']([^"']+)["']/i);
+                            if (imgMatch) {
+                                item.image = imgMatch[1];
+                                console.log(`🖼️  Imagem extraída de description: ${imgMatch[1].substring(0, 80)}`);
+                            }
+                        }
+                    }
+                    
+                    // Log final
+                    if (item.image) {
+                        console.log(`✅ Item "${item.title?.substring(0, 50)}" tem imagem: ${item.image.substring(0, 100)}`);
+                    } else {
+                        console.warn(`⚠️  Item "${item.title?.substring(0, 50)}" NÃO tem imagem`);
                     }
                     
                     return item;

@@ -30,5 +30,8 @@
       "path": "/api/blog/process",
       "schedule": "0 8 * * *"
     }
-  ]
+  ],
+  "env": {
+    "VERCEL_CRON_SECRET": "@vercel-cron-secret"
+  }
 }
