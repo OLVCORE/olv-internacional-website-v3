@@ -305,6 +305,20 @@ function generateArticleFromData(data, type) {
     if (type === 'rss' && data.image) {
         article.image = data.image;
     }
+    
+    // Se não tem imagem e é RSS, tentar gerar ícone inteligente
+    if (type === 'rss' && !article.image) {
+        try {
+            const { generateIconForArticle } = require('./blog-image-fallback');
+            const iconConfig = generateIconForArticle(article);
+            article.icon = iconConfig.icon;
+            // Armazenar gradient para uso no frontend se necessário
+            article.iconGradient = iconConfig.gradient;
+        } catch (e) {
+            // Se módulo não disponível, usar ícone padrão
+            console.warn('⚠️ Módulo de fallback de imagem não disponível');
+        }
+    }
 
     switch (type) {
         case 'comexstat':
@@ -327,7 +341,11 @@ function generateArticleFromData(data, type) {
             
         case 'rss':
             article.category = 'noticias';
-            article.icon = 'fas fa-newspaper';
+            // Ícone será definido pelo fallback se não houver imagem
+            // Se já foi definido pelo fallback acima, manter; senão usar padrão
+            if (!article.icon) {
+                article.icon = 'fas fa-newspaper';
+            }
             article.title = data.title || 'Notícia de Comércio Exterior';
             article.excerpt = data.description || data.contentSnippet || '';
             article.content = generateRSSContent(data);
