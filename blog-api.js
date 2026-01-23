@@ -950,13 +950,15 @@ async function processAllSources() {
         console.error('❌ Erro ao processar World Bank:', error.message);
     }
 
-    // 4. Gerar Insights automaticamente baseado nos dados das APIs
-    // Gerar sempre (não depende de novos artigos)
+    // 4. Gerar Insights automaticamente baseado nas NOTÍCIAS aceitas
+    // NOVO: Gerar Insights a partir das notícias recentes (não apenas dados de APIs)
     try {
-        console.log('💡 Gerando Insights automáticos baseados em dados...');
+        console.log('💡 Gerando Insights automáticos baseados em notícias e dados...');
         const allExistingPosts = await loadPosts();
-        const insights = await generateAutomaticInsights(allExistingPosts);
-        for (const insight of insights) {
+        
+        // Gerar Insights baseados em dados (como antes)
+        const dataInsights = await generateAutomaticInsights(allExistingPosts);
+        for (const insight of dataInsights) {
             const exists = await articleExists(insight);
             if (!exists) {
                 await saveArticle(insight);
@@ -964,6 +966,27 @@ async function processAllSources() {
                 console.log(`✅ Insight automático gerado: "${insight.title.substring(0, 50)}..."`);
             } else {
                 console.log(`⏭️  Insight já existe: "${insight.title.substring(0, 50)}..."`);
+            }
+        }
+        
+        // NOVO: Gerar Insights baseados nas notícias recentes
+        const recentNews = allExistingPosts
+            .filter(p => p.category === 'noticias' && p.source === 'rss')
+            .sort((a, b) => new Date(b.datePublished) - new Date(a.datePublished))
+            .slice(0, 10); // Últimas 10 notícias
+        
+        if (recentNews.length > 0) {
+            console.log(`📰 Analisando ${recentNews.length} notícias recentes para gerar Insights...`);
+            const newsInsights = await generateInsightsFromNews(recentNews);
+            for (const insight of newsInsights) {
+                const exists = await articleExists(insight);
+                if (!exists) {
+                    await saveArticle(insight);
+                    articles.push(insight);
+                    console.log(`✅ Insight gerado a partir de notícia: "${insight.title.substring(0, 50)}..."`);
+                } else {
+                    console.log(`⏭️  Insight já existe: "${insight.title.substring(0, 50)}..."`);
+                }
             }
         }
     } catch (error) {
@@ -1041,11 +1064,15 @@ async function processAllSources() {
                     // Processar os 20 primeiros itens mais recentes de cada feed (aumentado para mais conteúdo)
                     const recentItems = feedData.items.slice(0, 20);
                     for (const item of recentItems) {
-                        // FILTRO INTELIGENTE: Notícias relacionadas a Supply Chain Global e Comércio Exterior
-                        // Estratégia: Aceitar se tiver palavra-chave primária OU se vier de fonte confiável E tiver palavra-chave secundária
+                        // ============================================================
+                        // MODELO EDITORIAL OLV - FILTRO BASEADO EM TEMAS MACRO
+                        // ============================================================
+                        // Aceita notícias sobre TEMAS RELEVANTES mesmo sem palavras técnicas
+                        // Foco: Geopolítica aplicada ao comércio, não busca perfeita semântica
+                        // ============================================================
                         
-                        // Palavras-chave PRIMÁRIAS (fortemente relacionadas) - EXPANDIDAS
-                        const primaryKeywords = [
+                        // TEMAS EDITORIAIS MACRO (aceitar se mencionar qualquer um destes temas)
+                        const editorialThemes = [
                             // Supply Chain & Logística
                             'supply chain', 'supply-chain', 'cadeia de suprimentos', 'cadeia de abastecimento',
                             'logística', 'logistics', 'logístico', 'logistic',
@@ -1104,14 +1131,15 @@ async function processAllSources() {
                             'custo logístico', 'logistics cost', 'custo de importação', 'import cost',
                             'custo de exportação', 'export cost',
                             
-                            // Preços e Impactos - NOVO
+                            // Preços e Impactos
                             'aumento de preço', 'price increase', 'redução de preço', 'price reduction',
                             'impacto tarifário', 'tariff impact', 'impacto comercial', 'trade impact',
                             'sanções', 'sanctions', 'sanção', 'sanction'
                         ];
                         
-                        // Palavras-chave SECUNDÁRIAS (relacionadas, mas mais amplas) - MUITO EXPANDIDAS
-                        const secondaryKeywords = [
+                        // TEMAS MACRO EDITORIAIS (aceitar mesmo sem palavras técnicas)
+                        // Estes temas indicam relevância estratégica para comércio exterior
+                        const macroThemes = [
                             'commodities', 'commodity', 'commodities trading', 'trading', 'commercial',
                             'cross-border', 'cross border', 'global trade', 'world trade',
                             'trade war', 'trade dispute', 'trade negotiations', 'trade group',
@@ -1135,7 +1163,41 @@ async function processAllSources() {
                             'embargo', 'embargo',
                             'trade deal', 'acordo comercial',
                             'bilateral', 'bilateral',
-                            'multilateral', 'multilateral'
+                            'multilateral', 'multilateral',
+                            
+                            // TEMAS MACRO - Geopolítica e Economia Global
+                            // Acordos e Blocos Econômicos
+                            'acordo', 'agreement', 'deal', 'negociação', 'negotiation',
+                            'bloco', 'bloc', 'mercado comum', 'common market',
+                            'parceria', 'partnership', 'tratado', 'treaty',
+                            
+                            // Tarifas e Barreiras (qualquer menção)
+                            'tarifa', 'tariff', 'taxa', 'tax', 'imposto', 'duty',
+                            'barreira', 'barrier', 'restrição', 'restriction',
+                            'sanção', 'sanction', 'embargo', 'proteção', 'protection',
+                            
+                            // Energia e Commodities Estratégicas
+                            'petróleo', 'oil', 'petroleum', 'crude', 'energia', 'energy',
+                            'gás', 'gas', 'combustível', 'fuel', 'commodity', 'commodities',
+                            
+                            // Transporte e Logística (qualquer modal)
+                            'navio', 'ship', 'vessel', 'container', 'conteiner',
+                            'porto', 'port', 'marítimo', 'maritime', 'aéreo', 'air',
+                            'frete', 'freight', 'carga', 'cargo', 'transporte', 'transport',
+                            
+                            // Política Econômica e Cambial
+                            'câmbio', 'exchange', 'dólar', 'dollar', 'moeda', 'currency',
+                            'juros', 'interest', 'taxa de juros', 'interest rate',
+                            'inflação', 'inflation', 'política monetária', 'monetary policy',
+                            
+                            // Países e Regiões Estratégicas
+                            'brasil', 'brazil', 'china', 'rússia', 'russia', 'venezuela',
+                            'europa', 'europe', 'european union', 'união europeia',
+                            'mercosul', 'mercosur', 'áfrica', 'africa', 'ásia', 'asia',
+                            
+                            // Conflitos e Crises com Impacto Econômico
+                            'conflito', 'conflict', 'crise', 'crisis', 'guerra', 'war',
+                            'tensão', 'tension', 'disputa', 'dispute'
                         ];
                         
                         // Fontes confiáveis específicas de Supply Chain/Comércio Exterior
@@ -1245,35 +1307,75 @@ async function processAllSources() {
                                                       allText.includes('sanction') ||
                                                       allText.includes('sanção');
                         
-                        // ACEITAR se:
-                        // 1. Tem palavra-chave primária - SEMPRE ACEITAR
-                        // 2. OU tem palavra-chave secundária E vem de fonte confiável - ACEITAR
-                        // 3. OU tem palavra-chave secundária E menciona países/regiões relevantes - ACEITAR
-                        // 4. OU vem de fonte brasileira confiável E tem palavras relacionadas - ACEITAR
-                        // 5. OU vem de fonte muito confiável (brasileira ou internacional) - ACEITAR QUASE TUDO
-                        // 6. OU menciona tópicos específicos (Mercosul, UE, Venezuela, Rússia, China, tarifas) - ACEITAR
-                        const isRelevant = hasPrimaryKeyword || 
-                                          (hasSecondaryKeyword && isFromTrustedSource) ||
-                                          (hasSecondaryKeyword && (allText.includes('brazil') || allText.includes('brasil') || allText.includes('trade'))) ||
-                                          (isBrazilianSource && hasTradeRelated) ||
-                                          (isBrazilianSource && hasSecondaryKeyword) ||
-                                          (isVeryTrustedBrazilian && (hasTradeRelated || hasSecondaryKeyword || allText.includes('economia') || allText.includes('economy'))) ||
+                        // Fontes muito confiáveis (aceitar quase tudo delas)
+                        const isVeryTrustedBrazilian = linkLower.includes('valor.com.br') || 
+                                                      linkLower.includes('mdic.gov.br') ||
+                                                      linkLower.includes('comexstat');
+                        
+                        const isVeryTrustedInternational = linkLower.includes('bloomberg.com') ||
+                                                          linkLower.includes('reuters.com') ||
+                                                          linkLower.includes('wto.org') ||
+                                                          linkLower.includes('iccwbo.org');
+                        
+                        // ============================================================
+                        // REGRA DE OURO: ACEITAR FATOS RELEVANTES
+                        // ============================================================
+                        // Aceitar se:
+                        // 1. Tem tema técnico (supply chain, logística) - SEMPRE ACEITAR
+                        // 2. OU tem tema macro (geopolítica, acordos, tarifas, energia) - ACEITAR
+                        // 3. OU vem de fonte muito confiável (Valor, Bloomberg, etc) - ACEITAR QUASE TUDO
+                        // 4. OU menciona países/blocos estratégicos + qualquer tema econômico - ACEITAR
+                        const mentionsStrategicRegion = allText.includes('mercosul') ||
+                                                      allText.includes('mercosur') ||
+                                                      allText.includes('european union') ||
+                                                      allText.includes('união europeia') ||
+                                                      allText.includes('brasil') ||
+                                                      allText.includes('brazil') ||
+                                                      allText.includes('china') ||
+                                                      allText.includes('rússia') ||
+                                                      allText.includes('russia') ||
+                                                      allText.includes('venezuela');
+                        
+                        const mentionsEconomicTopic = allText.includes('trade') ||
+                                                     allText.includes('commercial') ||
+                                                     allText.includes('tariff') ||
+                                                     allText.includes('tarifa') ||
+                                                     allText.includes('economy') ||
+                                                     allText.includes('economia') ||
+                                                     allText.includes('export') ||
+                                                     allText.includes('import') ||
+                                                     allText.includes('price') ||
+                                                     allText.includes('preço');
+                        
+                        const isRelevant = hasTechnicalTheme || // Tema técnico (supply chain, logística)
+                                          hasMacroTheme || // Tema macro (geopolítica, acordos, tarifas)
                                           (isVeryTrustedBrazilian) || // Aceitar TUDO de fontes muito confiáveis brasileiras
-                                          (isVeryTrustedInternational && (hasTradeRelated || hasSecondaryKeyword || mentionsSpecificTopics || allText.includes('trade') || allText.includes('commercial'))) || // Aceitar de fontes internacionais confiáveis
-                                          (mentionsSpecificTopics && (hasSecondaryKeyword || isFromTrustedSource || isBrazilianSource || isVeryTrustedInternational)); // Aceitar se menciona tópicos específicos
+                                          (isVeryTrustedInternational && (hasMacroTheme || mentionsEconomicTopic || mentionsStrategicRegion)) || // Fontes internacionais confiáveis
+                                          (mentionsStrategicRegion && mentionsEconomicTopic); // Região estratégica + tema econômico
                         
                         // Se não é relevante, REJEITAR
                         if (!isRelevant) {
                             rejectedCount++;
-                            console.log(`⏭️  Artigo rejeitado: "${item.title?.substring(0, 60)}..." (sem palavras-chave relevantes)`);
+                            console.log(`⏭️  Artigo rejeitado: "${item.title?.substring(0, 60)}..." (sem temas relevantes)`);
                             continue; // Pular este artigo
                         }
                         
                         acceptedCount++;
-                        console.log(`✅ Artigo aceito: "${item.title?.substring(0, 60)}..." (${hasPrimaryKeyword ? 'primária' : isVeryTrustedBrazilian ? 'fonte confiável' : 'secundária + fonte'})`);
+                        const reason = hasTechnicalTheme ? 'tema técnico' : 
+                                      hasMacroTheme ? 'tema macro' : 
+                                      isVeryTrustedBrazilian ? 'fonte confiável BR' : 
+                                      isVeryTrustedInternational ? 'fonte confiável INT' : 
+                                      'região estratégica + economia';
+                        console.log(`✅ Artigo aceito: "${item.title?.substring(0, 60)}..." (${reason})`);
                         
+                        // ============================================================
+                        // CAMADA 2: PROCESSAR E CLASSIFICAR COMO NOTÍCIA
+                        // ============================================================
                         // Processar artigo (já verificamos que é relevante)
                         const article = generateArticleFromData(item, 'rss');
+                        
+                        // Garantir que é classificado como NOTÍCIA (não análise)
+                        article.category = 'noticias';
                         
                         // Traduzir para português se necessário
                         if (article._needsTranslation) {
@@ -1475,6 +1577,161 @@ async function processAllSources() {
     return articles;
 }
 
+// Gerar Insights automaticamente a partir de notícias recentes
+async function generateInsightsFromNews(newsArticles) {
+    const insights = [];
+    const now = new Date();
+    
+    if (!newsArticles || newsArticles.length === 0) {
+        return insights;
+    }
+    
+    // Agrupar notícias por tema
+    const themes = {
+        mercosul: [],
+        tarifas: [],
+        energia: [],
+        transporte: [],
+        geopolítica: []
+    };
+    
+    for (const news of newsArticles) {
+        const text = `${news.title} ${news.excerpt} ${news.content}`.toLowerCase();
+        
+        if (text.includes('mercosul') || text.includes('mercosur') || text.includes('união europeia') || text.includes('european union')) {
+            themes.mercosul.push(news);
+        }
+        if (text.includes('tarifa') || text.includes('tariff') || text.includes('barreira') || text.includes('barrier') || text.includes('sanção') || text.includes('sanction')) {
+            themes.tarifas.push(news);
+        }
+        if (text.includes('petróleo') || text.includes('oil') || text.includes('energia') || text.includes('energy') || text.includes('combustível') || text.includes('fuel')) {
+            themes.energia.push(news);
+        }
+        if (text.includes('frete') || text.includes('freight') || text.includes('transporte') || text.includes('transport') || text.includes('porto') || text.includes('port')) {
+            themes.transporte.push(news);
+        }
+        if (text.includes('conflito') || text.includes('conflict') || text.includes('crise') || text.includes('crisis') || text.includes('rússia') || text.includes('russia') || text.includes('venezuela')) {
+            themes.geopolítica.push(news);
+        }
+    }
+    
+    // Gerar Insight sobre Mercosul/UE se houver notícias
+    if (themes.mercosul.length > 0) {
+        const latestNews = themes.mercosul[0];
+        const insight = {
+            id: `article-insight-news-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            title: `Insight: Impacto Estratégico de Acordos Comerciais no Comércio Exterior`,
+            excerpt: `Análise do impacto de acordos comerciais e negociações internacionais nas estratégias de importação e exportação, com foco em custos, riscos e oportunidades.`,
+            content: `
+                <h2>Impacto Estratégico de Acordos Comerciais</h2>
+                <p>Com base nas notícias recentes sobre acordos comerciais e negociações internacionais, identificamos impactos estratégicos para empresas de comércio exterior.</p>
+                
+                <h3>Impactos Identificados</h3>
+                <ul>
+                    <li><strong>Custos:</strong> Mudanças tarifárias podem reduzir ou aumentar custos de importação/exportação</li>
+                    <li><strong>Riscos:</strong> Incertezas em negociações aumentam risco operacional</li>
+                    <li><strong>Oportunidades:</strong> Novos acordos abrem mercados e facilitam acesso</li>
+                    <li><strong>Previsibilidade:</strong> Acordos consolidados aumentam previsibilidade de custos</li>
+                </ul>
+                
+                <h3>Recomendações Estratégicas</h3>
+                <p>Empresas devem monitorar de perto as negociações comerciais e preparar-se para ajustes estratégicos. A estruturação adequada de operações de comércio exterior permite capitalizar oportunidades e mitigar riscos.</p>
+                
+                <div style="background: var(--bg-secondary); padding: 20px; border-radius: 8px; margin: 24px 0; border-left: 4px solid var(--accent-primary);">
+                    <p style="margin: 0;"><strong>Fonte:</strong> Análise baseada em notícias recentes sobre acordos comerciais</p>
+                    <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.8;">Insight gerado automaticamente a partir de notícias relevantes.</p>
+                </div>
+            `,
+            category: 'insights',
+            datePublished: now.toISOString(),
+            dateModified: now.toISOString(),
+            icon: 'fas fa-handshake',
+            readTime: 4,
+            source: 'automatic',
+            dataSource: { type: 'news-based-insight', basedOn: 'recent-news', relatedNews: themes.mercosul.map(n => n.id) }
+        };
+        insights.push(insight);
+    }
+    
+    // Gerar Insight sobre Tarifas/Barreiras se houver notícias
+    if (themes.tarifas.length > 0) {
+        const latestNews = themes.tarifas[0];
+        const insight = {
+            id: `article-insight-news-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            title: `Insight: Impacto de Tarifas e Barreiras Comerciais no TCO`,
+            excerpt: `Análise do impacto de mudanças tarifárias e barreiras comerciais no custo total de propriedade (TCO) de importações e exportações.`,
+            content: `
+                <h2>Impacto de Tarifas e Barreiras no TCO</h2>
+                <p>Mudanças em tarifas e barreiras comerciais têm impacto direto no custo total de propriedade (TCO) de operações de comércio exterior.</p>
+                
+                <h3>Impactos no Custo</h3>
+                <ul>
+                    <li><strong>Aumento de Tarifas:</strong> Impacta diretamente o custo de importação, reduzindo margens</li>
+                    <li><strong>Barreiras Não-Tarifárias:</strong> Aumentam custos de conformidade e tempo de processamento</li>
+                    <li><strong>Sanções:</strong> Podem bloquear rotas comerciais, forçando alternativas mais caras</li>
+                    <li><strong>Restrições:</strong> Limitam opções de fornecedores, reduzindo poder de negociação</li>
+                </ul>
+                
+                <h3>Estratégias de Mitigação</h3>
+                <p>Empresas devem calcular o TCO considerando cenários de mudanças tarifárias, diversificar fornecedores e rotas, e estruturar operações para flexibilidade estratégica.</p>
+                
+                <div style="background: var(--bg-secondary); padding: 20px; border-radius: 8px; margin: 24px 0; border-left: 4px solid var(--accent-primary);">
+                    <p style="margin: 0;"><strong>Fonte:</strong> Análise baseada em notícias recentes sobre tarifas e barreiras</p>
+                    <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.8;">Insight gerado automaticamente a partir de notícias relevantes.</p>
+                </div>
+            `,
+            category: 'insights',
+            datePublished: now.toISOString(),
+            dateModified: now.toISOString(),
+            icon: 'fas fa-chart-line',
+            readTime: 4,
+            source: 'automatic',
+            dataSource: { type: 'news-based-insight', basedOn: 'recent-news', relatedNews: themes.tarifas.map(n => n.id) }
+        };
+        insights.push(insight);
+    }
+    
+    // Gerar Insight sobre Energia/Commodities se houver notícias
+    if (themes.energia.length > 0) {
+        const latestNews = themes.energia[0];
+        const insight = {
+            id: `article-insight-news-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            title: `Insight: Impacto de Commodities e Energia no Comércio Exterior`,
+            excerpt: `Análise do impacto de flutuações em commodities e energia nos custos logísticos e estratégias de comércio exterior.`,
+            content: `
+                <h2>Impacto de Commodities e Energia</h2>
+                <p>Flutuações em preços de commodities e energia têm impacto significativo nos custos logísticos e estratégias de comércio exterior.</p>
+                
+                <h3>Impactos Identificados</h3>
+                <ul>
+                    <li><strong>Custos de Frete:</strong> Preços de combustível impactam diretamente custos de transporte</li>
+                    <li><strong>Preços de Commodities:</strong> Afetam competitividade de exportações</li>
+                    <li><strong>Disrupções de Fornecimento:</strong> Podem causar atrasos e aumentos de custo</li>
+                    <li><strong>Oportunidades:</strong> Mudanças de preço criam janelas de oportunidade estratégica</li>
+                </ul>
+                
+                <h3>Recomendações</h3>
+                <p>Empresas devem monitorar tendências de commodities e energia, estruturar contratos com cláusulas de ajuste, e diversificar fontes de energia e rotas logísticas.</p>
+                
+                <div style="background: var(--bg-secondary); padding: 20px; border-radius: 8px; margin: 24px 0; border-left: 4px solid var(--accent-primary);">
+                    <p style="margin: 0;"><strong>Fonte:</strong> Análise baseada em notícias recentes sobre energia e commodities</p>
+                    <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.8;">Insight gerado automaticamente a partir de notícias relevantes.</p>
+                </div>
+            `,
+            category: 'insights',
+            datePublished: now.toISOString(),
+            dateModified: now.toISOString(),
+            icon: 'fas fa-bolt',
+            readTime: 4,
+            source: 'automatic',
+            dataSource: { type: 'news-based-insight', basedOn: 'recent-news', relatedNews: themes.energia.map(n => n.id) }
+        };
+        insights.push(insight);
+    }
+    
+    return insights;
+}
+
 module.exports = {
     fetchComexStatData,
     fetchUNComtradeData,
@@ -1486,7 +1743,8 @@ module.exports = {
     loadPost,
     processAllSources,
     generateAutomaticInsights,
-    generateAutomaticGuias
+    generateAutomaticGuias,
+    generateInsightsFromNews
 };
 
 // Gerar Insights automáticos baseados em dados das APIs
