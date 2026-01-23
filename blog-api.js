@@ -1002,17 +1002,18 @@ async function processAllSources() {
             { url: 'https://www.valor.com.br/rss/economia', name: 'Valor - Economia', category: 'noticias' },
             { url: 'https://www.valor.com.br/rss/empresas', name: 'Valor - Empresas', category: 'noticias' },
             { url: 'https://www.valor.com.br/rss/agronegocios', name: 'Valor - Agronegócios', category: 'noticias' },
+            { url: 'https://www.valor.com.br/rss/internacional', name: 'Valor - Internacional', category: 'noticias' },
             
             // Fontes de Agronegócio e Commodities (muito relevantes para comércio exterior)
             { url: 'https://www.noticiasagricolas.com.br/rss', name: 'Notícias Agrícolas', category: 'noticias' },
             { url: 'https://www.agrolink.com.br/rss', name: 'Agrolink', category: 'noticias' },
             // CEPEA removido - feed RSS tem XML malformado
             
-            // Fontes Internacionais Específicas
-            { url: 'https://www.reuters.com/rssFeed/worldNews', name: 'Reuters World News', category: 'noticias' },
-            { url: 'https://www.reuters.com/rssFeed/businessNews', name: 'Reuters Business', category: 'noticias' },
+            // Fontes Internacionais Específicas - Bloomberg e Reuters (mais permissivos)
             { url: 'https://feeds.bloomberg.com/markets/news.rss', name: 'Bloomberg Markets', category: 'noticias' },
-            { url: 'https://www.iccwbo.org/news-publications/news/rss/', name: 'Câmara de Comércio Internacional', category: 'noticias' },
+            { url: 'https://feeds.bloomberg.com/world-news.rss', name: 'Bloomberg World News', category: 'noticias' },
+            { url: 'https://feeds.bloomberg.com/politics.rss', name: 'Bloomberg Politics', category: 'noticias' },
+            // Reuters removido temporariamente - retornando 401 (requer autenticação)
             
             // Fontes de Logística e Supply Chain
             { url: 'https://www.logisticsmgmt.com/rss', name: 'Logistics Management', category: 'noticias' },
@@ -1021,6 +1022,7 @@ async function processAllSources() {
             
             // Fontes de Comércio Exterior
             { url: 'https://www.wto.org/english/news_e/rss_e/rss_e.xml', name: 'WTO News', category: 'noticias' },
+            { url: 'https://www.iccwbo.org/news-publications/news/rss/', name: 'Câmara de Comércio Internacional', category: 'noticias' },
             { url: 'https://www.bcb.gov.br/rss/noticias/moedaestabilidadefin.xml', name: 'Banco Central do Brasil', category: 'noticias' }
         ];
 
@@ -1042,7 +1044,7 @@ async function processAllSources() {
                         // FILTRO INTELIGENTE: Notícias relacionadas a Supply Chain Global e Comércio Exterior
                         // Estratégia: Aceitar se tiver palavra-chave primária OU se vier de fonte confiável E tiver palavra-chave secundária
                         
-                        // Palavras-chave PRIMÁRIAS (fortemente relacionadas)
+                        // Palavras-chave PRIMÁRIAS (fortemente relacionadas) - EXPANDIDAS
                         const primaryKeywords = [
                             // Supply Chain & Logística
                             'supply chain', 'supply-chain', 'cadeia de suprimentos', 'cadeia de abastecimento',
@@ -1065,15 +1067,26 @@ async function processAllSources() {
                             // Aduana & Regulamentação
                             'aduana', 'customs', 'alfândega', 'despacho aduaneiro', 'customs clearance',
                             'barreira comercial', 'trade barrier', 'barreiras comerciais', 'commercial barriers',
+                            'barreira tarifária', 'tariff barrier', 'barreiras tarifárias', 'tariff barriers',
                             'tarifa', 'tariff', 'tarifas', 'tariffs', 'imposto de importação', 'import tax',
                             'regime aduaneiro', 'customs regime', 'drawback', 'ex-tarifário', 'recof',
+                            'restrição comercial', 'trade restriction', 'restrições comerciais', 'trade restrictions',
                             
-                            // Acordos & Negociações
+                            // Acordos & Negociações - EXPANDIDO
                             'acordo comercial', 'trade agreement', 'acordos comerciais', 'trade agreements',
                             'negociação internacional', 'international negotiation', 'negociações comerciais',
                             'bloco comercial', 'trade bloc', 'mercado comum', 'common market',
                             'Mercosul', 'Mercosur', 'União Europeia', 'European Union', 'EU',
                             'NAFTA', 'USMCA', 'CPTPP', 'RCEP',
+                            'acordo Mercosul', 'Mercosur agreement', 'acordo UE', 'EU agreement',
+                            'negociação Mercosul', 'Mercosur negotiation', 'negociação UE', 'EU negotiation',
+                            
+                            // Países e Regiões Específicas - NOVO
+                            'Venezuela', 'venezuelan', 'venezuelano',
+                            'Rússia', 'Russia', 'russian', 'russo',
+                            'China', 'chinese', 'chinês',
+                            'Brasil', 'Brazil', 'brazilian', 'brasileiro',
+                            'Europa', 'Europe', 'european', 'europeu',
                             
                             // Transporte Internacional
                             'transporte internacional', 'international transport', 'transporte global',
@@ -1089,26 +1102,40 @@ async function processAllSources() {
                             // TCO & Custos
                             'TCO', 'total cost of ownership', 'custo total de propriedade',
                             'custo logístico', 'logistics cost', 'custo de importação', 'import cost',
-                            'custo de exportação', 'export cost'
+                            'custo de exportação', 'export cost',
+                            
+                            // Preços e Impactos - NOVO
+                            'aumento de preço', 'price increase', 'redução de preço', 'price reduction',
+                            'impacto tarifário', 'tariff impact', 'impacto comercial', 'trade impact',
+                            'sanções', 'sanctions', 'sanção', 'sanction'
                         ];
                         
-                        // Palavras-chave SECUNDÁRIAS (relacionadas, mas mais amplas)
+                        // Palavras-chave SECUNDÁRIAS (relacionadas, mas mais amplas) - MUITO EXPANDIDAS
                         const secondaryKeywords = [
                             'commodities', 'commodity', 'commodities trading', 'trading', 'commercial',
                             'cross-border', 'cross border', 'global trade', 'world trade',
                             'trade war', 'trade dispute', 'trade negotiations', 'trade group',
-                            'oil trade', 'crude', 'petroleum', 'petróleo', 'óleo',
+                            'oil trade', 'crude', 'petroleum', 'petróleo', 'óleo', 'oil',
                             'ethanol', 'etanol', 'agricultural', 'agrícola', 'agronegócio',
                             'brazil', 'brasil', 'brazilian', 'brasileiro',
-                            'china', 'china', 'chinese', 'chinês',
+                            'china', 'chinese', 'chinês',
                             'russia', 'russian', 'russo',
+                            'venezuela', 'venezuelan', 'venezuelano',
                             'india', 'indian', 'índia', 'indiano',
-                            'europe', 'europa', 'european', 'europeu',
+                            'europe', 'europa', 'european', 'europeu', 'european union',
                             'usa', 'united states', 'estados unidos', 'americano',
                             'mercosur', 'mercosul',
                             'internacional', 'international', 'global',
                             'mercado', 'market', 'negócio', 'business',
-                            'empresa', 'company', 'empresarial', 'corporate'
+                            'empresa', 'company', 'empresarial', 'corporate',
+                            // NOVAS - Tópicos específicos mencionados pelo usuário
+                            'price', 'preço', 'prices', 'preços',
+                            'sanction', 'sanção', 'sanctions', 'sanções',
+                            'restriction', 'restrição', 'restrictions', 'restrições',
+                            'embargo', 'embargo',
+                            'trade deal', 'acordo comercial',
+                            'bilateral', 'bilateral',
+                            'multilateral', 'multilateral'
                         ];
                         
                         // Fontes confiáveis específicas de Supply Chain/Comércio Exterior
@@ -1168,7 +1195,25 @@ async function processAllSources() {
                                                allText.includes('sugar') ||
                                                allText.includes('açúcar') ||
                                                allText.includes('coffee') ||
-                                               allText.includes('café');
+                                               allText.includes('café') ||
+                                               // NOVAS - Tópicos específicos
+                                               allText.includes('mercosul') ||
+                                               allText.includes('mercosur') ||
+                                               allText.includes('european union') ||
+                                               allText.includes('união europeia') ||
+                                               allText.includes('venezuela') ||
+                                               allText.includes('russia') ||
+                                               allText.includes('rússia') ||
+                                               allText.includes('tariff') ||
+                                               allText.includes('tarifa') ||
+                                               allText.includes('barrier') ||
+                                               allText.includes('barreira') ||
+                                               allText.includes('restriction') ||
+                                               allText.includes('restrição') ||
+                                               allText.includes('sanction') ||
+                                               allText.includes('sanção') ||
+                                               allText.includes('price') ||
+                                               allText.includes('preço');
                         
                         // Para fontes brasileiras confiáveis, ser MUITO mais permissivo
                         // Aceitar quase tudo de Valor, MDIC, etc (são fontes especializadas)
@@ -1176,13 +1221,41 @@ async function processAllSources() {
                                                       linkLower.includes('mdic.gov.br') ||
                                                       linkLower.includes('comexstat');
                         
+                        // Para fontes internacionais confiáveis (Bloomberg, Reuters), ser mais permissivo também
+                        const isVeryTrustedInternational = linkLower.includes('bloomberg.com') ||
+                                                          linkLower.includes('reuters.com') ||
+                                                          linkLower.includes('wto.org') ||
+                                                          linkLower.includes('iccwbo.org');
+                        
+                        // ACEITAR se:
+                        // 1. Tem palavra-chave primária - SEMPRE ACEITAR
+                        // 2. OU tem palavra-chave secundária E vem de fonte confiável - ACEITAR
+                        // 3. OU tem palavra-chave secundária E menciona países/regiões relevantes - ACEITAR
+                        // 4. OU vem de fonte brasileira confiável E tem palavras relacionadas - ACEITAR
+                        // 5. OU vem de fonte muito confiável (brasileira ou internacional) - ACEITAR QUASE TUDO
+                        // 6. OU menciona tópicos específicos (Mercosul, UE, Venezuela, Rússia, China, tarifas) - ACEITAR
+                        const mentionsSpecificTopics = allText.includes('mercosul') ||
+                                                      allText.includes('mercosur') ||
+                                                      allText.includes('european union') ||
+                                                      allText.includes('união europeia') ||
+                                                      allText.includes('venezuela') ||
+                                                      allText.includes('russia') ||
+                                                      allText.includes('rússia') ||
+                                                      allText.includes('china') ||
+                                                      allText.includes('tariff') ||
+                                                      allText.includes('tarifa') ||
+                                                      allText.includes('barrier') ||
+                                                      allText.includes('barreira');
+                        
                         const isRelevant = hasPrimaryKeyword || 
                                           (hasSecondaryKeyword && isFromTrustedSource) ||
                                           (hasSecondaryKeyword && (allText.includes('brazil') || allText.includes('brasil') || allText.includes('trade'))) ||
                                           (isBrazilianSource && hasTradeRelated) ||
                                           (isBrazilianSource && hasSecondaryKeyword) ||
                                           (isVeryTrustedBrazilian && (hasTradeRelated || hasSecondaryKeyword || allText.includes('economia') || allText.includes('economy'))) ||
-                                          (isVeryTrustedBrazilian); // Aceitar TUDO de fontes muito confiáveis brasileiras
+                                          (isVeryTrustedBrazilian) || // Aceitar TUDO de fontes muito confiáveis brasileiras
+                                          (isVeryTrustedInternational && (hasTradeRelated || hasSecondaryKeyword || mentionsSpecificTopics)) || // Aceitar de fontes internacionais confiáveis
+                                          (mentionsSpecificTopics && (hasSecondaryKeyword || isFromTrustedSource)); // Aceitar se menciona tópicos específicos
                         
                         // Se não é relevante, REJEITAR
                         if (!isRelevant) {
