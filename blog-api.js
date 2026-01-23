@@ -947,35 +947,45 @@ async function processAllSources() {
     }
 
     // 4. Gerar Insights automaticamente baseado nos dados das APIs
+    // Gerar sempre (não depende de novos artigos)
     try {
         console.log('💡 Gerando Insights automáticos baseados em dados...');
-        const insights = await generateAutomaticInsights(articles);
+        const allExistingPosts = await loadPosts();
+        const insights = await generateAutomaticInsights(allExistingPosts);
         for (const insight of insights) {
             const exists = await articleExists(insight);
             if (!exists) {
                 await saveArticle(insight);
                 articles.push(insight);
                 console.log(`✅ Insight automático gerado: "${insight.title.substring(0, 50)}..."`);
+            } else {
+                console.log(`⏭️  Insight já existe: "${insight.title.substring(0, 50)}..."`);
             }
         }
     } catch (error) {
         console.error('❌ Erro ao gerar Insights automáticos:', error.message);
+        console.error('Stack:', error.stack);
     }
 
     // 5. Gerar Guias automaticamente baseado em templates e dados
+    // Gerar sempre (não depende de novos artigos)
     try {
         console.log('📚 Gerando Guias automáticos baseados em templates...');
-        const guias = await generateAutomaticGuias(articles);
+        const allExistingPosts = await loadPosts();
+        const guias = await generateAutomaticGuias(allExistingPosts);
         for (const guia of guias) {
             const exists = await articleExists(guia);
             if (!exists) {
                 await saveArticle(guia);
                 articles.push(guia);
                 console.log(`✅ Guia automático gerado: "${guia.title.substring(0, 50)}..."`);
+            } else {
+                console.log(`⏭️  Guia já existe: "${guia.title.substring(0, 50)}..."`);
             }
         }
     } catch (error) {
         console.error('❌ Erro ao gerar Guias automáticos:', error.message);
+        console.error('Stack:', error.stack);
     }
 
     // 4. RSS Feeds
@@ -1307,12 +1317,16 @@ async function generateAutomaticInsights(existingArticles) {
     const now = new Date();
     
     // Analisar dados existentes para gerar insights
-    const hasComexData = existingArticles.some(a => a.source === 'comexstat');
-    const hasUnData = existingArticles.some(a => a.source === 'unComtrade');
-    const hasWbData = existingArticles.some(a => a.source === 'worldBank');
+    // Se não houver artigos existentes, ainda assim gerar insights baseados em conhecimento geral
+    const hasComexData = existingArticles && existingArticles.length > 0 && existingArticles.some(a => a.source === 'comexstat');
+    const hasUnData = existingArticles && existingArticles.length > 0 && existingArticles.some(a => a.source === 'unComtrade');
+    const hasWbData = existingArticles && existingArticles.length > 0 && existingArticles.some(a => a.source === 'worldBank');
     
-    // Insight 1: Oportunidades de Exportação
-    if (hasComexData || hasUnData) {
+    // Sempre gerar pelo menos um insight (baseado em conhecimento geral se não houver dados)
+    const shouldGenerateInsights = hasComexData || hasUnData || hasWbData || true; // Sempre gerar
+    
+    // Insight 1: Oportunidades de Exportação (sempre gerar)
+    if (shouldGenerateInsights) {
         const insight = {
             id: `article-insight-auto-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             title: 'Insight Estratégico: Oportunidades de Exportação em Mercados Emergentes',
@@ -1351,8 +1365,8 @@ async function generateAutomaticInsights(existingArticles) {
         insights.push(insight);
     }
     
-    // Insight 2: Otimização de Supply Chain
-    if (hasWbData || hasComexData) {
+    // Insight 2: Otimização de Supply Chain (sempre gerar)
+    if (shouldGenerateInsights) {
         const insight = {
             id: `article-insight-auto-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             title: 'Insight: Otimização de Supply Chain através de Análise de Dados',
