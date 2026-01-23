@@ -245,14 +245,25 @@ function generateArticleFromData(data, type) {
     const now = new Date();
     const articleId = `article-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
+    // Extrair data de publicação real da fonte (se disponível)
+    let sourcePublishedDate = null;
+    if (type === 'rss' && data.pubDate) {
+        try {
+            sourcePublishedDate = new Date(data.pubDate).toISOString();
+        } catch (e) {
+            console.warn('Erro ao parsear data da fonte:', e);
+        }
+    }
+    
     let article = {
         id: articleId,
         title: '',
         excerpt: '',
         content: '',
         category: 'analises',
-        datePublished: now.toISOString(),
+        datePublished: sourcePublishedDate || now.toISOString(), // Usar data da fonte se disponível
         dateModified: now.toISOString(),
+        sourcePublishedDate: sourcePublishedDate || null, // Data original da fonte
         icon: 'fas fa-chart-line',
         readTime: 5,
         source: type,
@@ -438,7 +449,14 @@ function generateRSSContent(data) {
     
     return `
         <h2>${data.title || 'Notícia'}</h2>
-        ${pubDate ? `<p style="color: var(--text-tertiary); margin-bottom: 20px;"><i class="fas fa-calendar"></i> Publicado em: ${pubDate}</p>` : ''}
+        ${pubDate ? `
+            <div style="background: var(--bg-secondary); padding: 12px 16px; border-radius: 8px; margin-bottom: 24px; border-left: 3px solid var(--accent-primary);">
+                <p style="margin: 0; color: var(--text-primary); font-size: 14px;">
+                    <i class="fas fa-calendar" style="color: var(--accent-primary); margin-right: 8px;"></i>
+                    <strong>Publicado pela fonte em:</strong> ${pubDate}
+                </p>
+            </div>
+        ` : ''}
         
         <div style="line-height: 1.8; margin-bottom: 24px;">
             ${content ? content : '<p>Conteúdo da notícia não disponível no momento.</p>'}
@@ -446,16 +464,19 @@ function generateRSSContent(data) {
         
         ${data.link ? `
             <div style="background: var(--bg-secondary); padding: 16px; border-radius: 8px; margin: 24px 0; border-left: 4px solid var(--accent-primary);">
-                <p style="margin: 0 0 12px 0;"><strong>Leia a notícia completa na fonte original:</strong></p>
-                <a href="${data.link}" target="_blank" rel="noopener noreferrer" style="color: var(--accent-primary); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+                <p style="margin: 0 0 12px 0; color: var(--text-primary);"><strong>Leia a notícia completa na fonte original:</strong></p>
+                <a href="${data.link}" target="_blank" rel="noopener noreferrer" style="color: var(--accent-primary); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; font-size: 14px;">
                     ${data.link} <i class="fas fa-external-link-alt"></i>
                 </a>
+                <p style="margin: 12px 0 0 0; font-size: 12px; color: var(--text-tertiary);">
+                    <i class="fas fa-info-circle"></i> Ao clicar, você será redirecionado para a fonte original. A OLV Internacional não produz ou modifica essas informações.
+                </p>
             </div>
         ` : ''}
         
         <div style="background: var(--bg-secondary); padding: 20px; border-radius: 8px; margin: 24px 0; border-left: 4px solid var(--accent-primary);">
-            <p style="margin: 0;"><strong>Fonte Oficial:</strong> ${sourceName}</p>
-            <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.8;">Esta notícia foi publicada originalmente pela fonte indicada. A OLV Internacional não produz ou modifica essas informações, apenas compartilha notícias relevantes sobre comércio exterior de fontes confiáveis.</p>
+            <p style="margin: 0; color: var(--text-primary);"><strong><i class="fas fa-newspaper" style="color: var(--accent-primary); margin-right: 8px;"></i>Fonte Oficial:</strong> ${sourceName}</p>
+            <p style="margin: 8px 0 0 0; font-size: 14px; color: var(--text-secondary);">Esta notícia foi publicada originalmente pela fonte indicada. A OLV Internacional não produz ou modifica essas informações, apenas compartilha notícias relevantes sobre comércio exterior de fontes confiáveis.</p>
         </div>
     `;
 }
@@ -702,7 +723,11 @@ async function processAllSources() {
             { url: 'https://www.valor.com.br/rss', name: 'Valor Econômico' },
             { url: 'https://exame.com/feed/', name: 'Exame' },
             { url: 'https://agenciabrasil.ebc.com.br/rss', name: 'Agência Brasil' },
-            { url: 'https://www.reuters.com/rssFeed/worldNews', name: 'Reuters' }
+            { url: 'https://www.reuters.com/rssFeed/worldNews', name: 'Reuters' },
+            // Novas fontes adicionadas
+            { url: 'https://www.bcb.gov.br/rss/noticias/moedaestabilidadefin.xml', name: 'Banco Central do Brasil' },
+            { url: 'https://www.iccwbo.org/news-publications/news/rss/', name: 'Câmara de Comércio Internacional' },
+            { url: 'https://feeds.bloomberg.com/markets/news.rss', name: 'Bloomberg Markets' }
         ];
 
         for (const feed of RSS_FEEDS) {
@@ -722,12 +747,12 @@ async function processAllSources() {
 
                         if (isRelevant) {
                             const article = generateArticleFromData(item, 'rss');
-                            // Garantir que a data seja recente (hoje) para aparecer no ticker
-                            article.datePublished = new Date().toISOString();
-                            article.dateModified = new Date().toISOString();
+                            // Usar data real da fonte (pubDate) se disponível, senão usar hoje
+                            // A sourcePublishedDate já foi extraída em generateArticleFromData
+                            // datePublished será a data da fonte ou hoje (para aparecer no ticker)
                             await saveArticle(article);
                             articles.push(article);
-                            console.log(`✅ Artigo RSS gerado: ${article.title}`);
+                            console.log(`✅ Artigo RSS gerado: ${article.title} (Fonte: ${article.sourcePublishedDate ? new Date(article.sourcePublishedDate).toLocaleDateString('pt-BR') : 'Hoje'})`);
                         }
                     }
                 }

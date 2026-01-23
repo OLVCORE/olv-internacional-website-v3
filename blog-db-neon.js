@@ -162,9 +162,10 @@ async function saveArticleToDB(article) {
     }
 
     try {
-        // Garantir que coluna image existe
+        // Garantir que colunas existem
         try {
             await executeQuery(`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS image TEXT`);
+            await executeQuery(`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS source_published_date TIMESTAMP`);
         } catch (e) {
             // Ignorar se já existir
         }
@@ -202,7 +203,7 @@ async function saveArticleToDB(article) {
             const query = `
                 INSERT INTO blog_posts (
                     id, title, excerpt, content, category,
-                    date_published, date_modified, icon, read_time, source, data_source, image, updated_at
+                    date_published, date_modified, source_published_date, icon, read_time, source, data_source, image, updated_at
                 )
                 VALUES (
                     ${escapeString(article.id)},
@@ -212,6 +213,7 @@ async function saveArticleToDB(article) {
                     ${escapeString(article.category)},
                     ${escapeString(article.datePublished)},
                     ${escapeString(article.dateModified || article.datePublished)},
+                    ${article.sourcePublishedDate ? escapeString(article.sourcePublishedDate) : 'NULL'},
                     ${escapeString(article.icon || 'fas fa-chart-line')},
                     ${article.readTime || 5},
                     ${escapeString(article.source || '')},
@@ -226,6 +228,7 @@ async function saveArticleToDB(article) {
                     content = EXCLUDED.content,
                     category = EXCLUDED.category,
                     date_modified = EXCLUDED.date_modified,
+                    source_published_date = EXCLUDED.source_published_date,
                     icon = EXCLUDED.icon,
                     read_time = EXCLUDED.read_time,
                     source = EXCLUDED.source,
@@ -239,7 +242,7 @@ async function saveArticleToDB(article) {
             await sql`
                 INSERT INTO blog_posts (
                     id, title, excerpt, content, category,
-                    date_published, date_modified, icon, read_time, source, data_source, image, updated_at
+                    date_published, date_modified, source_published_date, icon, read_time, source, data_source, image, updated_at
                 )
                 VALUES (
                     ${article.id},
@@ -249,6 +252,7 @@ async function saveArticleToDB(article) {
                     ${article.category},
                     ${article.datePublished},
                     ${article.dateModified || article.datePublished},
+                    ${article.sourcePublishedDate || null},
                     ${article.icon || 'fas fa-chart-line'},
                     ${article.readTime || 5},
                     ${article.source || ''},
@@ -263,6 +267,7 @@ async function saveArticleToDB(article) {
                     content = EXCLUDED.content,
                     category = EXCLUDED.category,
                     date_modified = EXCLUDED.date_modified,
+                    source_published_date = EXCLUDED.source_published_date,
                     icon = EXCLUDED.icon,
                     read_time = EXCLUDED.read_time,
                     source = EXCLUDED.source,
@@ -297,36 +302,18 @@ async function loadPostsFromDB(limit = 100) {
             // Neon: usar query direta com parâmetros
             // Filtrar data_source corrompido (HTML) na query
             // Verificar se coluna image existe antes de usar
-            const query = `
-                SELECT 
-                    id, title, excerpt, content, category,
-                    date_published, date_modified, icon, read_time, source,
-                    CASE 
-                        WHEN data_source::text LIKE '<%' OR data_source::text LIKE '<!%' 
-                        THEN '{}'::jsonb
-                        ELSE data_source
-                    END as data_source,
-                    COALESCE(
-                        (SELECT column_name FROM information_schema.columns 
-                         WHERE table_name = 'blog_posts' AND column_name = 'image'),
-                        NULL
-                    ) as has_image_column
-                FROM blog_posts
-                ORDER BY date_published DESC
-                LIMIT ${limit}
-            `;
-            
-            // Tentar adicionar coluna image se não existir
+            // Tentar adicionar colunas se não existirem
             try {
                 await executeQuery(`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS image TEXT`);
+                await executeQuery(`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS source_published_date TIMESTAMP`);
             } catch (e) {
                 // Ignorar se já existir ou erro
             }
             
-            const queryWithImage = `
+            const query = `
                 SELECT 
                     id, title, excerpt, content, category,
-                    date_published, date_modified, icon, read_time, source,
+                    date_published, date_modified, source_published_date, icon, read_time, source,
                     CASE 
                         WHEN data_source::text LIKE '<%' OR data_source::text LIKE '<!%' 
                         THEN '{}'::jsonb
@@ -340,9 +327,10 @@ async function loadPostsFromDB(limit = 100) {
             result = await sql(query);
         } else {
             // Vercel Postgres: usar template tag
-            // Tentar adicionar coluna image se não existir (Vercel Postgres)
+            // Tentar adicionar colunas se não existirem (Vercel Postgres)
             try {
                 await sql`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS image TEXT`;
+                await sql`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS source_published_date TIMESTAMP`;
             } catch (e) {
                 // Ignorar se já existir ou erro
             }
@@ -350,7 +338,7 @@ async function loadPostsFromDB(limit = 100) {
             result = await sql`
                 SELECT 
                     id, title, excerpt, content, category,
-                    date_published, date_modified, icon, read_time, source, data_source,
+                    date_published, date_modified, source_published_date, icon, read_time, source, data_source,
                     COALESCE(image, NULL) as image
                 FROM blog_posts
                 ORDER BY date_published DESC
@@ -394,6 +382,7 @@ async function loadPostsFromDB(limit = 100) {
                 category: row.category,
                 datePublished: row.date_published ? new Date(row.date_published).toISOString() : new Date().toISOString(),
                 dateModified: row.date_modified ? new Date(row.date_modified).toISOString() : new Date().toISOString(),
+                sourcePublishedDate: row.source_published_date ? new Date(row.source_published_date).toISOString() : null,
                 icon: row.icon,
                 readTime: row.read_time,
                 source: row.source,
@@ -415,9 +404,10 @@ async function loadPostFromDB(postId) {
     }
 
     try {
-        // Tentar adicionar coluna image se não existir
+        // Tentar adicionar colunas se não existirem
         try {
             await executeQuery(`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS image TEXT`);
+            await executeQuery(`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS source_published_date TIMESTAMP`);
         } catch (e) {
             // Ignorar se já existir ou erro
         }
@@ -425,7 +415,7 @@ async function loadPostFromDB(postId) {
         const query = `
             SELECT 
                 id, title, excerpt, content, category,
-                date_published, date_modified, icon, read_time, source, data_source,
+                date_published, date_modified, source_published_date, icon, read_time, source, data_source,
                 COALESCE(image, NULL) as image
             FROM blog_posts
             WHERE id = $1

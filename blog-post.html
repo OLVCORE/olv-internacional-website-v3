@@ -231,7 +231,13 @@
                         <span class="blog-post-category">${post.category}</span>
                         <h1 class="blog-post-title">${post.title}</h1>
                         <div class="blog-post-meta">
-                            <span><i class="fas fa-calendar"></i> ${new Date(post.datePublished).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                            <span><i class="fas fa-calendar"></i> Publicado em: ${new Date(post.datePublished).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                            ${post.sourcePublishedDate ? `
+                                <span style="color: var(--text-tertiary);">
+                                    <i class="fas fa-newspaper"></i> 
+                                    Fonte publicou em: ${new Date(post.sourcePublishedDate).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                </span>
+                            ` : ''}
                             <span><i class="fas fa-clock"></i> ${post.readTime || '5'} min de leitura</span>
                             <span><i class="fas fa-tag"></i> ${post.category}</span>
                         </div>
