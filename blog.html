@@ -813,11 +813,27 @@
 
         // Filtros de categoria e painel de categorias
         document.addEventListener('DOMContentLoaded', function() {
-            // Carregar contadores
-            updateCategoryCounts();
+            console.log('🚀 DOM carregado, inicializando blog...');
+            
+            // Verificar se elementos existem
+            const panel = document.querySelector('.blog-categories-panel');
+            if (panel) {
+                console.log('✅ Painel de categorias encontrado');
+            } else {
+                console.error('❌ Painel de categorias NÃO encontrado!');
+            }
+            
+            // Carregar contadores primeiro
+            updateCategoryCounts().then(() => {
+                console.log('✅ Contadores carregados');
+            });
             
             // Carregar posts iniciais
-            loadBlogPosts();
+            loadBlogPosts('all', 1, 12).then(() => {
+                console.log('✅ Posts iniciais carregados');
+                // Atualizar contadores novamente após carregar posts
+                updateCategoryCounts();
+            });
 
         // Mudar posts por página
         function changePostsPerPage(perPage) {
