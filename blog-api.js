@@ -1069,7 +1069,12 @@ async function processAllSources() {
                             // TCO & Custos
                             'TCO', 'total cost of ownership', 'custo total de propriedade',
                             'custo logístico', 'logistics cost', 'custo de importação', 'import cost',
-                            'custo de exportação', 'export cost'
+                            'custo de exportação', 'export cost',
+                            
+                            // Palavras adicionais específicas para filtrar melhor
+                            'commodities', 'commodity', 'commodities trading', 'trading', 'commercial',
+                            'cross-border', 'cross border', 'global trade', 'world trade',
+                            'trade war', 'trade dispute', 'trade negotiations'
                         ];
                         
                         // Palavras-chave SECUNDÁRIAS (devem aparecer em combinação com primárias)
