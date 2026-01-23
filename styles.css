@@ -733,10 +733,45 @@ body {
     }
 }
 
-/* Responsivo: esconder ticker em mobile */
+/* Responsivo: ajustar ticker em mobile */
 @media (max-width: 768px) {
     .news-ticker-container {
-        display: none;
+        display: flex;
+        padding: 8px 0;
+        font-size: 12px;
+    }
+    
+    .news-ticker-label {
+        padding: 0 12px;
+        font-size: 11px;
+        gap: 6px;
+    }
+    
+    .news-ticker-label i {
+        font-size: 12px;
+    }
+    
+    .news-ticker-item-title {
+        font-size: 11px;
+    }
+    
+    .news-ticker-item-source {
+        font-size: 10px;
+    }
+    
+    .news-ticker-content {
+        gap: 24px;
+        padding-left: 12px;
+    }
+    
+    .news-ticker-item {
+        padding: 2px 8px;
+        gap: 8px;
+    }
+    
+    .ticker-loading {
+        font-size: 11px;
+        padding: 2px 12px;
     }
 }
 
