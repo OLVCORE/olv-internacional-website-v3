@@ -2,37 +2,44 @@
 
 ## 📍 **ONDE ENCONTRAR A CONNECTION STRING**
 
-No console do Neon, a connection string pode estar em diferentes lugares dependendo da versão da interface.
+No console do Neon, a connection string está disponível através do botão **"Connect"** no Project Dashboard.
 
 ---
 
-## ✅ **OPÇÕES PARA ENCONTRAR**
+## ✅ **PASSO A PASSO CORRETO**
 
-### **Opção 1: Na Página do Branch (Mais Comum)**
+### **Método 1: Botão "Connect" no Dashboard (Recomendado)**
+
+1. Acesse: `https://console.neon.tech/app/projects/red-boat-86266542`
+2. Na página do projeto (Dashboard), procure por um botão **"Connect"** ou **"Conectar"**
+3. Clique no botão **"Connect"**
+4. Isso abre um modal **"Connect to your database"**
+5. No modal, você verá:
+   - **Connection string** completa
+   - Opções para selecionar branch, role e database
+   - Botão **"Copy"** para copiar a connection string
+
+### **Método 2: Na Página do Branch**
 
 1. Acesse: `https://console.neon.tech/app/projects/red-boat-86266542?branchId=br-delicate-frog-ah7uphtw`
 2. Na página do branch, procure por:
-   - **"Connection string"** ou **"Connection URL"**
-   - **"Connect"** ou **"Conectar"**
-   - Um botão ou seção que mostra a string de conexão
+   - Um botão **"Connect"** no topo
+   - Uma seção com **"Connection string"**
+   - Um card ou painel com informações de conexão
 
-### **Opção 2: Na Página do Projeto**
+### **Método 3: Via CLI (Alternativa)**
 
-1. Acesse: `https://console.neon.tech/app/projects/red-boat-86266542`
-2. Clique no branch: `br-delicate-frog-ah7uphtw`
-3. Procure por **"Connection Details"** ou **"Connection string"**
+Se preferir usar linha de comando:
+```bash
+# Instalar Neon CLI
+npm install -g neonctl
 
-### **Opção 3: No SQL Editor**
+# Fazer login
+neonctl auth
 
-1. Acesse: `https://console.neon.tech/app/projects/red-boat-86266542?branchId=br-delicate-frog-ah7uphtw`
-2. Clique em **"SQL Editor"** no menu lateral
-3. Às vezes a connection string aparece no topo ou em um botão "Connect"
-
-### **Opção 4: Na Página de Settings**
-
-1. Acesse: `https://console.neon.tech/app/projects/red-boat-86266542?branchId=br-delicate-frog-ah7uphtw`
-2. Clique em **"Settings"** no menu lateral
-3. Procure por **"Connection Details"** ou **"Database Connection"**
+# Obter connection string
+neonctl connection-string --project-id red-boat-86266542 --branch br-delicate-frog-ah7uphtw
+```
 
 ---
 
