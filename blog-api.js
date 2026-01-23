@@ -721,82 +721,8 @@ function generateRSSContent(data) {
     `;
 }
 
-// Gerar artigo de exemplo para categorias vazias
-function generateExampleArticle(category) {
-    const now = new Date();
-    const articleId = `article-example-${category}-${Date.now()}`;
-    
-    const examples = {
-        guias: {
-            title: 'Guia Completo: Como Importar Produtos para o Brasil',
-            excerpt: 'Passo a passo detalhado sobre o processo de importação, documentação necessária e melhores práticas para empresas que desejam importar produtos.',
-            content: `
-                <h2>Introdução</h2>
-                <p>Importar produtos para o Brasil requer conhecimento específico sobre legislação, documentação e processos aduaneiros. Este guia prático apresenta as etapas essenciais.</p>
-                
-                <h3>1. Planejamento e Pesquisa</h3>
-                <p>Antes de iniciar uma importação, é fundamental realizar uma pesquisa de mercado, verificar a viabilidade comercial e entender os custos envolvidos.</p>
-                
-                <h3>2. Documentação Necessária</h3>
-                <ul>
-                    <li>Registro no RADAR (Registro e Rastreamento da Atuação dos Importadores)</li>
-                    <li>Licenças e autorizações específicas do produto</li>
-                    <li>Documentos comerciais (invoice, packing list, etc.)</li>
-                </ul>
-                
-                <h3>3. Processo Aduaneiro</h3>
-                <p>O processo aduaneiro envolve despacho, fiscalização e liberação da mercadoria. A OLV Internacional oferece consultoria especializada para otimizar este processo.</p>
-                
-                <h3>Conclusão</h3>
-                <p>Uma importação bem planejada reduz custos, evita multas e acelera a liberação. Conte com especialistas para garantir o sucesso da sua operação.</p>
-            `,
-            icon: 'fas fa-book'
-        },
-        insights: {
-            title: 'Insights Estratégicos: O Futuro do Comércio Exterior Brasileiro',
-            excerpt: 'Análise sobre tendências, oportunidades e desafios do comércio exterior brasileiro nos próximos anos, baseada em dados e experiência de mercado.',
-            content: `
-                <h2>Panorama Atual</h2>
-                <p>O comércio exterior brasileiro está em constante evolução, com novas oportunidades surgindo em diferentes setores e mercados.</p>
-                
-                <h3>Tendências Identificadas</h3>
-                <ul>
-                    <li><strong>Digitalização:</strong> Processos cada vez mais automatizados e digitais</li>
-                    <li><strong>Sustentabilidade:</strong> Demanda crescente por produtos e processos sustentáveis</li>
-                    <li><strong>Diversificação:</strong> Expansão para novos mercados além dos tradicionais</li>
-                </ul>
-                
-                <h3>Oportunidades Estratégicas</h3>
-                <p>Empresas que investem em inteligência de mercado, análise de dados e planejamento estratégico têm maior probabilidade de sucesso nas operações internacionais.</p>
-                
-                <h3>Recomendações</h3>
-                <p>A OLV Internacional oferece consultoria estratégica para empresas que desejam expandir suas operações internacionais com segurança e eficiência.</p>
-            `,
-            icon: 'fas fa-lightbulb'
-        }
-    };
-
-    const example = examples[category] || {
-        title: `Conteúdo ${category}`,
-        excerpt: 'Artigo de exemplo',
-        content: '<p>Este é um artigo de exemplo.</p>',
-        icon: 'fas fa-file-alt'
-    };
-
-    return {
-        id: articleId,
-        title: example.title,
-        excerpt: example.excerpt,
-        content: example.content,
-        category: category,
-        datePublished: now.toISOString(),
-        dateModified: now.toISOString(),
-        icon: example.icon,
-        readTime: Math.ceil(example.content.split(/\s+/).length / 200),
-        source: 'manual',
-        dataSource: {}
-    };
-}
+// REMOVIDO: Função generateExampleArticle
+// Não geramos mais artigos de exemplo - apenas conteúdo real das APIs
 
 // Salvar artigo
 async function saveArticle(article) {
@@ -1155,7 +1081,6 @@ module.exports = {
     fetchWorldBankData,
     fetchRSSFeed,
     generateArticleFromData,
-    generateExampleArticle,
     saveArticle,
     loadPosts,
     loadPost,

@@ -59,7 +59,18 @@ module.exports = async (req, res) => {
         };
         
         // 1. Remover posts de teste
-        const testKeywords = ['teste', 'test', 'exemplo', 'example', 'conteúdo noticias', 'conteudo noticias'];
+        // Palavras-chave para identificar artigos de exemplo/fake
+        const testKeywords = [
+            'teste', 'test', 
+            'exemplo', 'example', 
+            'conteúdo noticias', 'conteudo noticias',
+            'artigo de exemplo',
+            'article-example',
+            'Conteúdo noticias',
+            'Artigo de exemplo',
+            'manual', // source: 'manual' indica artigo fake
+            'OLV Blog' // fonte fake
+        ];
         let testRemoved = 0;
         
         for (const keyword of testKeywords) {
