@@ -217,26 +217,58 @@ async function fetchRSSFeed(feedUrl) {
             const parser = new Parser({
                 timeout: 10000,
                 customFields: {
-                    item: ['dc:creator', 'content:encoded', 'dc:date', 'published']
+                    item: ['dc:creator', 'content:encoded', 'dc:date', 'published', 'media:content', 'media:thumbnail', 'enclosure']
                 }
             });
             
             const feed = await parser.parseURL(feedUrl);
-            // Garantir que todos os itens tenham pubDate (usar isoDate se disponível)
+            // Garantir que todos os itens tenham pubDate e image
             if (feed.items) {
                 feed.items = feed.items.map(item => {
-                    // Se não tem pubDate mas tem isoDate, usar isoDate
+                    // Normalizar pubDate
                     if (!item.pubDate && item.isoDate) {
                         item.pubDate = item.isoDate;
                     }
-                    // Se não tem pubDate mas tem published, usar published
                     if (!item.pubDate && item.published) {
                         item.pubDate = item.published;
                     }
-                    // Se não tem pubDate mas tem dc:date, usar dc:date
                     if (!item.pubDate && item['dc:date']) {
                         item.pubDate = item['dc:date'];
                     }
+                    
+                    // Extrair imagem de várias fontes
+                    if (!item.image) {
+                        // Tentar media:content
+                        if (item['media:content'] && item['media:content'].$.url) {
+                            item.image = item['media:content'].$.url;
+                        }
+                        // Tentar media:thumbnail
+                        if (!item.image && item['media:thumbnail'] && item['media:thumbnail'].$.url) {
+                            item.image = item['media:thumbnail'].$.url;
+                        }
+                        // Tentar enclosure
+                        if (!item.image && item.enclosure) {
+                            const enclosure = Array.isArray(item.enclosure) ? item.enclosure[0] : item.enclosure;
+                            if (enclosure && enclosure.type && enclosure.type.startsWith('image/')) {
+                                item.image = enclosure.url;
+                            }
+                        }
+                        // Tentar primeira img no content
+                        if (!item.image && item.content) {
+                            const imgMatch = item.content.match(/<img[^>]*src=["']([^"']+)["']/i);
+                            if (imgMatch) {
+                                item.image = imgMatch[1];
+                            }
+                        }
+                        // Tentar primeira img no contentSnippet
+                        if (!item.image && item.contentSnippet) {
+                            const imgMatch = item.contentSnippet.match(/<img[^>]*src=["']([^"']+)["']/i);
+                            if (imgMatch) {
+                                item.image = imgMatch[1];
+                            }
+                        }
+                    }
+                    
                     return item;
                 });
             }
@@ -349,9 +381,13 @@ function generateArticleFromData(data, type) {
             article.title = data.title || 'Notícia de Comércio Exterior';
             article.excerpt = data.description || data.contentSnippet || '';
             article.content = generateRSSContent(data);
-            // Imagem já foi extraída no objeto article acima
+            // Imagem: priorizar data.image (já extraída), senão tentar extrair novamente
             if (data.image) {
                 article.image = data.image;
+                console.log(`🖼️  Imagem extraída para "${article.title}": ${data.image.substring(0, 80)}...`);
+            } else {
+                // Tentar extrair novamente se não foi extraída antes
+                console.warn(`⚠️  Nenhuma imagem encontrada para "${article.title}"`);
             }
             break;
     }
@@ -795,26 +831,39 @@ async function processAllSources() {
 
                         if (isRelevant) {
                             const article = generateArticleFromData(item, 'rss');
+                            
                             // Garantir que a data da fonte seja preservada
                             // Se o item tem pubDate, usar essa data como sourcePublishedDate
                             if (item.pubDate && !article.sourcePublishedDate) {
                                 try {
                                     article.sourcePublishedDate = new Date(item.pubDate).toISOString();
+                                    console.log(`📅 Data da fonte preservada: ${new Date(article.sourcePublishedDate).toLocaleDateString('pt-BR')}`);
                                 } catch (e) {
-                                    console.warn('Erro ao parsear pubDate do item:', e);
+                                    console.warn('⚠️ Erro ao parsear pubDate do item:', e);
                                 }
                             }
+                            
+                            // Garantir que a imagem seja preservada
+                            if (item.image && !article.image) {
+                                article.image = item.image;
+                                console.log(`🖼️  Imagem preservada do item: ${item.image.substring(0, 80)}...`);
+                            }
+                            
                             // datePublished será a data da fonte (se disponível) ou hoje
                             // Isso garante que artigos recentes apareçam no ticker
                             if (!article.datePublished || article.datePublished === article.dateModified) {
                                 // Se não tem data da fonte, usar hoje para aparecer no ticker
                                 article.datePublished = article.sourcePublishedDate || new Date().toISOString();
                             }
+                            
                             await saveArticle(article);
                             articles.push(article);
+                            
                             const sourceDateStr = article.sourcePublishedDate ? new Date(article.sourcePublishedDate).toLocaleDateString('pt-BR') : 'Data não disponível';
+                            const imageStatus = article.image ? '✅ Com imagem' : '❌ Sem imagem';
                             console.log(`✅ Artigo RSS gerado: ${article.title}`);
                             console.log(`   📅 Data da fonte: ${sourceDateStr}`);
+                            console.log(`   🖼️  ${imageStatus}`);
                         }
                     }
                 }

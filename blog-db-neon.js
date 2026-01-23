@@ -330,6 +330,10 @@ async function loadPostsFromDB(limit = 100) {
             // Tentar adicionar colunas se não existirem (Vercel Postgres)
             try {
                 await sql`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS image TEXT`;
+            } catch (e) {
+                // Ignorar se já existir ou erro
+            }
+            try {
                 await sql`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS source_published_date TIMESTAMP`;
             } catch (e) {
                 // Ignorar se já existir ou erro
