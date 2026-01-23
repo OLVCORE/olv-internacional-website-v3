@@ -62,36 +62,15 @@
         }
         .blog-post-image {
             width: 100%;
-            border-radius: 12px;
-            margin-bottom: 40px;
-            overflow: hidden;
-        }
-        .blog-post-image-real {
             height: 400px;
-        }
-        .blog-post-image-real img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-        .blog-post-image-icon {
-            height: 120px;
             background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-hover) 100%);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 48px;
-        }
-        .blog-post-image-fallback {
-            height: 120px;
-            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-hover) 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 48px;
+            font-size: 64px;
+            margin-bottom: 40px;
         }
         .blog-post-content {
             font-size: 16px;
@@ -258,12 +237,12 @@
                         </div>
                     </div>
                     ${post.image ? `
-                        <div class="blog-post-image blog-post-image-real">
-                            <img src="${post.image}" alt="${post.title}" loading="lazy" onerror="this.parentElement.classList.add('blog-post-image-fallback'); this.style.display='none'; this.parentElement.innerHTML='<i class=\\'${post.icon || 'fas fa-chart-line'}\\'></i>';">
+                        <div class="blog-post-image" style="background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%); padding: 0; border-radius: 12px; overflow: hidden; margin-bottom: 32px;">
+                            <img src="${post.image}" alt="${post.title}" style="width: 100%; height: 400px; object-fit: cover; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'padding: 60px; text-align: center; color: white;\\'><i class=\\'${post.icon || 'fas fa-chart-line'}\\' style=\\'font-size: 64px;\\'></i></div>';">
                         </div>
                     ` : `
-                        <div class="blog-post-image blog-post-image-icon">
-                            <i class="${post.icon || 'fas fa-chart-line'}"></i>
+                        <div class="blog-post-image" style="height: 120px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%); border-radius: 12px; margin-bottom: 32px;">
+                            <i class="${post.icon || 'fas fa-chart-line'}" style="font-size: 48px; color: white; opacity: 0.9;"></i>
                         </div>
                     `}
                     <div class="blog-post-content">

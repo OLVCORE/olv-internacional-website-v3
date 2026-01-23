@@ -15,17 +15,26 @@ async function loadNewsTicker() {
             return;
         }
 
-        // Filtrar posts das últimas 24 horas
+        // Filtrar posts das últimas 24 horas (ou 48h se houver poucos)
         const now = new Date();
         const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        const last48Hours = new Date(now.getTime() - 48 * 60 * 60 * 1000);
         
-        const recentPosts = posts.filter(post => {
+        let recentPosts = posts.filter(post => {
             const postDate = new Date(post.datePublished);
             return postDate >= last24Hours;
         });
 
+        // Se houver menos de 3 posts nas últimas 24h, expandir para 48h
+        if (recentPosts.length < 3) {
+            recentPosts = posts.filter(post => {
+                const postDate = new Date(post.datePublished);
+                return postDate >= last48Hours;
+            });
+        }
+
         if (recentPosts.length === 0) {
-            tickerContent.innerHTML = '<span class="ticker-loading">Nenhuma notícia nas últimas 24 horas</span>';
+            tickerContent.innerHTML = '<span class="ticker-loading">Nenhuma notícia recente disponível</span>';
             return;
         }
 

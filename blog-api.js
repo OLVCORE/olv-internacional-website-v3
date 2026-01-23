@@ -170,16 +170,23 @@ async function fetchRSSFeed(feedUrl) {
                 const linkMatch = itemXml.match(/<link[^>]*>([\s\S]*?)<\/link>/i);
                 const pubDateMatch = itemXml.match(/<pubDate[^>]*>([\s\S]*?)<\/pubDate>/i);
                 
-                // Extrair imagem: tentar <enclosure>, <media:content>, ou primeira <img> no description
+                // Extrair imagem de várias fontes possíveis
                 let imageUrl = null;
-                const enclosureMatch = itemXml.match(/<enclosure[^>]*url=["']([^"']+)["'][^>]*>/i);
-                const mediaMatch = itemXml.match(/<media:content[^>]*url=["']([^"']+)["'][^>]*>/i);
+                // Tentar <enclosure>
+                const enclosureMatch = itemXml.match(/<enclosure[^>]*url=["']([^"']+)["'][^>]*type=["']image\/([^"']+)["']/i);
                 if (enclosureMatch) {
                     imageUrl = enclosureMatch[1];
-                } else if (mediaMatch) {
-                    imageUrl = mediaMatch[1];
-                } else if (descMatch) {
-                    const imgMatch = descMatch[1].match(/<img[^>]*src=["']([^"']+)["'][^>]*>/i);
+                }
+                // Tentar <media:content> ou <media:thumbnail>
+                if (!imageUrl) {
+                    const mediaMatch = itemXml.match(/<media:(?:content|thumbnail)[^>]*url=["']([^"']+)["']/i);
+                    if (mediaMatch) {
+                        imageUrl = mediaMatch[1];
+                    }
+                }
+                // Tentar primeira <img> no description
+                if (!imageUrl && descMatch) {
+                    const imgMatch = descMatch[1].match(/<img[^>]*src=["']([^"']+)["']/i);
                     if (imgMatch) {
                         imageUrl = imgMatch[1];
                     }
@@ -192,7 +199,7 @@ async function fetchRSSFeed(feedUrl) {
                         contentSnippet: descMatch ? descMatch[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim() : '',
                         link: linkMatch ? linkMatch[1].trim() : '',
                         pubDate: pubDateMatch ? pubDateMatch[1].trim() : new Date().toISOString(),
-                        image: imageUrl
+                        image: imageUrl || null
                     });
                     count++;
                 }
@@ -210,39 +217,13 @@ async function fetchRSSFeed(feedUrl) {
             const parser = new Parser({
                 timeout: 10000,
                 customFields: {
-                    item: ['dc:creator', 'content:encoded', 'media:content', 'enclosure']
+                    item: ['dc:creator', 'content:encoded']
                 }
             });
             
             const feed = await parser.parseURL(feedUrl);
-            // Processar itens para extrair imagens
-            const items = (feed.items || []).map(item => {
-                // Tentar extrair imagem de diferentes campos
-                let imageUrl = null;
-                if (item.enclosure && item.enclosure.url && item.enclosure.type && item.enclosure.type.startsWith('image/')) {
-                    imageUrl = item.enclosure.url;
-                } else if (item['media:content'] && item['media:content'].url) {
-                    imageUrl = item['media:content'].url;
-                } else if (item.content && item.content.includes('<img')) {
-                    const imgMatch = item.content.match(/<img[^>]*src=["']([^"']+)["'][^>]*>/i);
-                    if (imgMatch) {
-                        imageUrl = imgMatch[1];
-                    }
-                } else if (item.contentSnippet && item.contentSnippet.includes('<img')) {
-                    const imgMatch = item.contentSnippet.match(/<img[^>]*src=["']([^"']+)["'][^>]*>/i);
-                    if (imgMatch) {
-                        imageUrl = imgMatch[1];
-                    }
-                }
-                
-                return {
-                    ...item,
-                    image: imageUrl
-                };
-            });
-            
             return {
-                items: items,
+                items: feed.items || [],
                 title: feed.title || '',
                 link: feed.link || feedUrl
             };
@@ -275,8 +256,14 @@ function generateArticleFromData(data, type) {
         icon: 'fas fa-chart-line',
         readTime: 5,
         source: type,
-        dataSource: data
+        dataSource: data,
+        image: null // Será preenchido se houver imagem
     };
+    
+    // Extrair imagem se for RSS
+    if (type === 'rss' && data.image) {
+        article.image = data.image;
+    }
 
     switch (type) {
         case 'comexstat':
@@ -303,13 +290,9 @@ function generateArticleFromData(data, type) {
             article.title = data.title || 'Notícia de Comércio Exterior';
             article.excerpt = data.description || data.contentSnippet || '';
             article.content = generateRSSContent(data);
-            // Adicionar imagem se disponível
+            // Imagem já foi extraída no objeto article acima
             if (data.image) {
                 article.image = data.image;
-            } else if (data.enclosure && data.enclosure.url) {
-                article.image = data.enclosure.url;
-            } else if (data['media:content'] && data['media:content'].url) {
-                article.image = data['media:content'].url;
             }
             break;
     }
@@ -726,11 +709,11 @@ async function processAllSources() {
             try {
                 const feedData = await fetchRSSFeed(feed.url);
                 if (feedData && feedData.items && feedData.items.length > 0) {
-                    // Processar apenas os 2 primeiros itens mais recentes de cada feed
-                    const recentItems = feedData.items.slice(0, 2);
+                    // Processar os 5 primeiros itens mais recentes de cada feed (aumentado de 2 para 5)
+                    const recentItems = feedData.items.slice(0, 5);
                     for (const item of recentItems) {
                         // Filtrar apenas notícias relevantes (com palavras-chave)
-                        const keywords = ['comércio', 'exportação', 'importação', 'trade', 'economia', 'brasil', 'internacional'];
+                        const keywords = ['comércio', 'exportação', 'importação', 'trade', 'economia', 'brasil', 'internacional', 'mercado', 'negócio', 'empresa', 'indústria'];
                         const titleLower = (item.title || '').toLowerCase();
                         const descLower = (item.description || item.contentSnippet || '').toLowerCase();
                         const isRelevant = keywords.some(keyword => 
@@ -739,6 +722,9 @@ async function processAllSources() {
 
                         if (isRelevant) {
                             const article = generateArticleFromData(item, 'rss');
+                            // Garantir que a data seja recente (hoje) para aparecer no ticker
+                            article.datePublished = new Date().toISOString();
+                            article.dateModified = new Date().toISOString();
                             await saveArticle(article);
                             articles.push(article);
                             console.log(`✅ Artigo RSS gerado: ${article.title}`);
@@ -760,10 +746,13 @@ async function processAllSources() {
         const categories = ['analises', 'guias', 'noticias', 'insights'];
         
         for (const cat of categories) {
-            const hasCategoryPosts = existingPosts.some(p => p.category === cat);
-            if (!hasCategoryPosts && articles.length < 10) {
-                // Criar artigo de exemplo para categoria vazia
+            const categoryPosts = existingPosts.filter(p => p.category === cat);
+            // Se categoria tem menos de 2 posts, criar artigo de exemplo
+            if (categoryPosts.length < 2) {
                 const exampleArticle = generateExampleArticle(cat);
+                // Atualizar data para hoje para aparecer no ticker
+                exampleArticle.datePublished = new Date().toISOString();
+                exampleArticle.dateModified = new Date().toISOString();
                 await saveArticle(exampleArticle);
                 articles.push(exampleArticle);
                 console.log(`✅ Artigo de exemplo criado para categoria: ${cat}`);

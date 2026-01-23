@@ -120,7 +120,6 @@ async function initDatabase() {
                 date_published TIMESTAMP NOT NULL,
                 date_modified TIMESTAMP NOT NULL,
                 icon VARCHAR(100),
-                image TEXT,
                 read_time INTEGER DEFAULT 5,
                 source VARCHAR(50),
                 data_source JSONB,
@@ -197,7 +196,7 @@ async function saveArticleToDB(article) {
             const query = `
                 INSERT INTO blog_posts (
                     id, title, excerpt, content, category,
-                    date_published, date_modified, icon, image, read_time, source, data_source, updated_at
+                    date_published, date_modified, icon, read_time, source, data_source, image, updated_at
                 )
                 VALUES (
                     ${escapeString(article.id)},
@@ -208,10 +207,10 @@ async function saveArticleToDB(article) {
                     ${escapeString(article.datePublished)},
                     ${escapeString(article.dateModified || article.datePublished)},
                     ${escapeString(article.icon || 'fas fa-chart-line')},
-                    ${escapeString(article.image || '')},
                     ${article.readTime || 5},
                     ${escapeString(article.source || '')},
                     ${escapeString(dataSourceJson)},
+                    ${escapeString(article.image || null)},
                     ${escapeString(now)}
                 )
                 ON CONFLICT (id) 
@@ -222,10 +221,10 @@ async function saveArticleToDB(article) {
                     category = EXCLUDED.category,
                     date_modified = EXCLUDED.date_modified,
                     icon = EXCLUDED.icon,
-                    image = EXCLUDED.image,
                     read_time = EXCLUDED.read_time,
                     source = EXCLUDED.source,
                     data_source = EXCLUDED.data_source,
+                    image = EXCLUDED.image,
                     updated_at = EXCLUDED.updated_at
             `;
             await sql(query);
@@ -234,7 +233,7 @@ async function saveArticleToDB(article) {
             await sql`
                 INSERT INTO blog_posts (
                     id, title, excerpt, content, category,
-                    date_published, date_modified, icon, image, read_time, source, data_source, updated_at
+                    date_published, date_modified, icon, read_time, source, data_source, image, updated_at
                 )
                 VALUES (
                     ${article.id},
@@ -245,10 +244,10 @@ async function saveArticleToDB(article) {
                     ${article.datePublished},
                     ${article.dateModified || article.datePublished},
                     ${article.icon || 'fas fa-chart-line'},
-                    ${article.image || ''},
                     ${article.readTime || 5},
                     ${article.source || ''},
                     ${dataSourceJson},
+                    ${article.image || null},
                     ${now}
                 )
                 ON CONFLICT (id) 
@@ -259,10 +258,10 @@ async function saveArticleToDB(article) {
                     category = EXCLUDED.category,
                     date_modified = EXCLUDED.date_modified,
                     icon = EXCLUDED.icon,
-                    image = EXCLUDED.image,
                     read_time = EXCLUDED.read_time,
                     source = EXCLUDED.source,
                     data_source = EXCLUDED.data_source,
+                    image = EXCLUDED.image,
                     updated_at = EXCLUDED.updated_at
             `;
         }
@@ -294,7 +293,7 @@ async function loadPostsFromDB(limit = 100) {
             const query = `
                 SELECT 
                     id, title, excerpt, content, category,
-                    date_published, date_modified, icon, image, read_time, source,
+                    date_published, date_modified, icon, read_time, source,
                     CASE 
                         WHEN data_source::text LIKE '<%' OR data_source::text LIKE '<!%' 
                         THEN '{}'::jsonb
@@ -310,7 +309,7 @@ async function loadPostsFromDB(limit = 100) {
             result = await sql`
                 SELECT 
                     id, title, excerpt, content, category,
-                    date_published, date_modified, icon, image, read_time, source, data_source
+                    date_published, date_modified, icon, read_time, source, data_source
                 FROM blog_posts
                 ORDER BY date_published DESC
                 LIMIT ${limit}
@@ -376,7 +375,7 @@ async function loadPostFromDB(postId) {
         const query = `
             SELECT 
                 id, title, excerpt, content, category,
-                date_published, date_modified, icon, image, read_time, source, data_source
+                date_published, date_modified, icon, read_time, source, data_source, image
             FROM blog_posts
             WHERE id = $1
             LIMIT 1
@@ -421,7 +420,6 @@ async function loadPostFromDB(postId) {
             datePublished: row.date_published ? new Date(row.date_published).toISOString() : new Date().toISOString(),
             dateModified: row.date_modified ? new Date(row.date_modified).toISOString() : new Date().toISOString(),
             icon: row.icon,
-            image: row.image || null,
             readTime: row.read_time,
             source: row.source,
             dataSource: dataSource
