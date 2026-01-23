@@ -1505,6 +1505,53 @@ body {
     }
 }
 
+/* CTA Estratégico para Executivos */
+.hero-executive-cta {
+    position: relative;
+    overflow: hidden;
+}
+
+@keyframes pulse-cta {
+    0%, 100% {
+        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+    }
+    50% {
+        box-shadow: 0 8px 40px rgba(102, 126, 234, 0.5);
+    }
+}
+
+.btn-executive-cta {
+    transition: all 0.3s ease;
+}
+
+.btn-executive-cta:hover {
+    transform: scale(1.05) !important;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Mobile: CTA mais compacto */
+@media (max-width: 768px) {
+    .hero-executive-cta {
+        padding: 20px 16px !important;
+        margin-bottom: 24px !important;
+    }
+    
+    .hero-executive-cta h3 {
+        font-size: 1.2rem !important;
+    }
+    
+    .hero-executive-cta p {
+        font-size: 0.95rem !important;
+    }
+    
+    .btn-executive-cta {
+        width: 100%;
+        justify-content: center;
+        padding: 14px 24px !important;
+        font-size: 1rem !important;
+    }
+}
+
 /* ============================================
    BUTTONS
    ============================================ */
