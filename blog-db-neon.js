@@ -285,10 +285,16 @@ async function loadPostsFromDB(limit = 100) {
         let result;
         if (isNeon) {
             // Neon: usar query direta com parâmetros
+            // Filtrar data_source corrompido (HTML) na query
             const query = `
                 SELECT 
                     id, title, excerpt, content, category,
-                    date_published, date_modified, icon, read_time, source, data_source
+                    date_published, date_modified, icon, read_time, source,
+                    CASE 
+                        WHEN data_source::text LIKE '<%' OR data_source::text LIKE '<!%' 
+                        THEN '{}'::jsonb
+                        ELSE data_source
+                    END as data_source
                 FROM blog_posts
                 ORDER BY date_published DESC
                 LIMIT ${limit}
