@@ -1188,9 +1188,9 @@ async function processAllSources() {
                         
                         // Processar artigo (já verificamos que é relevante)
                         const article = generateArticleFromData(item, 'rss');
-                            
-                            // Traduzir para português se necessário
-                            if (article._needsTranslation) {
+                        
+                        // Traduzir para português se necessário
+                        if (article._needsTranslation) {
                                 try {
                                     console.log(`🌐 Traduzindo artigo de inglês para português: "${article._originalTitle.substring(0, 50)}..."`);
                                     article.title = await translateToPortuguese(article._originalTitle);
@@ -1252,12 +1252,12 @@ async function processAllSources() {
                                     delete article._originalExcerpt;
                                     delete article._originalContent;
                                 }
-                            }
-                            
-                            // Verificar se artigo já existe APENAS por URL completa (deduplicação por URL completa, não domínio)
-                            // Não verificar por título para não perder conteúdo legítimo
-                            let exists = false;
-                            if (article.dataSource && article.dataSource.link) {
+                        }
+                        
+                        // Verificar se artigo já existe APENAS por URL completa (deduplicação por URL completa, não domínio)
+                        // Não verificar por título para não perder conteúdo legítimo
+                        let exists = false;
+                        if (article.dataSource && article.dataSource.link) {
                                 try {
                                     // Verificar apenas se URL COMPLETA já existe (sem query params)
                                     if (db && db.hasPostgres) {
@@ -1313,19 +1313,19 @@ async function processAllSources() {
                                 } else {
                                     console.log(`🖼️  Imagem já existe no artigo: ${article.image.substring(0, 100)}`);
                                 }
-                            } else {
-                                console.warn(`⚠️  item.image é null/undefined para "${item.title}"`);
-                            }
-                            
-                            // datePublished será a data da fonte (se disponível) ou hoje
-                            // Isso garante que artigos recentes apareçam no ticker
-                            if (!article.datePublished || article.datePublished === article.dateModified) {
-                                // Se não tem data da fonte, usar hoje para aparecer no ticker
-                                article.datePublished = article.sourcePublishedDate || new Date().toISOString();
-                            }
-                            
-                            // Salvar artigo (não duplicado)
-                            try {
+                        } else {
+                            console.warn(`⚠️  item.image é null/undefined para "${item.title}"`);
+                        }
+                        
+                        // datePublished será a data da fonte (se disponível) ou hoje
+                        // Isso garante que artigos recentes apareçam no ticker
+                        if (!article.datePublished || article.datePublished === article.dateModified) {
+                            // Se não tem data da fonte, usar hoje para aparecer no ticker
+                            article.datePublished = article.sourcePublishedDate || new Date().toISOString();
+                        }
+                        
+                        // Salvar artigo (não duplicado)
+                        try {
                                 const saved = await saveArticle(article);
                                 if (saved) {
                                     articles.push(article);
@@ -1340,12 +1340,12 @@ async function processAllSources() {
                                     console.warn(`⚠️ Artigo não foi salvo (saveArticle retornou null): ${article.title}`);
                                 }
                             } catch (saveError) {
-                                console.error(`❌ Erro ao salvar artigo "${article.title}":`, saveError.message);
-                                console.error('Stack:', saveError.stack);
-                                // Continuar processando outros artigos mesmo se um falhar
-                            }
+                            console.error(`❌ Erro ao salvar artigo "${article.title}":`, saveError.message);
+                            console.error('Stack:', saveError.stack);
+                            // Continuar processando outros artigos mesmo se um falhar
                         }
                     }
+                }
                 } else {
                     console.log(`   ⚠️ Feed ${feed.name} não retornou itens ou está vazio`);
                 }
