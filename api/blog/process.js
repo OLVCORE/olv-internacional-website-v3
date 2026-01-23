@@ -48,12 +48,17 @@ module.exports = async (req, res) => {
     try {
         // Inicializar banco se necessário (primeira vez)
         try {
+            console.log('🔄 Inicializando banco de dados...');
             await initDatabase();
+            console.log('✅ Banco de dados inicializado');
         } catch (initError) {
-            console.warn('Banco não inicializado (pode ser normal):', initError.message);
+            console.error('❌ Erro ao inicializar banco:', initError.message);
+            console.error('Stack:', initError.stack);
         }
 
+        console.log('🔄 Iniciando processamento de artigos...');
         const articles = await processAndPublish();
+        console.log(`✅ Processamento concluído: ${articles.length} artigos processados`);
         
         // No Vercel, retornar os artigos também para garantir que estão disponíveis
         res.status(200).json({ 

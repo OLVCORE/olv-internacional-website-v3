@@ -5,8 +5,14 @@ let hasPostgres = false;
 // Detectar qual driver usar (Neon ou Vercel Postgres)
 const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL_NON_POOLING;
 
+console.log('🔍 Verificando configuração do banco...');
+console.log('   DATABASE_URL:', process.env.DATABASE_URL ? '✅ Definido' : '❌ Não definido');
+console.log('   POSTGRES_URL:', process.env.POSTGRES_URL ? '✅ Definido' : '❌ Não definido');
+console.log('   databaseUrl encontrado:', databaseUrl ? '✅ Sim' : '❌ Não');
+
 if (databaseUrl) {
     hasPostgres = true;
+    console.log('✅ Banco de dados configurado, tentando conectar...');
     
     // Tentar usar Neon primeiro (mais comum no Vercel agora)
     if (databaseUrl.includes('neon.tech') || databaseUrl.includes('neon')) {

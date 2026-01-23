@@ -820,7 +820,10 @@ async function saveArticle(article) {
             console.error('Stack:', error.stack);
         }
     } else {
-        console.log('⚠️ Banco não disponível para salvar, usando arquivo');
+        console.warn('⚠️ Banco não disponível para salvar, usando arquivo');
+        console.warn(`   db disponível: ${!!db}`);
+        console.warn(`   hasPostgres: ${db?.hasPostgres}`);
+        console.warn(`   DATABASE_URL: ${process.env.DATABASE_URL ? '✅ Definido' : '❌ Não definido'}`);
     }
 
     // Fallback: salvar em arquivo
