@@ -811,6 +811,12 @@
             pagEl.innerHTML = paginationHTML;
         }
 
+        // Mudar posts por página
+        function changePostsPerPage(perPage) {
+            currentPerPage = parseInt(perPage);
+            loadBlogPosts(currentCategory, 1, currentPerPage); // Resetar para página 1
+        }
+
         // Filtros de categoria e painel de categorias
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 DOM carregado, inicializando blog...');
@@ -834,12 +840,6 @@
                 // Atualizar contadores novamente após carregar posts
                 updateCategoryCounts();
             });
-
-        // Mudar posts por página
-        function changePostsPerPage(perPage) {
-            currentPerPage = parseInt(perPage);
-            loadBlogPosts(currentCategory, 1, currentPerPage); // Resetar para página 1
-        }
 
             // Filtros de botão
             document.querySelectorAll('.filter-btn').forEach(btn => {
