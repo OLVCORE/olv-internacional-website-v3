@@ -1028,6 +1028,8 @@ async function processAllSources() {
                     console.log(`   ✅ ${feedData.items.length} itens encontrados no feed ${feed.name}`);
                     // Processar os 20 primeiros itens mais recentes de cada feed (aumentado para mais conteúdo)
                     const recentItems = feedData.items.slice(0, 20);
+                    let acceptedCount = 0;
+                    let rejectedCount = 0;
                     for (const item of recentItems) {
                         // FILTRO INTELIGENTE: Notícias relacionadas a Supply Chain Global e Comércio Exterior
                         // Estratégia: Aceitar se tiver palavra-chave primária OU se vier de fonte confiável E tiver palavra-chave secundária
@@ -1176,14 +1178,16 @@ async function processAllSources() {
                         
                         // Se não é relevante, REJEITAR
                         if (!isRelevant) {
+                            rejectedCount++;
                             console.log(`⏭️  Artigo rejeitado: "${item.title?.substring(0, 60)}..." (sem palavras-chave relevantes)`);
                             continue; // Pular este artigo
                         }
                         
-                        console.log(`✅ Artigo aceito: "${item.title?.substring(0, 60)}..." (${hasPrimaryKeyword ? 'primária' : 'secundária + fonte'})`);
+                        acceptedCount++;
+                        console.log(`✅ Artigo aceito: "${item.title?.substring(0, 60)}..." (${hasPrimaryKeyword ? 'primária' : isVeryTrustedBrazilian ? 'fonte confiável' : 'secundária + fonte'})`);
                         
-                        if (isRelevant) {
-                            const article = generateArticleFromData(item, 'rss');
+                        // Processar artigo (já verificamos que é relevante)
+                        const article = generateArticleFromData(item, 'rss');
                             
                             // Traduzir para português se necessário
                             if (article._needsTranslation) {
@@ -1343,10 +1347,20 @@ async function processAllSources() {
                         }
                     }
                 }
-            } catch (error) {
-                console.error(`❌ Erro ao processar feed ${feed.name}:`, error.message);
+                            } catch (error) {
+                                console.error(`❌ Erro ao processar feed ${feed.name}:`, error.message);
+                            }
+                } else {
+                    console.log(`   ⚠️ Feed ${feed.name} não retornou itens ou está vazio`);
+                }
+                
+                if (typeof acceptedCount !== 'undefined' && typeof rejectedCount !== 'undefined') {
+                    console.log(`   📊 Feed ${feed.name}: ${acceptedCount} aceitos, ${rejectedCount} rejeitados`);
+                }
+            } catch (feedError) {
+                console.error(`❌ Erro ao processar feed ${feed.name}:`, feedError.message);
+                console.error('Stack:', feedError.stack);
             }
-        }
     } catch (error) {
         console.error('❌ Erro ao processar RSS Feeds:', error.message);
     }
