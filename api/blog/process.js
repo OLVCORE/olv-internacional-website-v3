@@ -2,7 +2,18 @@
 // POST /api/blog/process
 
 const { processAndPublish } = require('../../blog-processor');
-const { initDatabase } = require('../../blog-db');
+let initDatabase = null;
+try {
+    const dbNeon = require('../../blog-db-neon');
+    initDatabase = dbNeon.initDatabase;
+} catch (error) {
+    try {
+        const db = require('../../blog-db');
+        initDatabase = db.initDatabase;
+    } catch (error2) {
+        console.warn('Banco de dados não disponível');
+    }
+}
 
 module.exports = async (req, res) => {
     // CORS headers

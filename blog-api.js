@@ -9,9 +9,15 @@ const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
 // Importar gerenciamento de banco de dados
 let db = null;
 try {
-    db = require('./blog-db');
+    // Tentar usar versão Neon primeiro (mais comum agora)
+    db = require('./blog-db-neon');
 } catch (error) {
-    console.warn('⚠️ blog-db.js não disponível. Usando apenas armazenamento em arquivo.');
+    try {
+        // Fallback para versão original
+        db = require('./blog-db');
+    } catch (error2) {
+        console.warn('⚠️ blog-db.js não disponível. Usando apenas armazenamento em arquivo.');
+    }
 }
 
 // Configuração de APIs
