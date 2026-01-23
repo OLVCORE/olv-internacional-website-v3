@@ -119,16 +119,53 @@ async function initDatabase() {
                 category VARCHAR(50) NOT NULL,
                 date_published TIMESTAMP NOT NULL,
                 date_modified TIMESTAMP NOT NULL,
+                source_published_date TIMESTAMP,
                 icon VARCHAR(100),
                 read_time INTEGER DEFAULT 5,
                 source VARCHAR(50),
                 data_source JSONB,
+                image TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `;
 
         await executeQuery(createTableQuery);
+
+        // Adicionar colunas se não existirem (para tabelas antigas)
+        const columnsToAdd = [
+            { name: 'image', type: 'TEXT' },
+            { name: 'source_published_date', type: 'TIMESTAMP' }
+        ];
+        
+        for (const col of columnsToAdd) {
+            try {
+                // Verificar se coluna existe
+                const checkQuery = `
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name = 'blog_posts' AND column_name = '${col.name}'
+                `;
+                const checkResult = await executeQuery(checkQuery);
+                const hasColumn = Array.isArray(checkResult) ? checkResult.length > 0 : (checkResult.rows?.length > 0);
+                
+                if (!hasColumn) {
+                    await executeQuery(`ALTER TABLE blog_posts ADD COLUMN ${col.name} ${col.type}`);
+                    console.log(`✅ Coluna ${col.name} adicionada com sucesso`);
+                } else {
+                    console.log(`✅ Coluna ${col.name} já existe`);
+                }
+            } catch (error) {
+                // Tentar adicionar mesmo assim (pode ser erro de sintaxe do check)
+                try {
+                    await executeQuery(`ALTER TABLE blog_posts ADD COLUMN ${col.name} ${col.type}`);
+                    console.log(`✅ Coluna ${col.name} adicionada (fallback)`);
+                } catch (e2) {
+                    // Coluna pode já existir, ignorar
+                    console.warn(`⚠️ Aviso ao adicionar coluna ${col.name}:`, e2.message);
+                }
+            }
+        }
 
         // Criar índices para melhor performance
         const indexes = [
@@ -162,12 +199,44 @@ async function saveArticleToDB(article) {
     }
 
     try {
-        // Garantir que colunas existem
+        // Garantir que colunas existem ANTES de salvar
         try {
-            await executeQuery(`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS image TEXT`);
-            await executeQuery(`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS source_published_date TIMESTAMP`);
+            // Verificar se coluna image existe
+            const checkImageQuery = `
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'blog_posts' AND column_name = 'image'
+            `;
+            const checkImageResult = await executeQuery(checkImageQuery);
+            const hasImageColumn = Array.isArray(checkImageResult) ? checkImageResult.length > 0 : (checkImageResult.rows?.length > 0);
+            
+            if (!hasImageColumn) {
+                await executeQuery(`ALTER TABLE blog_posts ADD COLUMN image TEXT`);
+                console.log('✅ Coluna image adicionada em saveArticleToDB');
+            }
+            
+            // Verificar se coluna source_published_date existe
+            const checkSourceDateQuery = `
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'blog_posts' AND column_name = 'source_published_date'
+            `;
+            const checkSourceDateResult = await executeQuery(checkSourceDateQuery);
+            const hasSourceDateColumn = Array.isArray(checkSourceDateResult) ? checkSourceDateResult.length > 0 : (checkSourceDateResult.rows?.length > 0);
+            
+            if (!hasSourceDateColumn) {
+                await executeQuery(`ALTER TABLE blog_posts ADD COLUMN source_published_date TIMESTAMP`);
+                console.log('✅ Coluna source_published_date adicionada em saveArticleToDB');
+            }
         } catch (e) {
-            // Ignorar se já existir
+            console.error('⚠️ Erro ao verificar/adicionar colunas em saveArticleToDB:', e.message);
+            // Tentar adicionar mesmo assim
+            try {
+                await executeQuery(`ALTER TABLE blog_posts ADD COLUMN image TEXT`);
+            } catch (e2) {}
+            try {
+                await executeQuery(`ALTER TABLE blog_posts ADD COLUMN source_published_date TIMESTAMP`);
+            } catch (e3) {}
         }
         const now = new Date().toISOString();
         // Garantir que dataSource seja um objeto válido antes de stringify
@@ -302,12 +371,44 @@ async function loadPostsFromDB(limit = 100) {
             // Neon: usar query direta com parâmetros
             // Filtrar data_source corrompido (HTML) na query
             // Verificar se coluna image existe antes de usar
-            // Tentar adicionar colunas se não existirem
+            // Garantir que colunas existem ANTES de fazer SELECT
             try {
-                await executeQuery(`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS image TEXT`);
-                await executeQuery(`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS source_published_date TIMESTAMP`);
+                // Verificar e adicionar coluna image
+                const checkImageQuery = `
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name = 'blog_posts' AND column_name = 'image'
+                `;
+                const checkImageResult = await executeQuery(checkImageQuery);
+                const hasImageColumn = Array.isArray(checkImageResult) ? checkImageResult.length > 0 : (checkImageResult.rows?.length > 0);
+                
+                if (!hasImageColumn) {
+                    await executeQuery(`ALTER TABLE blog_posts ADD COLUMN image TEXT`);
+                    console.log('✅ Coluna image adicionada em loadPostsFromDB');
+                }
+                
+                // Verificar e adicionar coluna source_published_date
+                const checkSourceDateQuery = `
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name = 'blog_posts' AND column_name = 'source_published_date'
+                `;
+                const checkSourceDateResult = await executeQuery(checkSourceDateQuery);
+                const hasSourceDateColumn = Array.isArray(checkSourceDateResult) ? checkSourceDateResult.length > 0 : (checkSourceDateResult.rows?.length > 0);
+                
+                if (!hasSourceDateColumn) {
+                    await executeQuery(`ALTER TABLE blog_posts ADD COLUMN source_published_date TIMESTAMP`);
+                    console.log('✅ Coluna source_published_date adicionada em loadPostsFromDB');
+                }
             } catch (e) {
-                // Ignorar se já existir ou erro
+                console.error('⚠️ Erro ao verificar/adicionar colunas:', e.message);
+                // Tentar adicionar mesmo assim
+                try {
+                    await executeQuery(`ALTER TABLE blog_posts ADD COLUMN image TEXT`);
+                } catch (e2) {}
+                try {
+                    await executeQuery(`ALTER TABLE blog_posts ADD COLUMN source_published_date TIMESTAMP`);
+                } catch (e3) {}
             }
             
             const query = `
@@ -327,16 +428,38 @@ async function loadPostsFromDB(limit = 100) {
             result = await sql(query);
         } else {
             // Vercel Postgres: usar template tag
-            // Tentar adicionar colunas se não existirem (Vercel Postgres)
+            // Garantir que colunas existem ANTES de fazer SELECT (Vercel Postgres)
             try {
-                await sql`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS image TEXT`;
+                // Verificar se coluna image existe
+                const checkImage = await sql`
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name = 'blog_posts' AND column_name = 'image'
+                `;
+                if (!checkImage || checkImage.length === 0) {
+                    await sql`ALTER TABLE blog_posts ADD COLUMN image TEXT`;
+                    console.log('✅ Coluna image adicionada em loadPostsFromDB (Vercel)');
+                }
+                
+                // Verificar se coluna source_published_date existe
+                const checkSourceDate = await sql`
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name = 'blog_posts' AND column_name = 'source_published_date'
+                `;
+                if (!checkSourceDate || checkSourceDate.length === 0) {
+                    await sql`ALTER TABLE blog_posts ADD COLUMN source_published_date TIMESTAMP`;
+                    console.log('✅ Coluna source_published_date adicionada em loadPostsFromDB (Vercel)');
+                }
             } catch (e) {
-                // Ignorar se já existir ou erro
-            }
-            try {
-                await sql`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS source_published_date TIMESTAMP`;
-            } catch (e) {
-                // Ignorar se já existir ou erro
+                console.error('⚠️ Erro ao verificar/adicionar colunas (Vercel):', e.message);
+                // Tentar adicionar mesmo assim
+                try {
+                    await sql`ALTER TABLE blog_posts ADD COLUMN image TEXT`;
+                } catch (e2) {}
+                try {
+                    await sql`ALTER TABLE blog_posts ADD COLUMN source_published_date TIMESTAMP`;
+                } catch (e3) {}
             }
             
             result = await sql`
@@ -408,12 +531,44 @@ async function loadPostFromDB(postId) {
     }
 
     try {
-        // Tentar adicionar colunas se não existirem
+        // Garantir que colunas existem ANTES de fazer SELECT
         try {
-            await executeQuery(`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS image TEXT`);
-            await executeQuery(`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS source_published_date TIMESTAMP`);
+            // Verificar se coluna image existe
+            const checkImageQuery = `
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'blog_posts' AND column_name = 'image'
+            `;
+            const checkImageResult = await executeQuery(checkImageQuery);
+            const hasImageColumn = Array.isArray(checkImageResult) ? checkImageResult.length > 0 : (checkImageResult.rows?.length > 0);
+            
+            if (!hasImageColumn) {
+                await executeQuery(`ALTER TABLE blog_posts ADD COLUMN image TEXT`);
+                console.log('✅ Coluna image adicionada em loadPostFromDB');
+            }
+            
+            // Verificar se coluna source_published_date existe
+            const checkSourceDateQuery = `
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'blog_posts' AND column_name = 'source_published_date'
+            `;
+            const checkSourceDateResult = await executeQuery(checkSourceDateQuery);
+            const hasSourceDateColumn = Array.isArray(checkSourceDateResult) ? checkSourceDateResult.length > 0 : (checkSourceDateResult.rows?.length > 0);
+            
+            if (!hasSourceDateColumn) {
+                await executeQuery(`ALTER TABLE blog_posts ADD COLUMN source_published_date TIMESTAMP`);
+                console.log('✅ Coluna source_published_date adicionada em loadPostFromDB');
+            }
         } catch (e) {
-            // Ignorar se já existir ou erro
+            console.error('⚠️ Erro ao verificar/adicionar colunas em loadPostFromDB:', e.message);
+            // Tentar adicionar mesmo assim
+            try {
+                await executeQuery(`ALTER TABLE blog_posts ADD COLUMN image TEXT`);
+            } catch (e2) {}
+            try {
+                await executeQuery(`ALTER TABLE blog_posts ADD COLUMN source_published_date TIMESTAMP`);
+            } catch (e3) {}
         }
         
         const query = `
