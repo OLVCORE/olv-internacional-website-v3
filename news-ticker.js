@@ -38,8 +38,42 @@ async function loadNewsTicker() {
             return;
         }
 
-        // Criar itens do ticker
-        const tickerItems = recentPosts.map(post => {
+        // Remover duplicatas por título (evitar mostrar a mesma notícia várias vezes)
+        const uniquePosts = [];
+        const seenTitles = new Set();
+        
+        for (const post of recentPosts) {
+            const titleKey = post.title.toLowerCase().trim();
+            if (!seenTitles.has(titleKey)) {
+                seenTitles.add(titleKey);
+                uniquePosts.push(post);
+            }
+        }
+
+        // Se houver menos de 5 notícias únicas, buscar mais posts (até 7 dias)
+        if (uniquePosts.length < 5) {
+            const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            const olderPosts = posts.filter(post => {
+                const postDate = new Date(post.datePublished);
+                return postDate >= last7Days && postDate < last48Hours;
+            });
+            
+            for (const post of olderPosts) {
+                const titleKey = post.title.toLowerCase().trim();
+                if (!seenTitles.has(titleKey) && uniquePosts.length < 10) {
+                    seenTitles.add(titleKey);
+                    uniquePosts.push(post);
+                }
+            }
+        }
+
+        if (uniquePosts.length === 0) {
+            tickerContent.innerHTML = '<span class="ticker-loading">Nenhuma notícia recente disponível</span>';
+            return;
+        }
+
+        // Criar itens do ticker apenas com posts únicos
+        const tickerItems = uniquePosts.map(post => {
             // Determinar nome da fonte
             let sourceName = 'OLV Blog';
             if (post.source === 'rss') {
@@ -62,13 +96,6 @@ async function loadNewsTicker() {
                 sourceName = 'World Bank';
             }
 
-            const categoryLabels = {
-                'analises': 'Análise',
-                'noticias': 'Notícia',
-                'guias': 'Guia',
-                'insights': 'Insight'
-            };
-
             return `
                 <a href="blog-post.html?id=${post.id}" class="news-ticker-item" title="${post.title}">
                     <span class="news-ticker-item-title">${post.title}</span>
@@ -77,9 +104,13 @@ async function loadNewsTicker() {
             `;
         });
 
-        // Duplicar itens para animação contínua
-        const duplicatedItems = [...tickerItems, ...tickerItems];
-        tickerContent.innerHTML = duplicatedItems.join('');
+        // Duplicar itens para animação contínua (apenas se houver itens suficientes)
+        // Se houver poucos itens, não duplicar para evitar repetição excessiva
+        const finalItems = tickerItems.length >= 5 
+            ? [...tickerItems, ...tickerItems] 
+            : tickerItems;
+        
+        tickerContent.innerHTML = finalItems.join('');
 
     } catch (error) {
         console.error('Erro ao carregar news ticker:', error);
