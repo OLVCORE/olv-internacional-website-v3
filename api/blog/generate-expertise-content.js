@@ -332,6 +332,16 @@ module.exports = async (req, res) => {
 
         // Gerar Guias
         for (const guia of GUIAS_CONTENT) {
+            // Gerar ícone inteligente baseado na categoria e título
+            let iconConfig = { icon: guia.icon, gradient: null };
+            try {
+                const { generateIconForArticle } = require('../../blog-image-fallback');
+                const tempArticle = { category: guia.category, title: guia.title, excerpt: guia.excerpt };
+                iconConfig = generateIconForArticle(tempArticle);
+            } catch (e) {
+                console.warn('⚠️ Erro ao gerar ícone, usando padrão:', e.message);
+            }
+            
             const article = {
                 id: `article-guia-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                 title: guia.title,
@@ -340,7 +350,9 @@ module.exports = async (req, res) => {
                 category: guia.category,
                 datePublished: new Date().toISOString(),
                 dateModified: new Date().toISOString(),
-                icon: guia.icon,
+                icon: iconConfig.icon,
+                iconGradient: iconConfig.gradient,
+                image: null, // Sem imagem - usar ícone no frontend
                 readTime: Math.ceil(guia.content.split(/\s+/).length / 200),
                 source: 'expertise',
                 dataSource: { type: 'expertise', basedOn: 'site-content' }
@@ -357,6 +369,16 @@ module.exports = async (req, res) => {
 
         // Gerar Insights
         for (const insight of INSIGHTS_CONTENT) {
+            // Gerar ícone inteligente baseado na categoria e título
+            let iconConfig = { icon: insight.icon, gradient: null };
+            try {
+                const { generateIconForArticle } = require('../../blog-image-fallback');
+                const tempArticle = { category: insight.category, title: insight.title, excerpt: insight.excerpt };
+                iconConfig = generateIconForArticle(tempArticle);
+            } catch (e) {
+                console.warn('⚠️ Erro ao gerar ícone, usando padrão:', e.message);
+            }
+            
             const article = {
                 id: `article-insight-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                 title: insight.title,
@@ -365,7 +387,9 @@ module.exports = async (req, res) => {
                 category: insight.category,
                 datePublished: new Date().toISOString(),
                 dateModified: new Date().toISOString(),
-                icon: insight.icon,
+                icon: iconConfig.icon,
+                iconGradient: iconConfig.gradient,
+                image: null, // Sem imagem - usar ícone no frontend
                 readTime: Math.ceil(insight.content.split(/\s+/).length / 200),
                 source: 'expertise',
                 dataSource: { type: 'expertise', basedOn: 'market-analysis' }
