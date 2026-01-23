@@ -162,6 +162,12 @@ async function saveArticleToDB(article) {
     }
 
     try {
+        // Garantir que coluna image existe
+        try {
+            await executeQuery(`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS image TEXT`);
+        } catch (e) {
+            // Ignorar se já existir
+        }
         const now = new Date().toISOString();
         // Garantir que dataSource seja um objeto válido antes de stringify
         let dataSourceObj = {};
