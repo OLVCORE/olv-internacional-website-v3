@@ -7,8 +7,11 @@ async function loadNewsTicker() {
 
     try {
         // Buscar posts das últimas 24 horas
-        const response = await fetch('/api/blog/posts?category=all');
-        const posts = await response.json();
+        const response = await fetch('/api/blog/posts?category=all&perPage=100');
+        const data = await response.json();
+        
+        // A API retorna {posts: [...], pagination: {...}}
+        const posts = Array.isArray(data) ? data : (data.posts || []);
 
         if (!posts || posts.length === 0) {
             tickerContent.innerHTML = '<span class="ticker-loading">Nenhuma notícia disponível no momento</span>';
