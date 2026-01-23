@@ -100,6 +100,19 @@ function createHeader(currentPage = '') {
                     </div>
                 </div>
             </div>
+            <div id="news-ticker-container" class="news-ticker-container">
+                <div class="news-ticker-label">
+                    <i class="fas fa-newspaper"></i>
+                    <span>Últimas Notícias</span>
+                </div>
+                <div class="news-ticker-wrapper">
+                    <div class="news-ticker" id="news-ticker">
+                        <div class="news-ticker-content" id="news-ticker-content">
+                            <span class="ticker-loading">Carregando notícias...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </header>
     `;
 }
@@ -210,6 +223,21 @@ function loadComponents(currentPage = '') {
         console.warn('⚠️ footer-placeholder não encontrado na página');
     }
     
+    // Carregar News Ticker
+    if (typeof loadNewsTicker === 'function') {
+        loadNewsTicker();
+    } else {
+        // Carregar script do ticker se não estiver disponível
+        const tickerScript = document.createElement('script');
+        tickerScript.src = 'news-ticker.js';
+        tickerScript.onload = () => {
+            if (typeof loadNewsTicker === 'function') {
+                loadNewsTicker();
+            }
+        };
+        document.head.appendChild(tickerScript);
+    }
+
     // Re-initialize theme toggle after header is loaded (otimizado)
     requestAnimationFrame(() => {
         if (typeof initThemeToggle === 'function') {

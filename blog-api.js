@@ -278,22 +278,32 @@ function generateComexStatContent(data) {
         <p>Análise baseada em dados oficiais do Ministério da Indústria, Comércio Exterior e Serviços (MDIC).</p>
         
         <h3>Principais Indicadores</h3>
-        <p>Os dados mostram as tendências de importação e exportação do Brasil, fornecendo insights valiosos para empresas que operam no comércio exterior.</p>
+        <p>Os dados mostram as tendências de importação e exportação do Brasil, fornecendo insights valiosos para empresas que operam no comércio exterior. A análise de dados oficiais permite identificar padrões de mercado, entender fluxos comerciais e tomar decisões estratégicas fundamentadas.</p>
+        
+        <p>O Brasil mantém uma posição relevante no cenário internacional de comércio, com destaque para produtos agrícolas, minerais e manufaturados. A compreensão desses fluxos é essencial para empresas que buscam expandir suas operações internacionais.</p>
         
         <blockquote>
-            <p>A análise de dados oficiais é fundamental para tomada de decisões estratégicas no comércio exterior.</p>
+            <p>A análise de dados oficiais é fundamental para tomada de decisões estratégicas no comércio exterior. Cada decisão deve ser sustentada por informações precisas e atualizadas.</p>
         </blockquote>
         
-        <h3>Implicações para o Mercado</h3>
-        <p>Essas informações ajudam empresas a:</p>
+        <h3>Análise de Tendências</h3>
+        <p>Os dados do ComexStat revelam padrões importantes sobre o comportamento do comércio exterior brasileiro. Essas informações são cruciais para:</p>
         <ul>
-            <li>Identificar oportunidades de mercado</li>
-            <li>Entender tendências setoriais</li>
-            <li>Planejar estratégias de importação e exportação</li>
-            <li>Antecipar mudanças regulatórias</li>
+            <li><strong>Identificar oportunidades de mercado:</strong> Compreender quais produtos e destinos apresentam maior potencial</li>
+            <li><strong>Entender tendências setoriais:</strong> Acompanhar a evolução de diferentes setores da economia</li>
+            <li><strong>Planejar estratégias de importação e exportação:</strong> Baseando decisões em dados reais e não em suposições</li>
+            <li><strong>Antecipar mudanças regulatórias:</strong> Identificar padrões que podem indicar mudanças futuras</li>
         </ul>
         
-        <p><strong>Fonte:</strong> Dados públicos do MDIC - ComexStat</p>
+        <h3>Implicações Estratégicas</h3>
+        <p>Para empresas que operam no comércio exterior, esses dados representam uma ferramenta poderosa de planejamento estratégico. A OLV Internacional utiliza essas informações para desenvolver análises personalizadas que ajudam nossos clientes a tomar decisões mais assertivas.</p>
+        
+        <p>A análise de dados históricos permite identificar padrões recorrentes, sazonalidades e tendências de longo prazo. Essas informações são fundamentais para a construção de estratégias de importação e exportação que minimizam riscos e maximizam oportunidades.</p>
+        
+        <div style="background: var(--bg-secondary); padding: 20px; border-radius: 8px; margin: 24px 0; border-left: 4px solid var(--accent-primary);">
+            <p style="margin: 0;"><strong>Fonte Oficial:</strong> Ministério da Indústria, Comércio Exterior e Serviços (MDIC) - ComexStat</p>
+            <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.8;">Dados públicos e oficiais. A OLV Internacional não produz ou modifica essas informações, apenas analisa e apresenta insights estratégicos baseados nos dados oficiais.</p>
+        </div>
     `;
 }
 
@@ -304,16 +314,32 @@ function generateUNComtradeContent(data) {
     }
 
     return `
-        <h2>Tendências Globais de Comércio</h2>
-        <p>Análise baseada em dados da UN Comtrade, cobrindo mais de 200 países.</p>
+        <h2>Tendências Globais de Comércio Internacional</h2>
+        <p>Análise baseada em dados da UN Comtrade, cobrindo mais de 200 países e bilhões de transações comerciais internacionais.</p>
         
         <h3>Panorama Internacional</h3>
-        <p>Os dados globais revelam padrões importantes no comércio internacional que impactam diretamente as estratégias de empresas brasileiras.</p>
+        <p>Os dados globais revelam padrões importantes no comércio internacional que impactam diretamente as estratégias de empresas brasileiras. A compreensão desses fluxos globais é essencial para empresas que buscam expandir suas operações além das fronteiras nacionais.</p>
         
-        <h3>Oportunidades Identificadas</h3>
-        <p>Com base na análise de dados internacionais, identificamos oportunidades estratégicas para empresas que buscam expandir suas operações globais.</p>
+        <p>O comércio internacional está em constante evolução, com novos players emergindo, rotas comerciais se reconfigurando e oportunidades surgindo em diferentes regiões do mundo. A análise desses dados permite identificar tendências antes que se tornem evidentes para o mercado em geral.</p>
         
-        <p><strong>Fonte:</strong> UN Comtrade - Dados públicos</p>
+        <h3>Análise de Fluxos Comerciais</h3>
+        <p>Os dados da UN Comtrade mostram como diferentes países se relacionam comercialmente, quais produtos são mais comercializados entre regiões e quais rotas comerciais são mais utilizadas. Essas informações são valiosas para:</p>
+        <ul>
+            <li><strong>Identificar novos mercados:</strong> Descobrir países e regiões com potencial para seus produtos</li>
+            <li><strong>Entender competidores globais:</strong> Analisar quem está exportando para onde e em que volumes</li>
+            <li><strong>Planejar estratégias de expansão:</strong> Baseando decisões em dados reais de mercado</li>
+            <li><strong>Antecipar mudanças de demanda:</strong> Identificar tendências antes que se tornem mainstream</li>
+        </ul>
+        
+        <h3>Oportunidades Estratégicas</h3>
+        <p>Com base na análise de dados internacionais, identificamos oportunidades estratégicas para empresas que buscam expandir suas operações globais. A OLV Internacional utiliza essas informações para desenvolver análises personalizadas que ajudam nossos clientes a identificar os melhores mercados para seus produtos e serviços.</p>
+        
+        <p>A análise comparativa entre diferentes países e regiões permite identificar padrões de comportamento comercial, preferências de mercado e oportunidades de negócio que podem não ser evidentes em análises superficiais.</p>
+        
+        <div style="background: var(--bg-secondary); padding: 20px; border-radius: 8px; margin: 24px 0; border-left: 4px solid var(--accent-primary);">
+            <p style="margin: 0;"><strong>Fonte Oficial:</strong> United Nations Comtrade Database (UN Comtrade)</p>
+            <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.8;">Dados públicos e oficiais das Nações Unidas. A OLV Internacional não produz ou modifica essas informações, apenas analisa e apresenta insights estratégicos baseados nos dados oficiais.</p>
+        </div>
     `;
 }
 
@@ -324,13 +350,36 @@ function generateWorldBankContent(data) {
     }
 
     return `
-        <h2>Indicadores Econômicos Globais</h2>
-        <p>Análise de indicadores econômicos relacionados ao comércio exterior, baseada em dados do Banco Mundial.</p>
+        <h2>Indicadores Econômicos Globais e Comércio Internacional</h2>
+        <p>Análise de indicadores econômicos globais relacionados ao comércio exterior, baseada em dados oficiais do Banco Mundial.</p>
         
-        <h3>Contexto Econômico</h3>
-        <p>Os indicadores econômicos globais fornecem contexto importante para decisões estratégicas em comércio exterior.</p>
+        <h3>Contexto Econômico Global</h3>
+        <p>Os indicadores econômicos globais fornecem contexto importante para decisões estratégicas em comércio exterior. A compreensão desses indicadores é fundamental para empresas que operam internacionalmente, pois eles refletem a saúde econômica de diferentes países e regiões, impactando diretamente as oportunidades e riscos comerciais.</p>
         
-        <p><strong>Fonte:</strong> World Bank Open Data</p>
+        <p>Indicadores como PIB, inflação, taxa de câmbio, balança comercial e índices de desenvolvimento econômico são essenciais para entender o ambiente de negócios em diferentes mercados. Essas informações ajudam empresas a avaliar a viabilidade de operações comerciais em diferentes países.</p>
+        
+        <h3>Análise de Indicadores Chave</h3>
+        <p>Os dados do Banco Mundial cobrem uma ampla gama de indicadores que são relevantes para o comércio exterior:</p>
+        <ul>
+            <li><strong>Crescimento Econômico:</strong> PIB e taxas de crescimento indicam o potencial de mercado</li>
+            <li><strong>Estabilidade Monetária:</strong> Inflação e taxas de câmbio afetam custos e preços</li>
+            <li><strong>Comércio Exterior:</strong> Balança comercial e volumes de importação/exportação</li>
+            <li><strong>Desenvolvimento:</strong> Índices de desenvolvimento humano e econômico</li>
+            <li><strong>Infraestrutura:</strong> Indicadores de logística e conectividade</li>
+        </ul>
+        
+        <h3>Impacto nos Negócios</h3>
+        <p>Esses indicadores ajudam empresas a entender o ambiente econômico global e tomar decisões mais informadas sobre onde investir, para onde exportar e de onde importar. A análise desses dados permite identificar mercados promissores, avaliar riscos econômicos e planejar estratégias de longo prazo.</p>
+        
+        <p>Para empresas brasileiras que buscam expandir suas operações internacionais, a compreensão desses indicadores é essencial. Eles fornecem uma base sólida para decisões estratégicas, ajudando a minimizar riscos e maximizar oportunidades em mercados internacionais.</p>
+        
+        <h3>Aplicação Prática</h3>
+        <p>A OLV Internacional utiliza esses indicadores para desenvolver análises personalizadas que ajudam nossos clientes a identificar os melhores mercados para suas operações, avaliar riscos econômicos e planejar estratégias de expansão internacional baseadas em dados concretos.</p>
+        
+        <div style="background: var(--bg-secondary); padding: 20px; border-radius: 8px; margin: 24px 0; border-left: 4px solid var(--accent-primary);">
+            <p style="margin: 0;"><strong>Fonte Oficial:</strong> World Bank Open Data (Banco Mundial)</p>
+            <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.8;">Dados públicos e oficiais do Banco Mundial. A OLV Internacional não produz ou modifica essas informações, apenas analisa e apresenta insights estratégicos baseados nos dados oficiais.</p>
+        </div>
     `;
 }
 
@@ -338,13 +387,43 @@ function generateWorldBankContent(data) {
 function generateRSSContent(data) {
     const content = data.content || data.contentSnippet || data.description || '';
     const pubDate = data.pubDate ? new Date(data.pubDate).toLocaleDateString('pt-BR') : '';
+    const source = data.creator || data['dc:creator'] || data.source || 'Agência de Notícias';
+    
+    // Extrair nome da fonte da URL se disponível
+    let sourceName = source;
+    if (data.link) {
+        try {
+            const url = new URL(data.link);
+            if (url.hostname.includes('valor.com.br')) sourceName = 'Valor Econômico';
+            else if (url.hostname.includes('exame.com')) sourceName = 'Exame';
+            else if (url.hostname.includes('ebc.com.br') || url.hostname.includes('agenciabrasil')) sourceName = 'Agência Brasil';
+            else if (url.hostname.includes('reuters.com')) sourceName = 'Reuters';
+        } catch (e) {
+            // Manter sourceName original
+        }
+    }
     
     return `
         <h2>${data.title || 'Notícia'}</h2>
-        ${pubDate ? `<p class="text-muted"><i class="fas fa-calendar"></i> Publicado em: ${pubDate}</p>` : ''}
-        <div>${content}</div>
-        ${data.link ? `<p><a href="${data.link}" target="_blank" rel="noopener noreferrer" class="btn-link">Leia a notícia completa na fonte original <i class="fas fa-external-link-alt"></i></a></p>` : ''}
-        <p><strong>Fonte:</strong> ${data.creator || data['dc:creator'] || 'Agência de Notícias'}</p>
+        ${pubDate ? `<p style="color: var(--text-tertiary); margin-bottom: 20px;"><i class="fas fa-calendar"></i> Publicado em: ${pubDate}</p>` : ''}
+        
+        <div style="line-height: 1.8; margin-bottom: 24px;">
+            ${content ? content : '<p>Conteúdo da notícia não disponível no momento.</p>'}
+        </div>
+        
+        ${data.link ? `
+            <div style="background: var(--bg-secondary); padding: 16px; border-radius: 8px; margin: 24px 0; border-left: 4px solid var(--accent-primary);">
+                <p style="margin: 0 0 12px 0;"><strong>Leia a notícia completa na fonte original:</strong></p>
+                <a href="${data.link}" target="_blank" rel="noopener noreferrer" style="color: var(--accent-primary); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+                    ${data.link} <i class="fas fa-external-link-alt"></i>
+                </a>
+            </div>
+        ` : ''}
+        
+        <div style="background: var(--bg-secondary); padding: 20px; border-radius: 8px; margin: 24px 0; border-left: 4px solid var(--accent-primary);">
+            <p style="margin: 0;"><strong>Fonte Oficial:</strong> ${sourceName}</p>
+            <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.8;">Esta notícia foi publicada originalmente pela fonte indicada. A OLV Internacional não produz ou modifica essas informações, apenas compartilha notícias relevantes sobre comércio exterior de fontes confiáveis.</p>
+        </div>
     `;
 }
 

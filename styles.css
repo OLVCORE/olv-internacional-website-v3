@@ -626,6 +626,116 @@ body {
 /* ============================================
    HEADER
    ============================================ */
+/* News Ticker (Barra de Notícias) */
+.news-ticker-container {
+    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+    color: white;
+    padding: 8px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+}
+
+.news-ticker-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 20px;
+    font-weight: 600;
+    font-size: 14px;
+    white-space: nowrap;
+    background: rgba(0, 0, 0, 0.2);
+    border-right: 2px solid rgba(255, 255, 255, 0.3);
+    flex-shrink: 0;
+}
+
+.news-ticker-label i {
+    font-size: 16px;
+}
+
+.news-ticker-wrapper {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.news-ticker {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.news-ticker-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 40px;
+    white-space: nowrap;
+    animation: ticker-scroll 60s linear infinite;
+    padding-left: 20px;
+}
+
+.news-ticker:hover .news-ticker-content {
+    animation-play-state: paused;
+}
+
+.news-ticker-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 16px;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: white;
+}
+
+.news-ticker-item:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.news-ticker-item::before {
+    content: '•';
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.news-ticker-item-title {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.news-ticker-item-source {
+    font-size: 12px;
+    opacity: 0.8;
+    font-style: italic;
+}
+
+.ticker-loading {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    padding: 4px 16px;
+}
+
+@keyframes ticker-scroll {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+/* Responsivo: esconder ticker em mobile */
+@media (max-width: 768px) {
+    .news-ticker-container {
+        display: none;
+    }
+}
+
 .header {
     position: sticky;
     top: 0;

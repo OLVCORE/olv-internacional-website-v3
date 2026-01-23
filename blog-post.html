@@ -162,6 +162,7 @@
 
     <script src="components.js" defer></script>
     <script src="script.js" defer></script>
+    <script src="news-ticker.js" defer></script>
     <script>
         async function loadBlogPost() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -241,6 +242,23 @@
                     <div class="blog-post-content">
                         ${post.content}
                     </div>
+                    ${post.source ? `
+                        <div style="background: var(--bg-secondary); padding: 20px; border-radius: 8px; margin: 32px 0; border-left: 4px solid var(--accent-primary);">
+                            <p style="margin: 0; font-weight: 600; color: var(--text-primary);">
+                                <i class="fas fa-info-circle"></i> Fonte da Informação:
+                            </p>
+                            <p style="margin: 8px 0 0 0; color: var(--text-secondary);">
+                                ${post.source === 'comexstat' ? 'Ministério da Indústria, Comércio Exterior e Serviços (MDIC) - ComexStat' : 
+                                  post.source === 'unComtrade' ? 'United Nations Comtrade Database (UN Comtrade)' :
+                                  post.source === 'worldBank' ? 'World Bank Open Data (Banco Mundial)' :
+                                  post.source === 'rss' ? (post.dataSource && post.dataSource.link ? `Fonte original: ${post.dataSource.link}` : 'Agência de Notícias') :
+                                  'OLV Internacional'}
+                            </p>
+                            <p style="margin: 12px 0 0 0; font-size: 14px; opacity: 0.8; color: var(--text-tertiary);">
+                                A OLV Internacional não produz ou modifica essas informações. Este conteúdo é baseado em dados públicos e oficiais das fontes indicadas.
+                            </p>
+                        </div>
+                    ` : ''}
                     <div class="blog-post-navigation">
                         <a href="blog.html" class="blog-post-nav-btn">
                             <i class="fas fa-arrow-left"></i>
