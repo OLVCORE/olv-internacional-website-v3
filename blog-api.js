@@ -140,9 +140,72 @@ async function fetchRSSFeed(feedUrl) {
     if (!API_CONFIG.rssFeeds.enabled) return null;
     
     try {
-        // Nota: Requer instalação de 'rss-parser' ou similar
-        // Por enquanto, retornar estrutura vazia
-        // Implementar quando rss-parser estiver instalado
+        // Tentar usar rss-parser se disponível
+        let Parser;
+        try {
+            Parser = require('rss-parser');
+        } catch (e) {
+            console.warn('⚠️ rss-parser não disponível, tentando fetch direto');
+            // Fallback: fazer fetch direto e tentar parse básico
+            const response = await axios.get(feedUrl, {
+                timeout: 10000,
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (compatible; OLV-Blog/1.0)'
+                }
+            });
+            
+            // Parse básico de XML (simplificado)
+            const xmlText = response.data;
+            const items = [];
+            
+            // Extrair itens do RSS (regex simples para casos básicos)
+            const itemRegex = /<item[^>]*>([\s\S]*?)<\/item>/gi;
+            let match;
+            let count = 0;
+            
+            while ((match = itemRegex.exec(xmlText)) !== null && count < 5) {
+                const itemXml = match[1];
+                const titleMatch = itemXml.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+                const descMatch = itemXml.match(/<description[^>]*>([\s\S]*?)<\/description>/i);
+                const linkMatch = itemXml.match(/<link[^>]*>([\s\S]*?)<\/link>/i);
+                const pubDateMatch = itemXml.match(/<pubDate[^>]*>([\s\S]*?)<\/pubDate>/i);
+                
+                if (titleMatch) {
+                    items.push({
+                        title: titleMatch[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim(),
+                        description: descMatch ? descMatch[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim() : '',
+                        contentSnippet: descMatch ? descMatch[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim() : '',
+                        link: linkMatch ? linkMatch[1].trim() : '',
+                        pubDate: pubDateMatch ? pubDateMatch[1].trim() : new Date().toISOString()
+                    });
+                    count++;
+                }
+            }
+            
+            return {
+                items: items,
+                title: 'RSS Feed',
+                link: feedUrl
+            };
+        }
+        
+        // Usar rss-parser se disponível
+        if (Parser) {
+            const parser = new Parser({
+                timeout: 10000,
+                customFields: {
+                    item: ['dc:creator', 'content:encoded']
+                }
+            });
+            
+            const feed = await parser.parseURL(feedUrl);
+            return {
+                items: feed.items || [],
+                title: feed.title || '',
+                link: feed.link || feedUrl
+            };
+        }
+        
         return {
             items: [],
             title: '',
