@@ -294,7 +294,7 @@ async function loadPostsFromDB(limit = 100) {
             const query = `
                 SELECT 
                     id, title, excerpt, content, category,
-                    date_published, date_modified, icon, read_time, source,
+                    date_published, date_modified, icon, image, read_time, source,
                     CASE 
                         WHEN data_source::text LIKE '<%' OR data_source::text LIKE '<!%' 
                         THEN '{}'::jsonb
@@ -310,7 +310,7 @@ async function loadPostsFromDB(limit = 100) {
             result = await sql`
                 SELECT 
                     id, title, excerpt, content, category,
-                    date_published, date_modified, icon, read_time, source, data_source
+                    date_published, date_modified, icon, image, read_time, source, data_source
                 FROM blog_posts
                 ORDER BY date_published DESC
                 LIMIT ${limit}
