@@ -334,21 +334,28 @@ function generateArticleFromData(data, type) {
     };
     
     // Extrair imagem se for RSS
-    if (type === 'rss' && data.image) {
-        article.image = data.image;
-    }
-    
-    // Se não tem imagem e é RSS, tentar gerar ícone inteligente
-    if (type === 'rss' && !article.image) {
-        try {
-            const { generateIconForArticle } = require('./blog-image-fallback');
-            const iconConfig = generateIconForArticle(article);
-            article.icon = iconConfig.icon;
-            // Armazenar gradient para uso no frontend se necessário
-            article.iconGradient = iconConfig.gradient;
-        } catch (e) {
-            // Se módulo não disponível, usar ícone padrão
-            console.warn('⚠️ Módulo de fallback de imagem não disponível');
+    if (type === 'rss') {
+        if (data.image) {
+            article.image = data.image;
+            console.log(`🖼️  Imagem encontrada no data.image: ${data.image.substring(0, 100)}`);
+        } else {
+            article.image = null;
+            console.warn(`⚠️  data.image é null/undefined para tipo RSS`);
+        }
+        
+        // Se não tem imagem e é RSS, tentar gerar ícone inteligente
+        if (!article.image) {
+            try {
+                const { generateIconForArticle } = require('./blog-image-fallback');
+                const iconConfig = generateIconForArticle(article);
+                article.icon = iconConfig.icon;
+                // Armazenar gradient para uso no frontend se necessário
+                article.iconGradient = iconConfig.gradient;
+                console.log(`🎨 Ícone de fallback gerado: ${article.icon}`);
+            } catch (e) {
+                // Se módulo não disponível, usar ícone padrão
+                console.warn('⚠️ Módulo de fallback de imagem não disponível:', e.message);
+            }
         }
     }
 
@@ -384,10 +391,12 @@ function generateArticleFromData(data, type) {
             // Imagem: priorizar data.image (já extraída), senão tentar extrair novamente
             if (data.image) {
                 article.image = data.image;
-                console.log(`🖼️  Imagem extraída para "${article.title}": ${data.image.substring(0, 80)}...`);
+                console.log(`🖼️  Imagem extraída para "${article.title}": ${data.image.substring(0, 100)}`);
             } else {
                 // Tentar extrair novamente se não foi extraída antes
                 console.warn(`⚠️  Nenhuma imagem encontrada para "${article.title}"`);
+                // Garantir que image seja null explicitamente
+                article.image = null;
             }
             break;
     }
@@ -844,9 +853,15 @@ async function processAllSources() {
                             }
                             
                             // Garantir que a imagem seja preservada
-                            if (item.image && !article.image) {
-                                article.image = item.image;
-                                console.log(`🖼️  Imagem preservada do item: ${item.image.substring(0, 80)}...`);
+                            if (item.image) {
+                                if (!article.image) {
+                                    article.image = item.image;
+                                    console.log(`🖼️  Imagem preservada do item RSS: ${item.image.substring(0, 100)}`);
+                                } else {
+                                    console.log(`🖼️  Imagem já existe no artigo: ${article.image.substring(0, 100)}`);
+                                }
+                            } else {
+                                console.warn(`⚠️  item.image é null/undefined para "${item.title}"`);
                             }
                             
                             // datePublished será a data da fonte (se disponível) ou hoje

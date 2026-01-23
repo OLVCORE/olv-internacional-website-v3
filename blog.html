@@ -275,6 +275,16 @@
                     return;
                 }
 
+                // Debug: verificar se posts têm imagens
+                console.log('📊 Posts carregados:', posts.length);
+                const postsWithImages = posts.filter(p => p.image).length;
+                console.log('🖼️  Posts com imagens:', postsWithImages);
+                if (postsWithImages > 0) {
+                    posts.filter(p => p.image).forEach(p => {
+                        console.log(`  - ${p.title}: ${p.image}`);
+                    });
+                }
+                
                 container.innerHTML = `
                     <div class="blog-grid">
                         ${posts.map(post => {
@@ -309,11 +319,20 @@
                                 sourceName = 'World Bank';
                             }
                             
+                            // Debug individual
+                            if (post.image) {
+                                console.log(`🖼️  Renderizando imagem para "${post.title}": ${post.image}`);
+                            } else {
+                                console.log(`⚠️  Sem imagem para "${post.title}"`);
+                            }
+                            
                             return `
                                 <div class="blog-card" onclick="window.location.href='blog-post.html?id=${post.id}'">
                                     <div class="blog-card-image">
                                         ${post.image ? `
-                                            <img src="${post.image}" alt="${post.title}" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\\'${post.icon || 'fas fa-chart-line'} icon-fallback\\'></i>';">
+                                            <img src="${post.image}" alt="${post.title}" 
+                                                 onerror="console.error('❌ Erro ao carregar imagem:', '${post.image}'); this.style.display='none'; this.parentElement.innerHTML='<i class=\\'${post.icon || 'fas fa-chart-line'} icon-fallback\\'></i>';"
+                                                 onload="console.log('✅ Imagem carregada:', '${post.image}');">
                                         ` : `
                                             <i class="${post.icon || 'fas fa-chart-line'} icon-fallback"></i>
                                         `}
