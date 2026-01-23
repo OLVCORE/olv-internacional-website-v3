@@ -1354,6 +1354,7 @@ async function processAllSources() {
                 console.error(`❌ Erro ao processar feed ${feed.name}:`, feedError.message);
                 console.error('Stack:', feedError.stack);
             }
+        }
     } catch (error) {
         console.error('❌ Erro ao processar RSS Feeds:', error.message);
     }
