@@ -535,9 +535,28 @@ function generateArticleFromData(data, type) {
             if (!article.icon) {
                 article.icon = 'fas fa-newspaper';
             }
-            article.title = data.title || 'Notícia de Comércio Exterior';
-            article.excerpt = data.description || data.contentSnippet || '';
+            
+            // Extrair texto original
+            const originalTitle = data.title || 'Notícia de Comércio Exterior';
+            const originalExcerpt = data.description || data.contentSnippet || '';
+            const originalContent = data.content || data.contentSnippet || data.description || '';
+            
+            // Detectar idioma e traduzir se necessário (assíncrono será feito depois)
+            // Por enquanto, armazenar original para tradução posterior
+            article.title = originalTitle;
+            article.excerpt = originalExcerpt;
             article.content = generateRSSContent(data);
+            article._needsTranslation = false; // Flag para indicar se precisa tradução
+            
+            // Detectar se está em inglês (verificação simples)
+            const isEnglish = detectLanguage(originalTitle + ' ' + originalExcerpt);
+            if (isEnglish) {
+                article._needsTranslation = true;
+                article._originalTitle = originalTitle;
+                article._originalExcerpt = originalExcerpt;
+                article._originalContent = originalContent;
+            }
+            
             // Imagem: priorizar data.image (já extraída), senão tentar extrair novamente
             if (data.image) {
                 article.image = data.image;
@@ -959,6 +978,71 @@ async function processAllSources() {
                         
                         if (isRelevant || isFromTrustedSource) {
                             const article = generateArticleFromData(item, 'rss');
+                            
+                            // Traduzir para português se necessário
+                            if (article._needsTranslation) {
+                                try {
+                                    console.log(`🌐 Traduzindo artigo de inglês para português: "${article._originalTitle.substring(0, 50)}..."`);
+                                    article.title = await translateToPortuguese(article._originalTitle);
+                                    article.excerpt = await translateToPortuguese(article._originalExcerpt);
+                                    
+                                    // Traduzir conteúdo HTML (extrair texto, traduzir, reconstruir HTML)
+                                    const originalContentHtml = article._originalContent;
+                                    // Extrair texto puro do HTML (remover tags mas manter estrutura)
+                                    let contentText = originalContentHtml
+                                        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+                                        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+                                        .replace(/<[^>]+>/g, ' ')
+                                        .replace(/\s+/g, ' ')
+                                        .trim();
+                                    
+                                    if (contentText.length > 0 && contentText.length < 5000) {
+                                        // Limitar tamanho para evitar problemas com API
+                                        const textToTranslate = contentText.substring(0, 4900);
+                                        const translatedContent = await translateToPortuguese(textToTranslate);
+                                        
+                                        // Reconstruir o HTML com a tradução
+                                        // Substituir título no HTML
+                                        article.content = article.content.replace(
+                                            /<h2>.*?<\/h2>/s,
+                                            `<h2>${article.title}</h2>`
+                                        );
+                                        
+                                        // Substituir o conteúdo principal (primeiro parágrafo)
+                                        article.content = article.content.replace(
+                                            /(<div[^>]*style="line-height: 1\.8[^"]*"[^>]*>)([\s\S]*?)(<\/div>)/,
+                                            `$1<p>${translatedContent}</p>$3`
+                                        );
+                                    } else if (contentText.length >= 5000) {
+                                        // Se muito longo, traduzir apenas o início
+                                        const shortText = contentText.substring(0, 4900);
+                                        const translatedShort = await translateToPortuguese(shortText);
+                                        article.content = article.content.replace(
+                                            /<h2>.*?<\/h2>/s,
+                                            `<h2>${article.title}</h2>`
+                                        );
+                                        article.content = article.content.replace(
+                                            /(<div[^>]*style="line-height: 1\.8[^"]*"[^>]*>)([\s\S]*?)(<\/div>)/,
+                                            `$1<p>${translatedShort}...</p>$3`
+                                        );
+                                    }
+                                    
+                                    console.log(`✅ Artigo traduzido: "${article.title.substring(0, 50)}..."`);
+                                    
+                                    // Limpar flags temporárias
+                                    delete article._needsTranslation;
+                                    delete article._originalTitle;
+                                    delete article._originalExcerpt;
+                                    delete article._originalContent;
+                                } catch (translateError) {
+                                    console.warn('⚠️ Erro ao traduzir artigo, mantendo original:', translateError.message);
+                                    // Limpar flags mesmo em caso de erro
+                                    delete article._needsTranslation;
+                                    delete article._originalTitle;
+                                    delete article._originalExcerpt;
+                                    delete article._originalContent;
+                                }
+                            }
                             
                             // Verificar se artigo já existe APENAS por URL completa (deduplicação por URL completa, não domínio)
                             // Não verificar por título para não perder conteúdo legítimo
