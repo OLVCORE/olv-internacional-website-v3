@@ -861,8 +861,8 @@ async function processAllSources() {
             try {
                 const feedData = await fetchRSSFeed(feed.url);
                 if (feedData && feedData.items && feedData.items.length > 0) {
-                    // Processar os 5 primeiros itens mais recentes de cada feed (aumentado de 2 para 5)
-                    const recentItems = feedData.items.slice(0, 5);
+                    // Processar os 15 primeiros itens mais recentes de cada feed (aumentado para mais conteúdo)
+                    const recentItems = feedData.items.slice(0, 15);
                     for (const item of recentItems) {
                         // Filtrar apenas notícias relevantes (com palavras-chave)
                         const keywords = ['comércio', 'exportação', 'importação', 'trade', 'economia', 'brasil', 'internacional', 'mercado', 'negócio', 'empresa', 'indústria'];

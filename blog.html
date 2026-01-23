@@ -87,6 +87,79 @@
             max-width: 700px;
             margin: 0 auto;
         }
+        /* Painel de Categorias */
+        .blog-categories-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .category-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        .category-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .category-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            border-color: var(--accent-primary);
+        }
+        .category-card:hover::before {
+            opacity: 1;
+        }
+        .category-card.active {
+            border-color: var(--accent-primary);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+        }
+        .category-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 24px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        .category-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .category-info h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 4px 0;
+        }
+        .category-count {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent-primary);
+            margin: 0;
+            line-height: 1;
+        }
         .blog-filters {
             display: flex;
             flex-wrap: wrap;
@@ -212,6 +285,26 @@
             color: var(--text-secondary);
         }
         @media (max-width: 768px) {
+            .blog-categories-panel {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            .category-card {
+                padding: 16px;
+                flex-direction: column;
+                text-align: center;
+            }
+            .category-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 20px;
+            }
+            .category-info h3 {
+                font-size: 14px;
+            }
+            .category-count {
+                font-size: 20px;
+            }
             .blog-grid {
                 grid-template-columns: 1fr;
             }
@@ -231,6 +324,55 @@
             <div class="blog-header">
                 <h1>Blog OLV Internacional</h1>
                 <p>Análises de mercado, guias práticos, notícias e insights sobre comércio exterior, importação, exportação e Supply Chain Global</p>
+            </div>
+
+            <!-- Painel de Categorias com Contadores -->
+            <div class="blog-categories-panel">
+                <div class="category-card" data-category="all" id="category-all">
+                    <div class="category-icon">
+                        <i class="fas fa-th-large"></i>
+                    </div>
+                    <div class="category-info">
+                        <h3>Todos</h3>
+                        <p class="category-count" id="count-all">0</p>
+                    </div>
+                </div>
+                <div class="category-card" data-category="analises" id="category-analises">
+                    <div class="category-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="category-info">
+                        <h3>Análises</h3>
+                        <p class="category-count" id="count-analises">0</p>
+                    </div>
+                </div>
+                <div class="category-card" data-category="noticias" id="category-noticias">
+                    <div class="category-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <i class="fas fa-newspaper"></i>
+                    </div>
+                    <div class="category-info">
+                        <h3>Notícias</h3>
+                        <p class="category-count" id="count-noticias">0</p>
+                    </div>
+                </div>
+                <div class="category-card" data-category="guias" id="category-guias">
+                    <div class="category-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="category-info">
+                        <h3>Guias</h3>
+                        <p class="category-count" id="count-guias">0</p>
+                    </div>
+                </div>
+                <div class="category-card" data-category="insights" id="category-insights">
+                    <div class="category-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <div class="category-info">
+                        <h3>Insights</h3>
+                        <p class="category-count" id="count-insights">0</p>
+                    </div>
+                </div>
             </div>
 
             <div class="blog-filters">
@@ -256,6 +398,31 @@
     <script src="script.js" defer></script>
     <script src="news-ticker.js" defer></script>
     <script>
+        // Carregar contadores de categorias
+        async function updateCategoryCounts() {
+            try {
+                const response = await fetch('/api/blog/posts?category=all');
+                const allPosts = await response.json();
+                
+                const counts = {
+                    all: allPosts.length,
+                    analises: allPosts.filter(p => p.category === 'analises').length,
+                    noticias: allPosts.filter(p => p.category === 'noticias').length,
+                    guias: allPosts.filter(p => p.category === 'guias').length,
+                    insights: allPosts.filter(p => p.category === 'insights').length
+                };
+                
+                // Atualizar contadores no painel
+                document.getElementById('count-all').textContent = counts.all;
+                document.getElementById('count-analises').textContent = counts.analises;
+                document.getElementById('count-noticias').textContent = counts.noticias;
+                document.getElementById('count-guias').textContent = counts.guias;
+                document.getElementById('count-insights').textContent = counts.insights;
+            } catch (error) {
+                console.error('Erro ao carregar contadores:', error);
+            }
+        }
+
         // Carregar artigos do blog
         async function loadBlogPosts(category = 'all') {
             const container = document.getElementById('blog-posts-container');
@@ -378,16 +545,57 @@
             }
         }
 
-        // Filtros de categoria
+        // Filtros de categoria e painel de categorias
         document.addEventListener('DOMContentLoaded', function() {
+            // Carregar contadores
+            updateCategoryCounts();
+            
+            // Carregar posts iniciais
             loadBlogPosts();
 
+            // Filtros de botão
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
                     const category = this.dataset.category;
                     loadBlogPosts(category);
+                    
+                    // Scroll suave para a seção de posts
+                    document.getElementById('blog-posts-container').scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                    });
+                });
+            });
+
+            // Painel de categorias (cards clicáveis)
+            document.querySelectorAll('.category-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const category = this.dataset.category;
+                    
+                    // Atualizar botões de filtro
+                    document.querySelectorAll('.filter-btn').forEach(b => {
+                        b.classList.remove('active');
+                        if (b.dataset.category === category) {
+                            b.classList.add('active');
+                        }
+                    });
+                    
+                    // Atualizar cards do painel
+                    document.querySelectorAll('.category-card').forEach(c => {
+                        c.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // Carregar posts da categoria
+                    loadBlogPosts(category);
+                    
+                    // Scroll suave para a seção de posts
+                    document.getElementById('blog-posts-container').scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                    });
                 });
             });
 
