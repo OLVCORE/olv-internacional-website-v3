@@ -124,13 +124,14 @@ module.exports = async (req, res) => {
             FROM blog_posts
         `;
         
-        const duplicates = await neon(findDuplicatesQuery);
+        const duplicates = await db.executeQuery(findDuplicatesQuery);
+        const duplicatesRows = Array.isArray(duplicates) ? duplicates : (duplicates?.rows || []);
         
         // Deletar duplicatas (manter apenas o primeiro de cada grupo)
         let duplicatesRemoved = 0;
         const idsToDelete = [];
         
-        for (const row of duplicates) {
+        for (const row of duplicatesRows) {
             if (row.rn > 1) {
                 idsToDelete.push(row.id);
             }
