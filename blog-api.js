@@ -803,7 +803,7 @@ async function saveArticle(article) {
     // Tentar salvar no banco primeiro (se disponível)
     if (db && db.hasPostgres) {
         try {
-            console.log(`💾 Tentando salvar artigo no banco: ${article.id}`);
+            console.log(`💾 Tentando salvar artigo no banco: ${article.id} - "${article.title.substring(0, 50)}..."`);
             const saved = await db.saveArticleToDB(article);
             if (saved) {
                 console.log(`✅ Artigo salvo no banco: ${article.id}`);
@@ -826,7 +826,7 @@ async function saveArticle(article) {
         console.warn(`   DATABASE_URL: ${process.env.DATABASE_URL ? '✅ Definido' : '❌ Não definido'}`);
     }
 
-    // Fallback: salvar em arquivo
+    // Fallback: salvar em arquivo (SEMPRE salvar, mesmo que banco falhe)
     await ensureBlogDataDir();
     
     try {
@@ -834,28 +834,46 @@ async function saveArticle(article) {
         try {
             const data = await fs.readFile(POSTS_FILE, 'utf8');
             posts = JSON.parse(data);
+            console.log(`📁 Carregados ${posts.length} posts do arquivo para adicionar novo`);
         } catch (error) {
             // Arquivo não existe, criar novo
             posts = [];
+            console.log('📁 Criando novo arquivo de posts');
         }
 
-        // Verificar se artigo já existe (por ID ou título)
-        const existingIndex = posts.findIndex(p => p.id === article.id || p.title === article.title);
+        // Verificar se artigo já existe (por ID ou URL se RSS)
+        let existingIndex = -1;
+        if (article.dataSource && article.dataSource.link) {
+            // Para RSS, verificar por URL
+            const url = article.dataSource.link.split('?')[0];
+            existingIndex = posts.findIndex(p => {
+                const pUrl = p.dataSource?.link?.split('?')[0] || '';
+                return pUrl === url;
+            });
+        } else {
+            // Para outros, verificar por ID ou título
+            existingIndex = posts.findIndex(p => p.id === article.id || p.title === article.title);
+        }
+        
         if (existingIndex >= 0) {
+            console.log(`🔄 Atualizando post existente no índice ${existingIndex}`);
             posts[existingIndex] = article;
         } else {
+            console.log(`➕ Adicionando novo post (total será ${posts.length + 1})`);
             posts.unshift(article); // Adicionar no início
         }
 
         // Manter apenas os últimos 500 artigos (aumentado para mais conteúdo)
         if (posts.length > 500) {
+            console.log(`✂️ Limitando a 500 posts (removendo ${posts.length - 500} mais antigos)`);
             posts = posts.slice(0, 500);
         }
 
         await fs.writeFile(POSTS_FILE, JSON.stringify(posts, null, 2), 'utf8');
+        console.log(`✅ Artigo salvo no arquivo: ${article.id} (total: ${posts.length} posts)`);
         return article;
     } catch (error) {
-        console.error('Erro ao salvar artigo:', error);
+        console.error('❌ Erro ao salvar artigo no arquivo:', error);
         throw error;
     }
 }
@@ -1076,16 +1094,22 @@ async function processAllSources() {
                             }
                             
                             try {
-                                await saveArticle(article);
-                                articles.push(article);
-                                
-                                const sourceDateStr = article.sourcePublishedDate ? new Date(article.sourcePublishedDate).toLocaleDateString('pt-BR') : 'Data não disponível';
-                                const imageStatus = article.image ? '✅ Com imagem' : '❌ Sem imagem';
-                                console.log(`✅ Artigo RSS gerado e salvo: ${article.title}`);
-                                console.log(`   📅 Data da fonte: ${sourceDateStr}`);
-                                console.log(`   🖼️  ${imageStatus}`);
+                                const saved = await saveArticle(article);
+                                if (saved) {
+                                    articles.push(article);
+                                    
+                                    const sourceDateStr = article.sourcePublishedDate ? new Date(article.sourcePublishedDate).toLocaleDateString('pt-BR') : 'Data não disponível';
+                                    const imageStatus = article.image ? '✅ Com imagem' : '❌ Sem imagem';
+                                    console.log(`✅ Artigo RSS gerado e salvo: ${article.title}`);
+                                    console.log(`   📅 Data da fonte: ${sourceDateStr}`);
+                                    console.log(`   🖼️  ${imageStatus}`);
+                                    console.log(`   💾 ID: ${article.id}`);
+                                } else {
+                                    console.warn(`⚠️ Artigo não foi salvo (saveArticle retornou null): ${article.title}`);
+                                }
                             } catch (saveError) {
                                 console.error(`❌ Erro ao salvar artigo "${article.title}":`, saveError.message);
+                                console.error('Stack:', saveError.stack);
                                 // Continuar processando outros artigos mesmo se um falhar
                             }
                         }
@@ -1107,6 +1131,24 @@ async function processAllSources() {
     console.log(`📊 Resumo:`);
     console.log(`   - Artigos processados: ${articles.length}`);
     console.log(`   - Artigos salvos no banco: ${articles.filter(a => a.id).length}`);
+    
+    // Verificar quantos posts existem no banco agora
+    try {
+        const allPosts = await loadPosts();
+        console.log(`📊 Total de posts no banco/arquivo após processamento: ${allPosts.length}`);
+        
+        // Contar por categoria
+        const byCategory = {
+            all: allPosts.length,
+            analises: allPosts.filter(p => p.category === 'analises').length,
+            noticias: allPosts.filter(p => p.category === 'noticias').length,
+            guias: allPosts.filter(p => p.category === 'guias').length,
+            insights: allPosts.filter(p => p.category === 'insights').length
+        };
+        console.log(`📊 Posts por categoria:`, byCategory);
+    } catch (e) {
+        console.warn('⚠️ Erro ao verificar total de posts:', e.message);
+    }
     
     return articles;
 }
