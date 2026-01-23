@@ -170,13 +170,29 @@ async function fetchRSSFeed(feedUrl) {
                 const linkMatch = itemXml.match(/<link[^>]*>([\s\S]*?)<\/link>/i);
                 const pubDateMatch = itemXml.match(/<pubDate[^>]*>([\s\S]*?)<\/pubDate>/i);
                 
+                // Extrair imagem: tentar <enclosure>, <media:content>, ou primeira <img> no description
+                let imageUrl = null;
+                const enclosureMatch = itemXml.match(/<enclosure[^>]*url=["']([^"']+)["'][^>]*>/i);
+                const mediaMatch = itemXml.match(/<media:content[^>]*url=["']([^"']+)["'][^>]*>/i);
+                if (enclosureMatch) {
+                    imageUrl = enclosureMatch[1];
+                } else if (mediaMatch) {
+                    imageUrl = mediaMatch[1];
+                } else if (descMatch) {
+                    const imgMatch = descMatch[1].match(/<img[^>]*src=["']([^"']+)["'][^>]*>/i);
+                    if (imgMatch) {
+                        imageUrl = imgMatch[1];
+                    }
+                }
+                
                 if (titleMatch) {
                     items.push({
                         title: titleMatch[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim(),
                         description: descMatch ? descMatch[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim() : '',
                         contentSnippet: descMatch ? descMatch[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim() : '',
                         link: linkMatch ? linkMatch[1].trim() : '',
-                        pubDate: pubDateMatch ? pubDateMatch[1].trim() : new Date().toISOString()
+                        pubDate: pubDateMatch ? pubDateMatch[1].trim() : new Date().toISOString(),
+                        image: imageUrl
                     });
                     count++;
                 }
@@ -194,13 +210,39 @@ async function fetchRSSFeed(feedUrl) {
             const parser = new Parser({
                 timeout: 10000,
                 customFields: {
-                    item: ['dc:creator', 'content:encoded']
+                    item: ['dc:creator', 'content:encoded', 'media:content', 'enclosure']
                 }
             });
             
             const feed = await parser.parseURL(feedUrl);
+            // Processar itens para extrair imagens
+            const items = (feed.items || []).map(item => {
+                // Tentar extrair imagem de diferentes campos
+                let imageUrl = null;
+                if (item.enclosure && item.enclosure.url && item.enclosure.type && item.enclosure.type.startsWith('image/')) {
+                    imageUrl = item.enclosure.url;
+                } else if (item['media:content'] && item['media:content'].url) {
+                    imageUrl = item['media:content'].url;
+                } else if (item.content && item.content.includes('<img')) {
+                    const imgMatch = item.content.match(/<img[^>]*src=["']([^"']+)["'][^>]*>/i);
+                    if (imgMatch) {
+                        imageUrl = imgMatch[1];
+                    }
+                } else if (item.contentSnippet && item.contentSnippet.includes('<img')) {
+                    const imgMatch = item.contentSnippet.match(/<img[^>]*src=["']([^"']+)["'][^>]*>/i);
+                    if (imgMatch) {
+                        imageUrl = imgMatch[1];
+                    }
+                }
+                
+                return {
+                    ...item,
+                    image: imageUrl
+                };
+            });
+            
             return {
-                items: feed.items || [],
+                items: items,
                 title: feed.title || '',
                 link: feed.link || feedUrl
             };
@@ -261,6 +303,14 @@ function generateArticleFromData(data, type) {
             article.title = data.title || 'Notícia de Comércio Exterior';
             article.excerpt = data.description || data.contentSnippet || '';
             article.content = generateRSSContent(data);
+            // Adicionar imagem se disponível
+            if (data.image) {
+                article.image = data.image;
+            } else if (data.enclosure && data.enclosure.url) {
+                article.image = data.enclosure.url;
+            } else if (data['media:content'] && data['media:content'].url) {
+                article.image = data['media:content'].url;
+            }
             break;
     }
 

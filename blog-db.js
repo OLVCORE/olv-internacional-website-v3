@@ -1,35 +1,77 @@
-// blog-db.js - Gerenciamento de banco de dados Vercel Postgres
-const { sql } = require('@vercel/postgres');
+// blog-db.js - Gerenciamento de banco de dados Vercel Postgres / Neon
+let sql = null;
+let hasPostgres = false;
 
-// Detectar se está rodando no Vercel com Postgres configurado
-const hasPostgres = process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL_NON_POOLING;
+// Tentar usar @vercel/postgres primeiro (Vercel Postgres tradicional)
+try {
+    const vercelPostgres = require('@vercel/postgres');
+    sql = vercelPostgres.sql;
+    hasPostgres = process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL_NON_POOLING;
+} catch (error) {
+    // Se @vercel/postgres não estiver disponível, tentar Neon
+    try {
+        const { neon } = require('@neondatabase/serverless');
+        sql = neon(process.env.DATABASE_URL || process.env.POSTGRES_URL);
+        hasPostgres = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+    } catch (neonError) {
+        console.warn('⚠️ Nenhum driver de banco disponível. Usando armazenamento em arquivo.');
+    }
+}
+
+// Detectar se está rodando no Vercel com Postgres/Neon configurado
+if (!hasPostgres) {
+    hasPostgres = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL_NON_POOLING;
+}
 
 // Inicializar tabela de posts
 async function initDatabase() {
-    if (!hasPostgres) {
-        console.log('⚠️ Vercel Postgres não configurado. Usando armazenamento em arquivo.');
+    if (!hasPostgres || !sql) {
+        console.log('⚠️ Vercel Postgres/Neon não configurado. Usando armazenamento em arquivo.');
         return false;
     }
 
     try {
         // Criar tabela se não existir
-        await sql`
-            CREATE TABLE IF NOT EXISTS blog_posts (
-                id VARCHAR(255) PRIMARY KEY,
-                title TEXT NOT NULL,
-                excerpt TEXT,
-                content TEXT NOT NULL,
-                category VARCHAR(50) NOT NULL,
-                date_published TIMESTAMP NOT NULL,
-                date_modified TIMESTAMP NOT NULL,
-                icon VARCHAR(100),
-                read_time INTEGER DEFAULT 5,
-                source VARCHAR(50),
-                data_source JSONB,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `;
+        // Usar template string para compatibilidade com Neon e Vercel Postgres
+        if (typeof sql === 'function') {
+            // Neon usa função direta
+            await sql(`
+                CREATE TABLE IF NOT EXISTS blog_posts (
+                    id VARCHAR(255) PRIMARY KEY,
+                    title TEXT NOT NULL,
+                    excerpt TEXT,
+                    content TEXT NOT NULL,
+                    category VARCHAR(50) NOT NULL,
+                    date_published TIMESTAMP NOT NULL,
+                    date_modified TIMESTAMP NOT NULL,
+                    icon VARCHAR(100),
+                    read_time INTEGER DEFAULT 5,
+                    source VARCHAR(50),
+                    data_source JSONB,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            `);
+        } else {
+            // Vercel Postgres usa tagged template
+            await sql`
+                CREATE TABLE IF NOT EXISTS blog_posts (
+                    id VARCHAR(255) PRIMARY KEY,
+                    title TEXT NOT NULL,
+                    excerpt TEXT,
+                    content TEXT NOT NULL,
+                    category VARCHAR(50) NOT NULL,
+                    date_published TIMESTAMP NOT NULL,
+                    date_modified TIMESTAMP NOT NULL,
+                    icon VARCHAR(100),
+                    read_time INTEGER DEFAULT 5,
+                    source VARCHAR(50),
+                    data_source JSONB,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            `;
+        }
 
         // Criar índices para melhor performance
         await sql`

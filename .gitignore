@@ -7,3 +7,5 @@ reports/
 .env.*
 blog-data/
 !.env.example
+.vercel
+.env*.local
