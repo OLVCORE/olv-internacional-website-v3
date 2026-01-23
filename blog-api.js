@@ -1305,14 +1305,14 @@ async function processAllSources() {
                                 }
                             }
                             
-                            // Garantir que a imagem seja preservada
-                            if (item.image) {
-                                if (!article.image) {
-                                    article.image = item.image;
-                                    console.log(`🖼️  Imagem preservada do item RSS: ${item.image.substring(0, 100)}`);
-                                } else {
-                                    console.log(`🖼️  Imagem já existe no artigo: ${article.image.substring(0, 100)}`);
-                                }
+                        // Garantir que a imagem seja preservada
+                        if (item.image) {
+                            if (!article.image) {
+                                article.image = item.image;
+                                console.log(`🖼️  Imagem preservada do item RSS: ${item.image.substring(0, 100)}`);
+                            } else {
+                                console.log(`🖼️  Imagem já existe no artigo: ${article.image.substring(0, 100)}`);
+                            }
                         } else {
                             console.warn(`⚠️  item.image é null/undefined para "${item.title}"`);
                         }
@@ -1326,26 +1326,25 @@ async function processAllSources() {
                         
                         // Salvar artigo (não duplicado)
                         try {
-                                const saved = await saveArticle(article);
-                                if (saved) {
-                                    articles.push(article);
-                                    
-                                    const sourceDateStr = article.sourcePublishedDate ? new Date(article.sourcePublishedDate).toLocaleDateString('pt-BR') : 'Data não disponível';
-                                    const imageStatus = article.image ? '✅ Com imagem' : '❌ Sem imagem';
-                                    console.log(`✅ Artigo RSS salvo: "${article.title.substring(0, 60)}..." (Total: ${articles.length})`);
-                                    console.log(`   📅 Data da fonte: ${sourceDateStr} | ${imageStatus}`);
-                                    console.log(`   🖼️  ${imageStatus}`);
-                                    console.log(`   💾 ID: ${article.id}`);
-                                } else {
-                                    console.warn(`⚠️ Artigo não foi salvo (saveArticle retornou null): ${article.title}`);
-                                }
-                            } catch (saveError) {
+                            const saved = await saveArticle(article);
+                            if (saved) {
+                                articles.push(article);
+                                
+                                const sourceDateStr = article.sourcePublishedDate ? new Date(article.sourcePublishedDate).toLocaleDateString('pt-BR') : 'Data não disponível';
+                                const imageStatus = article.image ? '✅ Com imagem' : '❌ Sem imagem';
+                                console.log(`✅ Artigo RSS salvo: "${article.title.substring(0, 60)}..." (Total: ${articles.length})`);
+                                console.log(`   📅 Data da fonte: ${sourceDateStr} | ${imageStatus}`);
+                                console.log(`   🖼️  ${imageStatus}`);
+                                console.log(`   💾 ID: ${article.id}`);
+                            } else {
+                                console.warn(`⚠️ Artigo não foi salvo (saveArticle retornou null): ${article.title}`);
+                            }
+                        } catch (saveError) {
                             console.error(`❌ Erro ao salvar artigo "${article.title}":`, saveError.message);
                             console.error('Stack:', saveError.stack);
                             // Continuar processando outros artigos mesmo se um falhar
                         }
                     }
-                }
                 } else {
                     console.log(`   ⚠️ Feed ${feed.name} não retornou itens ou está vazio`);
                 }
