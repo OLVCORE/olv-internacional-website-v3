@@ -1245,30 +1245,6 @@ async function processAllSources() {
                                                       allText.includes('sanction') ||
                                                       allText.includes('sanção');
                         
-                        // Para fontes internacionais confiáveis (Bloomberg, Reuters), ser mais permissivo também
-                        const isVeryTrustedInternational = linkLower.includes('bloomberg.com') ||
-                                                          linkLower.includes('reuters.com') ||
-                                                          linkLower.includes('wto.org') ||
-                                                          linkLower.includes('iccwbo.org');
-                        
-                        // Verificar se menciona tópicos específicos mencionados pelo usuário
-                        const mentionsSpecificTopics = allText.includes('mercosul') ||
-                                                      allText.includes('mercosur') ||
-                                                      allText.includes('european union') ||
-                                                      allText.includes('união europeia') ||
-                                                      allText.includes('venezuela') ||
-                                                      allText.includes('russia') ||
-                                                      allText.includes('rússia') ||
-                                                      allText.includes('china') ||
-                                                      allText.includes('tariff') ||
-                                                      allText.includes('tarifa') ||
-                                                      allText.includes('barrier') ||
-                                                      allText.includes('barreira') ||
-                                                      allText.includes('restriction') ||
-                                                      allText.includes('restrição') ||
-                                                      allText.includes('sanction') ||
-                                                      allText.includes('sanção');
-                        
                         // ACEITAR se:
                         // 1. Tem palavra-chave primária - SEMPRE ACEITAR
                         // 2. OU tem palavra-chave secundária E vem de fonte confiável - ACEITAR
