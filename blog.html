@@ -506,11 +506,14 @@
         // Carregar contadores de categorias
         async function updateCategoryCounts() {
             try {
+                console.log('🔄 Carregando contadores de categorias...');
                 const response = await fetch('/api/blog/posts?category=all&page=1&perPage=1000');
                 const data = await response.json();
                 
                 // Verificar se é formato antigo (array) ou novo (objeto)
                 const allPosts = Array.isArray(data) ? data : (data.posts || []);
+                
+                console.log('📊 Total de posts carregados para contadores:', allPosts.length);
                 
                 const counts = {
                     all: allPosts.length,
@@ -520,6 +523,8 @@
                     insights: allPosts.filter(p => p.category === 'insights').length
                 };
                 
+                console.log('📊 Contadores calculados:', counts);
+                
                 // Atualizar contadores no painel
                 const countAllEl = document.getElementById('count-all');
                 const countAnalisesEl = document.getElementById('count-analises');
@@ -527,13 +532,45 @@
                 const countGuiasEl = document.getElementById('count-guias');
                 const countInsightsEl = document.getElementById('count-insights');
                 
-                if (countAllEl) countAllEl.textContent = counts.all;
-                if (countAnalisesEl) countAnalisesEl.textContent = counts.analises;
-                if (countNoticiasEl) countNoticiasEl.textContent = counts.noticias;
-                if (countGuiasEl) countGuiasEl.textContent = counts.guias;
-                if (countInsightsEl) countInsightsEl.textContent = counts.insights;
+                if (countAllEl) {
+                    countAllEl.textContent = counts.all;
+                    console.log('✅ count-all atualizado:', counts.all);
+                } else {
+                    console.warn('⚠️ Elemento count-all não encontrado');
+                }
+                
+                if (countAnalisesEl) {
+                    countAnalisesEl.textContent = counts.analises;
+                    console.log('✅ count-analises atualizado:', counts.analises);
+                }
+                
+                if (countNoticiasEl) {
+                    countNoticiasEl.textContent = counts.noticias;
+                    console.log('✅ count-noticias atualizado:', counts.noticias);
+                }
+                
+                if (countGuiasEl) {
+                    countGuiasEl.textContent = counts.guias;
+                    console.log('✅ count-guias atualizado:', counts.guias);
+                }
+                
+                if (countInsightsEl) {
+                    countInsightsEl.textContent = counts.insights;
+                    console.log('✅ count-insights atualizado:', counts.insights);
+                }
+                
+                // Verificar se painel está visível
+                const panel = document.querySelector('.blog-categories-panel');
+                if (panel) {
+                    console.log('✅ Painel de categorias encontrado no DOM');
+                    const style = window.getComputedStyle(panel);
+                    console.log('📐 Display do painel:', style.display);
+                    console.log('📐 Visibility do painel:', style.visibility);
+                } else {
+                    console.error('❌ Painel de categorias NÃO encontrado no DOM!');
+                }
             } catch (error) {
-                console.error('Erro ao carregar contadores:', error);
+                console.error('❌ Erro ao carregar contadores:', error);
             }
         }
 
