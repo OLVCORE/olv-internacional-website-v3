@@ -841,14 +841,6 @@
             loadBlogPosts(currentCategory, 1, currentPerPage); // Resetar para página 1
         }
 
-        // Filtros de botão
-        document.addEventListener('DOMContentLoaded', function() {
-            // Carregar contadores
-            updateCategoryCounts();
-            
-            // Carregar posts iniciais
-            loadBlogPosts('all', 1, 12);
-
             // Filtros de botão
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
