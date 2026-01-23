@@ -1354,9 +1354,9 @@ async function processAllSources() {
                 console.error(`❌ Erro ao processar feed ${feed.name}:`, feedError.message);
                 console.error('Stack:', feedError.stack);
             }
-        } catch (error) {
-            console.error('❌ Erro ao processar RSS Feeds:', error.message);
-        }
+    } catch (error) {
+        console.error('❌ Erro ao processar RSS Feeds:', error.message);
+    }
 
     // 5. Criar artigos de exemplo para outras categorias (se não houver)
     // Isso garante que todas as categorias tenham conteúdo
