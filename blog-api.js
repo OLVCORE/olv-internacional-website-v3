@@ -1028,6 +1028,10 @@ async function processAllSources() {
             try {
                 console.log(`📡 Processando feed: ${feed.name} (${feed.url})`);
                 const feedData = await fetchRSSFeed(feed.url);
+                if (!feedData) {
+                    console.warn(`   ⚠️ Feed ${feed.name} não retornou dados (feedData é null)`);
+                    continue; // Pular este feed e continuar com os próximos
+                }
                 let acceptedCount = 0;
                 let rejectedCount = 0;
                 if (feedData && feedData.items && feedData.items.length > 0) {
