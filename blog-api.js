@@ -991,19 +991,18 @@ async function processAllSources() {
     // 4. RSS Feeds
     try {
         // Fontes RSS ESPECÍFICAS para Supply Chain Global e Comércio Exterior
+        // Priorizando fontes brasileiras que realmente têm feeds RSS funcionais
         const RSS_FEEDS = [
-            // Fontes Brasileiras Específicas de Comércio Exterior
+            // Fontes Brasileiras Específicas de Comércio Exterior (verificadas)
             { url: 'https://www.valor.com.br/rss', name: 'Valor Econômico', category: 'noticias' },
-            { url: 'https://www.mdic.gov.br/index.php/comercio-exterior/noticias', name: 'MDIC - Comércio Exterior', category: 'noticias' },
-            { url: 'https://www.comexstat.mdic.gov.br/noticias', name: 'ComexStat - Notícias', category: 'noticias' },
-            { url: 'https://www.receita.fazenda.gov.br/noticias', name: 'Receita Federal', category: 'noticias' },
-            { url: 'https://www.portos.gov.br/noticias', name: 'Portos e Navios', category: 'noticias' },
-            { url: 'https://www.anac.gov.br/noticias', name: 'ANAC - Aviação', category: 'noticias' },
-            { url: 'https://www.antaq.gov.br/noticias', name: 'ANTAQ - Transporte Aquaviário', category: 'noticias' },
+            { url: 'https://www.valor.com.br/rss/economia', name: 'Valor - Economia', category: 'noticias' },
+            { url: 'https://www.valor.com.br/rss/empresas', name: 'Valor - Empresas', category: 'noticias' },
+            { url: 'https://www.valor.com.br/rss/agronegocios', name: 'Valor - Agronegócios', category: 'noticias' },
             
             // Fontes de Agronegócio e Commodities (muito relevantes para comércio exterior)
             { url: 'https://www.noticiasagricolas.com.br/rss', name: 'Notícias Agrícolas', category: 'noticias' },
             { url: 'https://www.agrolink.com.br/rss', name: 'Agrolink', category: 'noticias' },
+            { url: 'https://www.cepea.org.br/br/rss-cepea.aspx', name: 'CEPEA - Agronegócio', category: 'noticias' },
             
             // Fontes Internacionais Específicas
             { url: 'https://www.reuters.com/rssFeed/worldNews', name: 'Reuters World News', category: 'noticias' },
@@ -1018,11 +1017,7 @@ async function processAllSources() {
             
             // Fontes de Comércio Exterior
             { url: 'https://www.wto.org/english/news_e/rss_e/rss_e.xml', name: 'WTO News', category: 'noticias' },
-            { url: 'https://www.bcb.gov.br/rss/noticias/moedaestabilidadefin.xml', name: 'Banco Central do Brasil', category: 'noticias' },
-            
-            // Fontes de Transporte e Portos
-            { url: 'https://www.portosermarinas.com.br/rss', name: 'Portos e Marinas', category: 'noticias' },
-            { url: 'https://www.transportabrasil.com.br/rss', name: 'Transporta Brasil', category: 'noticias' }
+            { url: 'https://www.bcb.gov.br/rss/noticias/moedaestabilidadefin.xml', name: 'Banco Central do Brasil', category: 'noticias' }
         ];
 
         for (const feed of RSS_FEEDS) {
@@ -1153,13 +1148,31 @@ async function processAllSources() {
                                                allText.includes('commodit') ||
                                                allText.includes('oil') ||
                                                allText.includes('crude') ||
-                                               allText.includes('petroleum');
+                                               allText.includes('petroleum') ||
+                                               allText.includes('ethanol') ||
+                                               allText.includes('etanol') ||
+                                               allText.includes('soy') ||
+                                               allText.includes('soja') ||
+                                               allText.includes('corn') ||
+                                               allText.includes('milho') ||
+                                               allText.includes('sugar') ||
+                                               allText.includes('açúcar') ||
+                                               allText.includes('coffee') ||
+                                               allText.includes('café');
+                        
+                        // Para fontes brasileiras confiáveis, ser MUITO mais permissivo
+                        // Aceitar quase tudo de Valor, MDIC, etc (são fontes especializadas)
+                        const isVeryTrustedBrazilian = linkLower.includes('valor.com.br') || 
+                                                      linkLower.includes('mdic.gov.br') ||
+                                                      linkLower.includes('comexstat');
                         
                         const isRelevant = hasPrimaryKeyword || 
                                           (hasSecondaryKeyword && isFromTrustedSource) ||
                                           (hasSecondaryKeyword && (allText.includes('brazil') || allText.includes('brasil') || allText.includes('trade'))) ||
                                           (isBrazilianSource && hasTradeRelated) ||
-                                          (isBrazilianSource && hasSecondaryKeyword);
+                                          (isBrazilianSource && hasSecondaryKeyword) ||
+                                          (isVeryTrustedBrazilian && (hasTradeRelated || hasSecondaryKeyword || allText.includes('economia') || allText.includes('economy'))) ||
+                                          (isVeryTrustedBrazilian); // Aceitar TUDO de fontes muito confiáveis brasileiras
                         
                         // Se não é relevante, REJEITAR
                         if (!isRelevant) {
