@@ -356,7 +356,7 @@ async function saveArticleToDB(article) {
 }
 
 // Carregar todos os posts do banco
-async function loadPostsFromDB(limit = 100) {
+async function loadPostsFromDB(limit = 500) {
     if (!hasPostgres || !sql) {
         console.log('⚠️ Banco não disponível para loadPostsFromDB');
         return null;

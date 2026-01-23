@@ -809,7 +809,7 @@ async function saveArticle(article) {
                 console.log(`✅ Artigo salvo no banco: ${article.id}`);
                 // Limpar posts antigos periodicamente (apenas a cada 10 artigos para performance)
                 if (Math.random() < 0.1) {
-                    await db.cleanupOldPosts(100);
+                    await db.cleanupOldPosts(500); // Aumentado para manter mais posts
                 }
                 return saved;
             } else {
@@ -844,9 +844,9 @@ async function saveArticle(article) {
             posts.unshift(article); // Adicionar no início
         }
 
-        // Manter apenas os últimos 100 artigos
-        if (posts.length > 100) {
-            posts = posts.slice(0, 100);
+        // Manter apenas os últimos 500 artigos (aumentado para mais conteúdo)
+        if (posts.length > 500) {
+            posts = posts.slice(0, 500);
         }
 
         await fs.writeFile(POSTS_FILE, JSON.stringify(posts, null, 2), 'utf8');
@@ -863,7 +863,7 @@ async function loadPosts() {
     if (db && db.hasPostgres) {
         try {
             console.log('🔄 Tentando carregar posts do banco...');
-            const posts = await db.loadPostsFromDB(100);
+            const posts = await db.loadPostsFromDB(500);
             if (posts !== null && Array.isArray(posts)) {
                 console.log(`✅ Carregados ${posts.length} posts do banco`);
                 return posts;
@@ -992,22 +992,54 @@ async function processAllSources() {
                     // Processar os 15 primeiros itens mais recentes de cada feed (aumentado para mais conteúdo)
                     const recentItems = feedData.items.slice(0, 15);
                     for (const item of recentItems) {
-                        // Filtrar apenas notícias relevantes (com palavras-chave)
-                        const keywords = ['comércio', 'exportação', 'importação', 'trade', 'economia', 'brasil', 'internacional', 'mercado', 'negócio', 'empresa', 'indústria'];
+                        // Filtrar apenas notícias relevantes (filtro mais permissivo para capturar mais conteúdo)
+                        const keywords = ['comércio', 'exportação', 'importação', 'trade', 'economia', 'brasil', 'internacional', 'mercado', 'negócio', 'empresa', 'indústria', 'negócios', 'business', 'commercial', 'export', 'import', 'supply', 'chain', 'logística', 'logistics', 'aduana', 'customs', 'frete', 'shipping', 'cargo', 'mercado', 'market', 'financeiro', 'financial', 'petróleo', 'oil', 'commodities', 'commodity', 'dólar', 'dollar', 'câmbio', 'exchange', 'taxa', 'rate', 'juros', 'interest', 'inflação', 'inflation', 'PIB', 'GDP', 'crescimento', 'growth'];
                         const titleLower = (item.title || '').toLowerCase();
                         const descLower = (item.description || item.contentSnippet || '').toLowerCase();
+                        const contentLower = (item.content || '').toLowerCase();
+                        
+                        // Verificar em título, descrição E conteúdo (mais permissivo)
                         const isRelevant = keywords.some(keyword => 
-                            titleLower.includes(keyword) || descLower.includes(keyword)
+                            titleLower.includes(keyword) || descLower.includes(keyword) || contentLower.includes(keyword)
                         );
 
-                        if (isRelevant) {
+                        // Se não for relevante, ainda assim processar se vier de fontes confiáveis (Bloomberg, Valor, etc)
+                        const trustedSources = ['bloomberg.com', 'valor.com.br', 'exame.com', 'reuters.com'];
+                        const isFromTrustedSource = item.link && trustedSources.some(source => item.link.includes(source));
+                        
+                        if (isRelevant || isFromTrustedSource) {
                             const article = generateArticleFromData(item, 'rss');
                             
-                            // Verificar se artigo já existe (deduplicação)
-                            const exists = await articleExists(article);
+                            // Verificar se artigo já existe APENAS por URL exata (deduplicação mínima)
+                            // Não verificar por título para não perder conteúdo legítimo
+                            let exists = false;
+                            if (article.dataSource && article.dataSource.link) {
+                                try {
+                                    // Verificar apenas se URL já existe (mais preciso)
+                                    if (db && db.hasPostgres) {
+                                        const url = article.dataSource.link.split('?')[0];
+                                        const checkQuery = `SELECT id FROM blog_posts WHERE data_source::text LIKE '%"link":"${url.replace(/'/g, "''")}"%' LIMIT 1`;
+                                        const result = await db.executeQuery(checkQuery);
+                                        exists = result && (Array.isArray(result) ? result.length > 0 : (result.rows?.length > 0));
+                                    } else {
+                                        // Fallback: verificar em memória
+                                        const allPosts = await loadPosts();
+                                        const url = article.dataSource.link.split('?')[0];
+                                        exists = allPosts.some(p => {
+                                            const pLink = p.dataSource?.link?.split('?')[0] || '';
+                                            return pLink === url;
+                                        });
+                                    }
+                                } catch (e) {
+                                    // Se erro na verificação, continuar e salvar (não bloquear)
+                                    console.warn('⚠️ Erro ao verificar duplicata, salvando mesmo assim:', e.message);
+                                    exists = false;
+                                }
+                            }
+                            
                             if (exists) {
-                                console.log(`⏭️  Artigo duplicado ignorado: "${article.title}"`);
-                                continue; // Pular este artigo
+                                console.log(`⏭️  Artigo duplicado ignorado (mesma URL): "${article.title}"`);
+                                continue; // Pular apenas se URL for exatamente igual
                             }
                             
                             // Garantir que a data da fonte seja preservada
@@ -1040,14 +1072,19 @@ async function processAllSources() {
                                 article.datePublished = article.sourcePublishedDate || new Date().toISOString();
                             }
                             
-                            await saveArticle(article);
-                            articles.push(article);
-                            
-                            const sourceDateStr = article.sourcePublishedDate ? new Date(article.sourcePublishedDate).toLocaleDateString('pt-BR') : 'Data não disponível';
-                            const imageStatus = article.image ? '✅ Com imagem' : '❌ Sem imagem';
-                            console.log(`✅ Artigo RSS gerado: ${article.title}`);
-                            console.log(`   📅 Data da fonte: ${sourceDateStr}`);
-                            console.log(`   🖼️  ${imageStatus}`);
+                            try {
+                                await saveArticle(article);
+                                articles.push(article);
+                                
+                                const sourceDateStr = article.sourcePublishedDate ? new Date(article.sourcePublishedDate).toLocaleDateString('pt-BR') : 'Data não disponível';
+                                const imageStatus = article.image ? '✅ Com imagem' : '❌ Sem imagem';
+                                console.log(`✅ Artigo RSS gerado e salvo: ${article.title}`);
+                                console.log(`   📅 Data da fonte: ${sourceDateStr}`);
+                                console.log(`   🖼️  ${imageStatus}`);
+                            } catch (saveError) {
+                                console.error(`❌ Erro ao salvar artigo "${article.title}":`, saveError.message);
+                                // Continuar processando outros artigos mesmo se um falhar
+                            }
                         }
                     }
                 }
@@ -1061,28 +1098,13 @@ async function processAllSources() {
 
     // 5. Criar artigos de exemplo para outras categorias (se não houver)
     // Isso garante que todas as categorias tenham conteúdo
-    try {
-        const existingPosts = await loadPosts();
-        const categories = ['analises', 'guias', 'noticias', 'insights'];
-        
-        for (const cat of categories) {
-            const categoryPosts = existingPosts.filter(p => p.category === cat);
-            // Se categoria tem menos de 2 posts, criar artigo de exemplo
-            if (categoryPosts.length < 2) {
-                const exampleArticle = generateExampleArticle(cat);
-                // Atualizar data para hoje para aparecer no ticker
-                exampleArticle.datePublished = new Date().toISOString();
-                exampleArticle.dateModified = new Date().toISOString();
-                await saveArticle(exampleArticle);
-                articles.push(exampleArticle);
-                console.log(`✅ Artigo de exemplo criado para categoria: ${cat}`);
-            }
-        }
-    } catch (error) {
-        console.warn('⚠️ Erro ao criar artigos de exemplo:', error.message);
-    }
+    // REMOVIDO: Não criar artigos de exemplo automaticamente - apenas conteúdo real
 
-    console.log(`✅ Processamento concluído. ${articles.length} artigos gerados.`);
+    console.log(`✅ Processamento concluído. ${articles.length} artigos gerados e salvos.`);
+    console.log(`📊 Resumo:`);
+    console.log(`   - Artigos processados: ${articles.length}`);
+    console.log(`   - Artigos salvos no banco: ${articles.filter(a => a.id).length}`);
+    
     return articles;
 }
 

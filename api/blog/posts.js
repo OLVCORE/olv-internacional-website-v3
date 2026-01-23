@@ -122,19 +122,28 @@ module.exports = async (req, res) => {
                 continue; // Duplicata exata, pular
             }
             
-            // Verificar similaridade com posts já adicionados
+            // Verificar similaridade APENAS para duplicatas muito óbvias (95%+)
+            // Reduzido threshold para evitar remover posts legítimos
             let isDuplicate = false;
             for (const existing of uniquePosts) {
-                const existingTitle = normalizeTitle(existing.title);
-                
-                // Se títulos são muito similares (>85%), considerar duplicata
-                if (titleSimilarity(post.title, existing.title) > 0.85) {
-                    // Se mesmo source ou ambos RSS, definitivamente duplicata
-                    if (post.source === existing.source || 
-                        (post.source === 'rss' && existing.source === 'rss')) {
+                // Apenas verificar se títulos são quase idênticos (95%+) E mesma URL
+                if (post.source === 'rss' && existing.source === 'rss' && 
+                    post.dataSource && existing.dataSource && 
+                    post.dataSource.link && existing.dataSource.link) {
+                    // Se mesma URL, definitivamente duplicata
+                    const url1 = post.dataSource.link.split('?')[0];
+                    const url2 = existing.dataSource.link.split('?')[0];
+                    if (url1 === url2) {
                         isDuplicate = true;
                         break;
                     }
+                }
+                
+                // Para outros casos, apenas se título normalizado for idêntico E mesmo source
+                const existingTitle = normalizeTitle(existing.title);
+                if (normalizedTitle === existingTitle && post.source === existing.source) {
+                    isDuplicate = true;
+                    break;
                 }
             }
             
