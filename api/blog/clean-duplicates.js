@@ -58,30 +58,59 @@ module.exports = async (req, res) => {
                 .trim();
         };
         
-        // 1. Remover posts de teste
-        // Palavras-chave para identificar artigos de exemplo/fake
+        // 1. Remover posts de teste/exemplo/fake
+        console.log('🧹 Removendo posts de teste/exemplo/fake...');
+        
+        // Palavras-chave para identificar artigos fake
         const testKeywords = [
             'teste', 'test', 
             'exemplo', 'example', 
             'conteúdo noticias', 'conteudo noticias',
             'artigo de exemplo',
-            'article-example',
             'Conteúdo noticias',
-            'Artigo de exemplo',
-            'manual', // source: 'manual' indica artigo fake
-            'OLV Blog' // fonte fake
+            'Artigo de exemplo'
         ];
+        
         let testRemoved = 0;
         
+        // Remover por keywords
         for (const keyword of testKeywords) {
             const deleteTestQuery = `
                 DELETE FROM blog_posts
-                WHERE LOWER(title) LIKE '%${keyword}%'
-                   OR LOWER(excerpt) LIKE '%${keyword}%'
+                WHERE LOWER(title) LIKE '%${keyword.toLowerCase()}%'
+                   OR LOWER(excerpt) LIKE '%${keyword.toLowerCase()}%'
+                   OR LOWER(id) LIKE '%${keyword.toLowerCase()}%'
             `;
             const result = await neon(deleteTestQuery);
             testRemoved += result.rowCount || 0;
         }
+        
+        // Remover artigos com source='manual' (artigos fake)
+        const deleteManualQuery = `
+            DELETE FROM blog_posts
+            WHERE source = 'manual'
+        `;
+        const manualResult = await neon(deleteManualQuery);
+        testRemoved += manualResult.rowCount || 0;
+        
+        // Remover artigos com ID contendo 'article-example'
+        const deleteExampleIdQuery = `
+            DELETE FROM blog_posts
+            WHERE id LIKE '%article-example%'
+        `;
+        const exampleIdResult = await neon(deleteExampleIdQuery);
+        testRemoved += exampleIdResult.rowCount || 0;
+        
+        // Remover artigos com fonte 'OLV Blog' (fake)
+        const deleteOLVBlogQuery = `
+            DELETE FROM blog_posts
+            WHERE data_source::text LIKE '%"OLV Blog"%'
+               OR data_source::text LIKE '%OLV Blog%'
+        `;
+        const olvBlogResult = await neon(deleteOLVBlogQuery);
+        testRemoved += olvBlogResult.rowCount || 0;
+        
+        console.log(`✅ Removidos ${testRemoved} posts de teste/exemplo/fake`);
         
         // 2. Remover duplicatas (manter o mais recente)
         // Agrupar por título normalizado + source
