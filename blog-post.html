@@ -11,6 +11,7 @@
     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Artigo do Blog OLV Internacional">
     <title>Carregando artigo...</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -180,7 +181,16 @@
 
                 // Atualizar meta tags
                 document.title = `${post.title} | Blog OLV Internacional`;
-                document.querySelector('meta[name="description"]').setAttribute('content', post.excerpt);
+                const metaDesc = document.querySelector('meta[name="description"]');
+                if (metaDesc) {
+                    metaDesc.setAttribute('content', post.excerpt || 'Artigo do Blog OLV Internacional');
+                } else {
+                    // Criar meta tag se não existir
+                    const meta = document.createElement('meta');
+                    meta.name = 'description';
+                    meta.content = post.excerpt || 'Artigo do Blog OLV Internacional';
+                    document.head.appendChild(meta);
+                }
 
                 // Article Schema
                 const articleSchema = {

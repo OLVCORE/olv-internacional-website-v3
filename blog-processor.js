@@ -1,5 +1,15 @@
 // blog-processor.js - Processamento e enriquecimento de dados para artigos
 const { processAllSources } = require('./blog-api');
+let db = null;
+try {
+    db = require('./blog-db-neon');
+} catch (error) {
+    try {
+        db = require('./blog-db');
+    } catch (error2) {
+        console.warn('Banco de dados não disponível');
+    }
+}
 
 // Configuração de processamento
 const PROCESSING_CONFIG = {
@@ -66,6 +76,17 @@ async function processAndPublish() {
         const enrichedArticles = articles.map(article => {
             return enrichArticle(article, article.dataSource);
         });
+        
+        // Limpar posts antigos (manter apenas últimos 100)
+        if (db && db.hasPostgres) {
+            try {
+                await db.cleanupOldPosts(100);
+                // Deletar posts com mais de 90 dias (exceto artigos manuais/importantes)
+                await db.cleanupOldPostsByDate(90);
+            } catch (cleanupError) {
+                console.warn('⚠️ Erro ao limpar posts antigos:', cleanupError.message);
+            }
+        }
         
         console.log(`✅ ${enrichedArticles.length} artigos processados e enriquecidos`);
         return enrichedArticles;

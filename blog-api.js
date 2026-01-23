@@ -273,12 +273,93 @@ function generateWorldBankContent(data) {
 
 // Gerar conteúdo HTML para artigo de RSS
 function generateRSSContent(data) {
+    const content = data.content || data.contentSnippet || data.description || '';
+    const pubDate = data.pubDate ? new Date(data.pubDate).toLocaleDateString('pt-BR') : '';
+    
     return `
         <h2>${data.title || 'Notícia'}</h2>
-        <p>${data.content || data.contentSnippet || data.description || ''}</p>
-        ${data.link ? `<p><a href="${data.link}" target="_blank" rel="noopener">Leia a notícia completa</a></p>` : ''}
-        <p><strong>Fonte:</strong> ${data.creator || 'Agência de Notícias'}</p>
+        ${pubDate ? `<p class="text-muted"><i class="fas fa-calendar"></i> Publicado em: ${pubDate}</p>` : ''}
+        <div>${content}</div>
+        ${data.link ? `<p><a href="${data.link}" target="_blank" rel="noopener noreferrer" class="btn-link">Leia a notícia completa na fonte original <i class="fas fa-external-link-alt"></i></a></p>` : ''}
+        <p><strong>Fonte:</strong> ${data.creator || data['dc:creator'] || 'Agência de Notícias'}</p>
     `;
+}
+
+// Gerar artigo de exemplo para categorias vazias
+function generateExampleArticle(category) {
+    const now = new Date();
+    const articleId = `article-example-${category}-${Date.now()}`;
+    
+    const examples = {
+        guias: {
+            title: 'Guia Completo: Como Importar Produtos para o Brasil',
+            excerpt: 'Passo a passo detalhado sobre o processo de importação, documentação necessária e melhores práticas para empresas que desejam importar produtos.',
+            content: `
+                <h2>Introdução</h2>
+                <p>Importar produtos para o Brasil requer conhecimento específico sobre legislação, documentação e processos aduaneiros. Este guia prático apresenta as etapas essenciais.</p>
+                
+                <h3>1. Planejamento e Pesquisa</h3>
+                <p>Antes de iniciar uma importação, é fundamental realizar uma pesquisa de mercado, verificar a viabilidade comercial e entender os custos envolvidos.</p>
+                
+                <h3>2. Documentação Necessária</h3>
+                <ul>
+                    <li>Registro no RADAR (Registro e Rastreamento da Atuação dos Importadores)</li>
+                    <li>Licenças e autorizações específicas do produto</li>
+                    <li>Documentos comerciais (invoice, packing list, etc.)</li>
+                </ul>
+                
+                <h3>3. Processo Aduaneiro</h3>
+                <p>O processo aduaneiro envolve despacho, fiscalização e liberação da mercadoria. A OLV Internacional oferece consultoria especializada para otimizar este processo.</p>
+                
+                <h3>Conclusão</h3>
+                <p>Uma importação bem planejada reduz custos, evita multas e acelera a liberação. Conte com especialistas para garantir o sucesso da sua operação.</p>
+            `,
+            icon: 'fas fa-book'
+        },
+        insights: {
+            title: 'Insights Estratégicos: O Futuro do Comércio Exterior Brasileiro',
+            excerpt: 'Análise sobre tendências, oportunidades e desafios do comércio exterior brasileiro nos próximos anos, baseada em dados e experiência de mercado.',
+            content: `
+                <h2>Panorama Atual</h2>
+                <p>O comércio exterior brasileiro está em constante evolução, com novas oportunidades surgindo em diferentes setores e mercados.</p>
+                
+                <h3>Tendências Identificadas</h3>
+                <ul>
+                    <li><strong>Digitalização:</strong> Processos cada vez mais automatizados e digitais</li>
+                    <li><strong>Sustentabilidade:</strong> Demanda crescente por produtos e processos sustentáveis</li>
+                    <li><strong>Diversificação:</strong> Expansão para novos mercados além dos tradicionais</li>
+                </ul>
+                
+                <h3>Oportunidades Estratégicas</h3>
+                <p>Empresas que investem em inteligência de mercado, análise de dados e planejamento estratégico têm maior probabilidade de sucesso nas operações internacionais.</p>
+                
+                <h3>Recomendações</h3>
+                <p>A OLV Internacional oferece consultoria estratégica para empresas que desejam expandir suas operações internacionais com segurança e eficiência.</p>
+            `,
+            icon: 'fas fa-lightbulb'
+        }
+    };
+
+    const example = examples[category] || {
+        title: `Conteúdo ${category}`,
+        excerpt: 'Artigo de exemplo',
+        content: '<p>Este é um artigo de exemplo.</p>',
+        icon: 'fas fa-file-alt'
+    };
+
+    return {
+        id: articleId,
+        title: example.title,
+        excerpt: example.excerpt,
+        content: example.content,
+        category: category,
+        datePublished: now.toISOString(),
+        dateModified: now.toISOString(),
+        icon: example.icon,
+        readTime: Math.ceil(example.content.split(/\s+/).length / 200),
+        source: 'manual',
+        dataSource: {}
+    };
 }
 
 // Salvar artigo
@@ -440,8 +521,65 @@ async function processAllSources() {
         console.error('❌ Erro ao processar World Bank:', error.message);
     }
 
-    // 4. RSS Feeds (implementar quando rss-parser estiver instalado)
-    // Por enquanto, pular
+    // 4. RSS Feeds
+    try {
+        const RSS_FEEDS = [
+            { url: 'https://www.valor.com.br/rss', name: 'Valor Econômico' },
+            { url: 'https://exame.com/feed/', name: 'Exame' },
+            { url: 'https://agenciabrasil.ebc.com.br/rss', name: 'Agência Brasil' },
+            { url: 'https://www.reuters.com/rssFeed/worldNews', name: 'Reuters' }
+        ];
+
+        for (const feed of RSS_FEEDS) {
+            try {
+                const feedData = await fetchRSSFeed(feed.url);
+                if (feedData && feedData.items && feedData.items.length > 0) {
+                    // Processar apenas os 2 primeiros itens mais recentes de cada feed
+                    const recentItems = feedData.items.slice(0, 2);
+                    for (const item of recentItems) {
+                        // Filtrar apenas notícias relevantes (com palavras-chave)
+                        const keywords = ['comércio', 'exportação', 'importação', 'trade', 'economia', 'brasil', 'internacional'];
+                        const titleLower = (item.title || '').toLowerCase();
+                        const descLower = (item.description || item.contentSnippet || '').toLowerCase();
+                        const isRelevant = keywords.some(keyword => 
+                            titleLower.includes(keyword) || descLower.includes(keyword)
+                        );
+
+                        if (isRelevant) {
+                            const article = generateArticleFromData(item, 'rss');
+                            await saveArticle(article);
+                            articles.push(article);
+                            console.log(`✅ Artigo RSS gerado: ${article.title}`);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error(`❌ Erro ao processar feed ${feed.name}:`, error.message);
+            }
+        }
+    } catch (error) {
+        console.error('❌ Erro ao processar RSS Feeds:', error.message);
+    }
+
+    // 5. Criar artigos de exemplo para outras categorias (se não houver)
+    // Isso garante que todas as categorias tenham conteúdo
+    try {
+        const existingPosts = await loadPosts();
+        const categories = ['analises', 'guias', 'noticias', 'insights'];
+        
+        for (const cat of categories) {
+            const hasCategoryPosts = existingPosts.some(p => p.category === cat);
+            if (!hasCategoryPosts && articles.length < 10) {
+                // Criar artigo de exemplo para categoria vazia
+                const exampleArticle = generateExampleArticle(cat);
+                await saveArticle(exampleArticle);
+                articles.push(exampleArticle);
+                console.log(`✅ Artigo de exemplo criado para categoria: ${cat}`);
+            }
+        }
+    } catch (error) {
+        console.warn('⚠️ Erro ao criar artigos de exemplo:', error.message);
+    }
 
     console.log(`✅ Processamento concluído. ${articles.length} artigos gerados.`);
     return articles;
@@ -453,6 +591,7 @@ module.exports = {
     fetchWorldBankData,
     fetchRSSFeed,
     generateArticleFromData,
+    generateExampleArticle,
     saveArticle,
     loadPosts,
     loadPost,

@@ -433,19 +433,65 @@ async function cleanupOldPosts(keepCount = 100) {
     }
 
     try {
-        const query = `
-            DELETE FROM blog_posts
-            WHERE id NOT IN (
-                SELECT id FROM blog_posts
-                ORDER BY date_published DESC
-                LIMIT $1
-            )
-        `;
-
-        await executeQuery(query, [keepCount]);
+        const isNeon = typeof sql === 'function' && !sql.unsafe;
+        
+        if (isNeon) {
+            // Neon: usar query direta
+            const query = `
+                DELETE FROM blog_posts
+                WHERE id NOT IN (
+                    SELECT id FROM blog_posts
+                    ORDER BY date_published DESC
+                    LIMIT ${keepCount}
+                )
+            `;
+            await sql(query);
+        } else {
+            // Vercel Postgres: usar template tag
+            await sql`
+                DELETE FROM blog_posts
+                WHERE id NOT IN (
+                    SELECT id FROM blog_posts
+                    ORDER BY date_published DESC
+                    LIMIT ${keepCount}
+                )
+            `;
+        }
+        
         console.log(`✅ Limpeza de posts antigos concluída. Mantidos ${keepCount} posts.`);
     } catch (error) {
         console.error('❌ Erro ao limpar posts antigos:', error);
+    }
+}
+
+// Deletar posts muito antigos (mais de X dias)
+async function cleanupOldPostsByDate(daysOld = 90) {
+    if (!hasPostgres || !sql) {
+        return;
+    }
+
+    try {
+        const isNeon = typeof sql === 'function' && !sql.unsafe;
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - daysOld);
+        const cutoffISO = cutoffDate.toISOString();
+        
+        if (isNeon) {
+            const query = `
+                DELETE FROM blog_posts
+                WHERE date_published < '${cutoffISO}'
+            `;
+            await sql(query);
+        } else {
+            await sql`
+                DELETE FROM blog_posts
+                WHERE date_published < ${cutoffISO}
+            `;
+        }
+        
+        console.log(`✅ Limpeza de posts com mais de ${daysOld} dias concluída.`);
+    } catch (error) {
+        console.error('❌ Erro ao limpar posts antigos por data:', error);
     }
 }
 
@@ -455,5 +501,6 @@ module.exports = {
     saveArticleToDB,
     loadPostsFromDB,
     loadPostFromDB,
-    cleanupOldPosts
+    cleanupOldPosts,
+    cleanupOldPostsByDate
 };
