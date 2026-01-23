@@ -1024,12 +1024,12 @@ async function processAllSources() {
             try {
                 console.log(`📡 Processando feed: ${feed.name} (${feed.url})`);
                 const feedData = await fetchRSSFeed(feed.url);
+                let acceptedCount = 0;
+                let rejectedCount = 0;
                 if (feedData && feedData.items && feedData.items.length > 0) {
                     console.log(`   ✅ ${feedData.items.length} itens encontrados no feed ${feed.name}`);
                     // Processar os 20 primeiros itens mais recentes de cada feed (aumentado para mais conteúdo)
                     const recentItems = feedData.items.slice(0, 20);
-                    let acceptedCount = 0;
-                    let rejectedCount = 0;
                     for (const item of recentItems) {
                         // FILTRO INTELIGENTE: Notícias relacionadas a Supply Chain Global e Comércio Exterior
                         // Estratégia: Aceitar se tiver palavra-chave primária OU se vier de fonte confiável E tiver palavra-chave secundária
@@ -1350,9 +1350,7 @@ async function processAllSources() {
                     console.log(`   ⚠️ Feed ${feed.name} não retornou itens ou está vazio`);
                 }
                 
-                if (typeof acceptedCount !== 'undefined' && typeof rejectedCount !== 'undefined') {
-                    console.log(`   📊 Feed ${feed.name}: ${acceptedCount} aceitos, ${rejectedCount} rejeitados`);
-                }
+                console.log(`   📊 Feed ${feed.name}: ${acceptedCount} aceitos, ${rejectedCount} rejeitados`);
             } catch (feedError) {
                 console.error(`❌ Erro ao processar feed ${feed.name}:`, feedError.message);
                 console.error('Stack:', feedError.stack);
