@@ -402,15 +402,18 @@ async function articleExists(article) {
     try {
         const normalizedTitle = normalizeTitle(article.title);
         
-        // Para RSS: verificar por URL também
+        // Para RSS: verificar por URL completa (não apenas domínio)
         if (article.source === 'rss' && article.dataSource && article.dataSource.link) {
+            // Normalizar URL: remover query params e fragmentos, mas manter path completo
+            const url = article.dataSource.link.split('?')[0].split('#')[0].trim();
             // Escapar URL para SQL
-            const escapedLink = article.dataSource.link.replace(/'/g, "''");
+            const escapedUrl = url.replace(/'/g, "''").replace(/\\/g, '\\\\');
+            // Usar JSONB path para busca mais precisa por URL completa
             const checkQuery = `
                 SELECT id FROM blog_posts 
                 WHERE (
-                    LOWER(REGEXP_REPLACE(title, '[^a-z0-9\\s]', '', 'g')) = LOWER(REGEXP_REPLACE('${article.title.replace(/'/g, "''")}', '[^a-z0-9\\s]', '', 'g'))
-                    OR (data_source::text LIKE '%"link":"${escapedLink}"%')
+                    data_source->>'link' = '${escapedUrl}'
+                    OR data_source::text LIKE '%"link":"${escapedUrl}"%'
                 )
                 LIMIT 1
             `;
@@ -957,17 +960,29 @@ async function processAllSources() {
                         if (isRelevant || isFromTrustedSource) {
                             const article = generateArticleFromData(item, 'rss');
                             
-                            // Verificar se artigo já existe APENAS por URL exata (deduplicação mínima)
+                            // Verificar se artigo já existe APENAS por URL completa (deduplicação por URL completa, não domínio)
                             // Não verificar por título para não perder conteúdo legítimo
                             let exists = false;
                             if (article.dataSource && article.dataSource.link) {
                                 try {
-                                    // Verificar apenas se URL já existe (mais preciso)
+                                    // Verificar apenas se URL COMPLETA já existe (sem query params)
                                     if (db && db.hasPostgres) {
-                                        const url = article.dataSource.link.split('?')[0];
-                                        const checkQuery = `SELECT id FROM blog_posts WHERE data_source::text LIKE '%"link":"${url.replace(/'/g, "''")}"%' LIMIT 1`;
+                                        // Normalizar URL: remover query params e fragmentos, mas manter path completo
+                                        const url = article.dataSource.link.split('?')[0].split('#')[0].trim();
+                                        // Escapar caracteres especiais para SQL
+                                        const escapedUrl = url.replace(/'/g, "''").replace(/\\/g, '\\\\');
+                                        // Usar JSONB path para busca mais precisa
+                                        const checkQuery = `
+                                            SELECT id FROM blog_posts 
+                                            WHERE data_source->>'link' = '${escapedUrl}'
+                                               OR data_source::text LIKE '%"link":"${escapedUrl}"%'
+                                            LIMIT 1
+                                        `;
                                         const result = await db.executeQuery(checkQuery);
                                         exists = result && (Array.isArray(result) ? result.length > 0 : (result.rows?.length > 0));
+                                        if (exists) {
+                                            console.log(`⏭️  URL já existe no banco: ${url.substring(0, 80)}...`);
+                                        }
                                     } else {
                                         // Fallback: não verificar se banco não disponível (mais permissivo)
                                         console.log('⚠️ Banco não disponível para verificar duplicata, salvando mesmo assim');
@@ -981,8 +996,8 @@ async function processAllSources() {
                             }
                             
                             if (exists) {
-                                console.log(`⏭️  Artigo duplicado ignorado (mesma URL): "${article.title}"`);
-                                continue; // Pular apenas se URL for exatamente igual
+                                console.log(`⏭️  Artigo duplicado ignorado (mesma URL completa): "${article.title.substring(0, 60)}..."`);
+                                continue; // Pular apenas se URL completa for exatamente igual
                             }
                             
                             // Garantir que a data da fonte seja preservada
@@ -1015,6 +1030,7 @@ async function processAllSources() {
                                 article.datePublished = article.sourcePublishedDate || new Date().toISOString();
                             }
                             
+                            // Salvar artigo (não duplicado)
                             try {
                                 const saved = await saveArticle(article);
                                 if (saved) {
@@ -1022,8 +1038,8 @@ async function processAllSources() {
                                     
                                     const sourceDateStr = article.sourcePublishedDate ? new Date(article.sourcePublishedDate).toLocaleDateString('pt-BR') : 'Data não disponível';
                                     const imageStatus = article.image ? '✅ Com imagem' : '❌ Sem imagem';
-                                    console.log(`✅ Artigo RSS gerado e salvo: ${article.title}`);
-                                    console.log(`   📅 Data da fonte: ${sourceDateStr}`);
+                                    console.log(`✅ Artigo RSS salvo: "${article.title.substring(0, 60)}..." (Total: ${articles.length})`);
+                                    console.log(`   📅 Data da fonte: ${sourceDateStr} | ${imageStatus}`);
                                     console.log(`   🖼️  ${imageStatus}`);
                                     console.log(`   💾 ID: ${article.id}`);
                                 } else {
