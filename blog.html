@@ -432,6 +432,9 @@
                 const response = await fetch(`/api/blog/posts?category=${category}`);
                 const posts = await response.json();
 
+                // Atualizar contadores após carregar posts
+                updateCategoryCounts();
+
                 if (posts.length === 0) {
                     container.innerHTML = `
                         <div class="blog-empty">
