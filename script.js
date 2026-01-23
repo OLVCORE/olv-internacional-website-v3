@@ -485,41 +485,43 @@ function initAccordions() {
         if (fillElement) {
             fillElement.style.width = percentage + '%';
             
-            // Update color based on maturity level (vermelho → verde = maturidade crescente)
+            // Update color based on maturity level (abóbora → amarelo → verde = progresso positivo)
+            // Progressão sem vermelho: Abóbora → Amarelo → Verde claro → Verde forte
             if (percentage === 0) {
                 fillElement.style.background = 'var(--bg-tertiary)';
             } else if (percentage < 25) {
-                // Vermelho - Baixa maturidade
-                fillElement.style.background = 'linear-gradient(90deg, #ef4444 0%, #dc2626 100%)';
-            } else if (percentage < 50) {
-                // Laranja - Maturidade em desenvolvimento
+                // Abóbora (laranja) - nunca vermelho
                 fillElement.style.background = 'linear-gradient(90deg, #f97316 0%, #ea580c 100%)';
-            } else if (percentage < 75) {
-                // Amarelo - Maturidade média
+            } else if (percentage < 50) {
+                // Amarelo - tom mais amarelo
                 fillElement.style.background = 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)';
+            } else if (percentage < 75) {
+                // Amarelo-esverdeado - começa a ficar verde
+                fillElement.style.background = 'linear-gradient(90deg, #eab308 0%, #ca8a04 100%)';
             } else if (percentage < 100) {
-                // Verde claro - Alta maturidade
+                // Verde claro - alta maturidade
                 fillElement.style.background = 'linear-gradient(90deg, #22c55e 0%, #16a34a 100%)';
             } else {
-                // Verde - Maturidade máxima
+                // Verde forte - maturidade máxima (100%)
                 fillElement.style.background = 'linear-gradient(90deg, #10b981 0%, #059669 100%)';
             }
         }
         
-        // Update score color (progressão vermelho → verde)
+        // Update score color (progressão abóbora → amarelo → verde)
+        // Mesma progressão da barra: nunca vermelho, sempre progresso positivo
         if (scoreElement) {
             if (percentage === 0) {
                 scoreElement.style.color = 'var(--text-tertiary)';
             } else if (percentage < 25) {
-                scoreElement.style.color = '#ef4444';
+                scoreElement.style.color = '#f97316'; // Abóbora (laranja) - nunca vermelho
             } else if (percentage < 50) {
-                scoreElement.style.color = '#f97316';
+                scoreElement.style.color = '#f59e0b'; // Amarelo
             } else if (percentage < 75) {
-                scoreElement.style.color = '#f59e0b';
+                scoreElement.style.color = '#eab308'; // Amarelo-esverdeado
             } else if (percentage < 100) {
-                scoreElement.style.color = '#22c55e';
+                scoreElement.style.color = '#22c55e'; // Verde claro
             } else {
-                scoreElement.style.color = '#10b981';
+                scoreElement.style.color = '#10b981'; // Verde forte (100%)
             }
         }
         
@@ -817,29 +819,22 @@ function showConfirmationPage(nome, empresa, adherence, selectedItems) {
                           adherenceNum < 60 ? 'Média' : 
                           adherenceNum < 80 ? 'Alta' : 'Muito Alta';
     
-    // Progressão de cores: Abóbora (laranja) → Amarelo → Verde claro → Verde forte
-    // Quanto maior o percentual, mais verde (progresso positivo)
+    // Usar EXATAMENTE a mesma lógica de cores da barra de progresso e do número na página principal
+    // Isso garante consistência visual - a cor do número no modal será igual à cor da barra
+    // Progressão: Abóbora → Amarelo → Verde claro → Verde forte (nunca vermelho)
     let adherenceColor;
     if (adherenceNum === 0) {
-        adherenceColor = '#9ca3af'; // Cinza neutro para 0%
-    } else if (adherenceNum <= 25) {
-        // Cor de abóbora (laranja) para valores baixos
-        adherenceColor = '#f97316'; // Laranja/abóbora
-    } else if (adherenceNum <= 50) {
-        // Tom mais amarelo
-        adherenceColor = '#f59e0b'; // Amarelo-laranja
-    } else if (adherenceNum <= 75) {
-        // Começa a ficar esverdeado
-        adherenceColor = '#eab308'; // Amarelo-esverdeado
-    } else if (adherenceNum < 80) {
-        // Verde claro
-        adherenceColor = '#84cc16'; // Verde claro
+        adherenceColor = 'var(--text-tertiary)'; // Mesma cor do scoreElement na página principal
+    } else if (adherenceNum < 25) {
+        adherenceColor = '#f97316'; // Abóbora (laranja) - mesma cor da barra e do número
+    } else if (adherenceNum < 50) {
+        adherenceColor = '#f59e0b'; // Amarelo - mesma cor da barra e do número
+    } else if (adherenceNum < 75) {
+        adherenceColor = '#eab308'; // Amarelo-esverdeado - mesma cor da barra e do número
     } else if (adherenceNum < 100) {
-        // Verde médio
-        adherenceColor = '#22c55e'; // Verde médio
+        adherenceColor = '#22c55e'; // Verde claro - mesma cor da barra e do número
     } else {
-        // Verde forte para 100% (máximo progresso)
-        adherenceColor = '#10b981'; // Verde forte
+        adherenceColor = '#10b981'; // Verde forte para 100% - mesma cor da barra e do número
     }
     
     confirmation.innerHTML = `
