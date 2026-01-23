@@ -1346,10 +1346,6 @@ async function processAllSources() {
                             }
                         }
                     }
-                }
-                            } catch (error) {
-                                console.error(`❌ Erro ao processar feed ${feed.name}:`, error.message);
-                            }
                 } else {
                     console.log(`   ⚠️ Feed ${feed.name} não retornou itens ou está vazio`);
                 }
