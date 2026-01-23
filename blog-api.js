@@ -320,6 +320,10 @@ async function fetchRSSFeed(feedUrl) {
         };
     } catch (error) {
         console.error(`Erro ao buscar feed RSS ${feedUrl}:`, error.message);
+        // Se for erro de XML malformado, logar mas não quebrar o processamento
+        if (error.message && (error.message.includes('Attribute without value') || error.message.includes('XML') || error.message.includes('parse'))) {
+            console.warn(`⚠️ Feed RSS com XML malformado: ${feedUrl} - Pulando este feed`);
+        }
         return null;
     }
 }
@@ -1002,7 +1006,7 @@ async function processAllSources() {
             // Fontes de Agronegócio e Commodities (muito relevantes para comércio exterior)
             { url: 'https://www.noticiasagricolas.com.br/rss', name: 'Notícias Agrícolas', category: 'noticias' },
             { url: 'https://www.agrolink.com.br/rss', name: 'Agrolink', category: 'noticias' },
-            { url: 'https://www.cepea.org.br/br/rss-cepea.aspx', name: 'CEPEA - Agronegócio', category: 'noticias' },
+            // CEPEA removido - feed RSS tem XML malformado
             
             // Fontes Internacionais Específicas
             { url: 'https://www.reuters.com/rssFeed/worldNews', name: 'Reuters World News', category: 'noticias' },
