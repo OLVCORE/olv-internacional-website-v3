@@ -22,6 +22,13 @@ module.exports = async (req, res) => {
     }
 
     try {
+        // Inicializar banco se necessário (primeira vez)
+        try {
+            await initDatabase();
+        } catch (initError) {
+            console.warn('Banco não inicializado (pode ser normal):', initError.message);
+        }
+
         const category = req.query.category || 'all';
         let posts = [];
         

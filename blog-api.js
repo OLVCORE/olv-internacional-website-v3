@@ -6,6 +6,14 @@ const path = require('path');
 // Detectar se está rodando no Vercel
 const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
 
+// Importar gerenciamento de banco de dados
+let db = null;
+try {
+    db = require('./blog-db');
+} catch (error) {
+    console.warn('⚠️ blog-db.js não disponível. Usando apenas armazenamento em arquivo.');
+}
+
 // Configuração de APIs
 const API_CONFIG = {
     comexstat: {
@@ -269,6 +277,21 @@ function generateRSSContent(data) {
 
 // Salvar artigo
 async function saveArticle(article) {
+    // Tentar salvar no banco primeiro (se disponível)
+    if (db && db.hasPostgres) {
+        try {
+            const saved = await db.saveArticleToDB(article);
+            if (saved) {
+                // Limpar posts antigos periodicamente
+                await db.cleanupOldPosts(100);
+                return saved;
+            }
+        } catch (error) {
+            console.warn('⚠️ Erro ao salvar no banco, usando fallback de arquivo:', error.message);
+        }
+    }
+
+    // Fallback: salvar em arquivo
     await ensureBlogDataDir();
     
     try {
@@ -304,6 +327,19 @@ async function saveArticle(article) {
 
 // Carregar todos os posts
 async function loadPosts() {
+    // Tentar carregar do banco primeiro (se disponível)
+    if (db && db.hasPostgres) {
+        try {
+            const posts = await db.loadPostsFromDB(100);
+            if (posts !== null) {
+                return posts;
+            }
+        } catch (error) {
+            console.warn('⚠️ Erro ao carregar do banco, usando fallback de arquivo:', error.message);
+        }
+    }
+
+    // Fallback: carregar de arquivo
     await ensureBlogDataDir();
     
     try {
@@ -316,6 +352,19 @@ async function loadPosts() {
 
 // Carregar post específico
 async function loadPost(id) {
+    // Tentar carregar do banco primeiro (se disponível)
+    if (db && db.hasPostgres) {
+        try {
+            const post = await db.loadPostFromDB(id);
+            if (post !== null) {
+                return post;
+            }
+        } catch (error) {
+            console.warn('⚠️ Erro ao carregar post do banco, usando fallback de arquivo:', error.message);
+        }
+    }
+
+    // Fallback: carregar de arquivo
     const posts = await loadPosts();
     return posts.find(p => p.id === id) || null;
 }

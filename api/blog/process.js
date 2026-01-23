@@ -2,6 +2,7 @@
 // POST /api/blog/process
 
 const { processAndPublish } = require('../../blog-processor');
+const { initDatabase } = require('../../blog-db');
 
 module.exports = async (req, res) => {
     // CORS headers
@@ -22,6 +23,13 @@ module.exports = async (req, res) => {
     }
 
     try {
+        // Inicializar banco se necessário (primeira vez)
+        try {
+            await initDatabase();
+        } catch (initError) {
+            console.warn('Banco não inicializado (pode ser normal):', initError.message);
+        }
+
         const articles = await processAndPublish();
         
         // No Vercel, retornar os artigos também para garantir que estão disponíveis
