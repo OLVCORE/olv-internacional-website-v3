@@ -1043,13 +1043,9 @@ async function processAllSources() {
                                         const result = await db.executeQuery(checkQuery);
                                         exists = result && (Array.isArray(result) ? result.length > 0 : (result.rows?.length > 0));
                                     } else {
-                                        // Fallback: verificar em memória
-                                        const allPosts = await loadPosts();
-                                        const url = article.dataSource.link.split('?')[0];
-                                        exists = allPosts.some(p => {
-                                            const pLink = p.dataSource?.link?.split('?')[0] || '';
-                                            return pLink === url;
-                                        });
+                                        // Fallback: não verificar se banco não disponível (mais permissivo)
+                                        console.log('⚠️ Banco não disponível para verificar duplicata, salvando mesmo assim');
+                                        exists = false;
                                     }
                                 } catch (e) {
                                     // Se erro na verificação, continuar e salvar (não bloquear)
