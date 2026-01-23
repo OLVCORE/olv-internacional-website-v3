@@ -23,7 +23,23 @@ module.exports = async (req, res) => {
 
     try {
         const category = req.query.category || 'all';
-        const posts = await loadPosts();
+        let posts = [];
+        
+        try {
+            posts = await loadPosts();
+        } catch (error) {
+            console.warn('Arquivo de posts não encontrado ou vazio. Processando agora...', error.message);
+            // Se não houver posts, tentar processar
+            try {
+                const { processAllSources } = require('../../blog-api');
+                const articles = await processAllSources();
+                posts = articles;
+            } catch (processError) {
+                console.error('Erro ao processar posts:', processError);
+                // Retornar array vazio se falhar
+                posts = [];
+            }
+        }
         
         let filteredPosts = posts;
         if (category !== 'all') {

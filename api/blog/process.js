@@ -24,10 +24,12 @@ module.exports = async (req, res) => {
     try {
         const articles = await processAndPublish();
         
+        // No Vercel, retornar os artigos também para garantir que estão disponíveis
         res.status(200).json({ 
             success: true, 
             message: `${articles.length} artigos processados`,
-            articles: articles.length
+            articles: articles.length,
+            posts: articles // Incluir posts na resposta
         });
     } catch (error) {
         console.error('Erro ao processar artigos:', error);
