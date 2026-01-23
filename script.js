@@ -817,9 +817,30 @@ function showConfirmationPage(nome, empresa, adherence, selectedItems) {
                           adherenceNum < 60 ? 'Média' : 
                           adherenceNum < 80 ? 'Alta' : 'Muito Alta';
     
-    const adherenceColor = adherenceNum < 30 ? '#f59e0b' : 
-                          adherenceNum < 60 ? '#3b82f6' : 
-                          adherenceNum < 80 ? '#10b981' : '#ef4444';
+    // Progressão de cores: Abóbora (laranja) → Amarelo → Verde claro → Verde forte
+    // Quanto maior o percentual, mais verde (progresso positivo)
+    let adherenceColor;
+    if (adherenceNum === 0) {
+        adherenceColor = '#9ca3af'; // Cinza neutro para 0%
+    } else if (adherenceNum <= 25) {
+        // Cor de abóbora (laranja) para valores baixos
+        adherenceColor = '#f97316'; // Laranja/abóbora
+    } else if (adherenceNum <= 50) {
+        // Tom mais amarelo
+        adherenceColor = '#f59e0b'; // Amarelo-laranja
+    } else if (adherenceNum <= 75) {
+        // Começa a ficar esverdeado
+        adherenceColor = '#eab308'; // Amarelo-esverdeado
+    } else if (adherenceNum < 80) {
+        // Verde claro
+        adherenceColor = '#84cc16'; // Verde claro
+    } else if (adherenceNum < 100) {
+        // Verde médio
+        adherenceColor = '#22c55e'; // Verde médio
+    } else {
+        // Verde forte para 100% (máximo progresso)
+        adherenceColor = '#10b981'; // Verde forte
+    }
     
     confirmation.innerHTML = `
         <div class="confirmation-content">
