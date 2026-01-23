@@ -1020,33 +1020,69 @@ async function processAllSources() {
         // Fontes RSS ESPECÍFICAS para Supply Chain Global e Comércio Exterior
         // Priorizando fontes brasileiras que realmente têm feeds RSS funcionais
         const RSS_FEEDS = [
-            // Fontes Brasileiras Específicas de Comércio Exterior (verificadas)
+            // ============================================================
+            // FONTES BRASILEIRAS - Comércio Exterior e Economia
+            // ============================================================
             { url: 'https://www.valor.com.br/rss', name: 'Valor Econômico', category: 'noticias' },
             { url: 'https://www.valor.com.br/rss/economia', name: 'Valor - Economia', category: 'noticias' },
             { url: 'https://www.valor.com.br/rss/empresas', name: 'Valor - Empresas', category: 'noticias' },
             { url: 'https://www.valor.com.br/rss/agronegocios', name: 'Valor - Agronegócios', category: 'noticias' },
             { url: 'https://www.valor.com.br/rss/internacional', name: 'Valor - Internacional', category: 'noticias' },
             
-            // Fontes de Agronegócio e Commodities (muito relevantes para comércio exterior)
-            { url: 'https://www.noticiasagricolas.com.br/rss', name: 'Notícias Agrícolas', category: 'noticias' },
-            { url: 'https://www.agrolink.com.br/rss', name: 'Agrolink', category: 'noticias' },
-            // CEPEA removido - feed RSS tem XML malformado
+            // Fontes Governamentais Brasileiras
+            { url: 'https://www.bcb.gov.br/rss/noticias/moedaestabilidadefin.xml', name: 'Banco Central do Brasil', category: 'noticias' },
+            { url: 'https://www.gov.br/mdic/pt-br/assuntos/noticias/rss', name: 'MDIC - Notícias', category: 'noticias' },
             
-            // Fontes Internacionais Específicas - Bloomberg e Reuters (mais permissivos)
+            // ============================================================
+            // FONTES INTERNACIONAIS - Bloomberg (múltiplos feeds)
+            // ============================================================
             { url: 'https://feeds.bloomberg.com/markets/news.rss', name: 'Bloomberg Markets', category: 'noticias' },
             { url: 'https://feeds.bloomberg.com/world-news.rss', name: 'Bloomberg World News', category: 'noticias' },
             { url: 'https://feeds.bloomberg.com/politics.rss', name: 'Bloomberg Politics', category: 'noticias' },
-            // Reuters removido temporariamente - retornando 401 (requer autenticação)
+            { url: 'https://feeds.bloomberg.com/energy.rss', name: 'Bloomberg Energy', category: 'noticias' },
+            { url: 'https://feeds.bloomberg.com/commodities.rss', name: 'Bloomberg Commodities', category: 'noticias' },
+            { url: 'https://feeds.bloomberg.com/technology.rss', name: 'Bloomberg Technology', category: 'noticias' },
             
-            // Fontes de Logística e Supply Chain
+            // ============================================================
+            // FONTES DE LOGÍSTICA E SUPPLY CHAIN
+            // ============================================================
             { url: 'https://www.logisticsmgmt.com/rss', name: 'Logistics Management', category: 'noticias' },
             { url: 'https://www.supplychaindive.com/feed/', name: 'Supply Chain Dive', category: 'noticias' },
             { url: 'https://www.joc.com/rss', name: 'Journal of Commerce', category: 'noticias' },
+            { url: 'https://www.freightwaves.com/feed', name: 'FreightWaves', category: 'noticias' },
+            { url: 'https://www.aircargonews.net/feed/', name: 'Air Cargo News', category: 'noticias' },
+            { url: 'https://www.seatrade-maritime.com/rss.xml', name: 'Seatrade Maritime', category: 'noticias' },
             
-            // Fontes de Comércio Exterior
+            // ============================================================
+            // FONTES DE COMÉRCIO EXTERIOR E TRADE
+            // ============================================================
             { url: 'https://www.wto.org/english/news_e/rss_e/rss_e.xml', name: 'WTO News', category: 'noticias' },
             { url: 'https://www.iccwbo.org/news-publications/news/rss/', name: 'Câmara de Comércio Internacional', category: 'noticias' },
-            { url: 'https://www.bcb.gov.br/rss/noticias/moedaestabilidadefin.xml', name: 'Banco Central do Brasil', category: 'noticias' }
+            { url: 'https://www.trade.gov/rss', name: 'US Trade.gov', category: 'noticias' },
+            { url: 'https://www.export.gov/rss', name: 'Export.gov', category: 'noticias' },
+            
+            // ============================================================
+            // FONTES DE ECONOMIA E FINANÇAS INTERNACIONAIS
+            // ============================================================
+            { url: 'https://www.ft.com/rss/home', name: 'Financial Times', category: 'noticias' },
+            { url: 'https://www.ft.com/rss/world', name: 'Financial Times World', category: 'noticias' },
+            { url: 'https://feeds.feedburner.com/wsj/xml/rss/3_7085', name: 'WSJ World News', category: 'noticias' },
+            { url: 'https://feeds.feedburner.com/wsj/xml/rss/3_7014', name: 'WSJ Business', category: 'noticias' },
+            
+            // ============================================================
+            // FONTES DE PORTOS E TRANSPORTE MARÍTIMO
+            // ============================================================
+            { url: 'https://www.portos.gov.br/rss', name: 'Portos do Brasil', category: 'noticias' },
+            { url: 'https://www.porttechnology.org/feed/', name: 'Port Technology', category: 'noticias' },
+            
+            // ============================================================
+            // FONTES REMOVIDAS (quebradas ou bloqueadas)
+            // ============================================================
+            // { url: 'https://www.noticiasagricolas.com.br/rss', name: 'Notícias Agrícolas', category: 'noticias' }, // 404
+            // { url: 'https://www.agrolink.com.br/rss', name: 'Agrolink', category: 'noticias' }, // 403
+            // { url: 'https://www.reuters.com/rssFeed/worldNews', name: 'Reuters World News', category: 'noticias' }, // 401
+            // { url: 'https://www.reuters.com/rssFeed/businessNews', name: 'Reuters Business', category: 'noticias' }, // 401
+            // { url: 'https://www.cepea.org.br/br/rss-cepea.aspx', name: 'CEPEA', category: 'noticias' }, // XML malformado
         ];
 
         for (const feed of RSS_FEEDS) {
