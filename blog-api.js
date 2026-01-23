@@ -1031,8 +1031,8 @@ async function processAllSources() {
                 const feedData = await fetchRSSFeed(feed.url);
                 if (feedData && feedData.items && feedData.items.length > 0) {
                     console.log(`   ✅ ${feedData.items.length} itens encontrados no feed ${feed.name}`);
-                    // Processar os 15 primeiros itens mais recentes de cada feed
-                    const recentItems = feedData.items.slice(0, 15);
+                    // Processar os 20 primeiros itens mais recentes de cada feed (aumentado para mais conteúdo)
+                    const recentItems = feedData.items.slice(0, 20);
                     for (const item of recentItems) {
                         // FILTRO INTELIGENTE: Notícias relacionadas a Supply Chain Global e Comércio Exterior
                         // Estratégia: Aceitar se tiver palavra-chave primária OU se vier de fonte confiável E tiver palavra-chave secundária
@@ -1136,18 +1136,38 @@ async function processAllSources() {
                         );
                         
                         // ACEITAR se:
-                        // 1. Tem palavra-chave primária (fortemente relacionado)
-                        // 2. OU tem palavra-chave secundária E vem de fonte confiável
-                        // 3. OU tem palavra-chave secundária E menciona países/regiões relevantes
+                        // 1. Tem palavra-chave primária (fortemente relacionado) - SEMPRE ACEITAR
+                        // 2. OU tem palavra-chave secundária E vem de fonte confiável - ACEITAR
+                        // 3. OU tem palavra-chave secundária E menciona países/regiões relevantes - ACEITAR
+                        // 4. OU vem de fonte brasileira confiável (Valor, MDIC, etc) E tem qualquer palavra relacionada - ACEITAR
+                        // 5. OU menciona commodities, oil, trade, export, import - ACEITAR (muito relevante)
+                        const isBrazilianSource = linkLower.includes('valor.com.br') || 
+                                                  linkLower.includes('mdic.gov.br') || 
+                                                  linkLower.includes('comexstat') ||
+                                                  linkLower.includes('receita.fazenda') ||
+                                                  linkLower.includes('portos.gov.br');
+                        
+                        const hasTradeRelated = allText.includes('trade') || 
+                                               allText.includes('export') || 
+                                               allText.includes('import') ||
+                                               allText.includes('commodit') ||
+                                               allText.includes('oil') ||
+                                               allText.includes('crude') ||
+                                               allText.includes('petroleum');
+                        
                         const isRelevant = hasPrimaryKeyword || 
                                           (hasSecondaryKeyword && isFromTrustedSource) ||
-                                          (hasSecondaryKeyword && (allText.includes('brazil') || allText.includes('brasil') || allText.includes('trade')));
+                                          (hasSecondaryKeyword && (allText.includes('brazil') || allText.includes('brasil') || allText.includes('trade'))) ||
+                                          (isBrazilianSource && hasTradeRelated) ||
+                                          (isBrazilianSource && hasSecondaryKeyword);
                         
                         // Se não é relevante, REJEITAR
                         if (!isRelevant) {
                             console.log(`⏭️  Artigo rejeitado: "${item.title?.substring(0, 60)}..." (sem palavras-chave relevantes)`);
                             continue; // Pular este artigo
                         }
+                        
+                        console.log(`✅ Artigo aceito: "${item.title?.substring(0, 60)}..." (${hasPrimaryKeyword ? 'primária' : 'secundária + fonte'})`);
                         
                         if (isRelevant) {
                             const article = generateArticleFromData(item, 'rss');
