@@ -626,12 +626,12 @@ body {
 /* ============================================
    HEADER
    ============================================ */
-/* News Ticker (Barra de Notícias) */
+/* News Ticker (Barra de Notícias) - Estilo Corporativo */
 .news-ticker-container {
-    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-    color: white;
-    padding: 8px 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    padding: 10px 0;
     display: flex;
     align-items: center;
     overflow: hidden;
@@ -644,15 +644,17 @@ body {
     gap: 8px;
     padding: 0 20px;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13px;
     white-space: nowrap;
-    background: rgba(0, 0, 0, 0.2);
-    border-right: 2px solid rgba(255, 255, 255, 0.3);
+    background: var(--bg-primary);
+    border-right: 1px solid var(--border-color);
     flex-shrink: 0;
+    color: var(--text-primary);
 }
 
 .news-ticker-label i {
-    font-size: 16px;
+    font-size: 14px;
+    color: var(--accent-primary);
 }
 
 .news-ticker-wrapper {
@@ -686,37 +688,39 @@ body {
     gap: 12px;
     padding: 4px 16px;
     border-radius: 4px;
-    transition: background 0.2s ease;
+    transition: background 0.2s ease, color 0.2s ease;
     cursor: pointer;
     text-decoration: none;
-    color: white;
+    color: var(--text-primary);
 }
 
 .news-ticker-item:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: var(--bg-secondary);
+    color: var(--accent-primary);
 }
 
 .news-ticker-item::before {
     content: '•';
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 20px;
+    color: var(--text-tertiary);
+    font-size: 16px;
     font-weight: bold;
 }
 
 .news-ticker-item-title {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
+    color: var(--text-primary);
 }
 
 .news-ticker-item-source {
-    font-size: 12px;
-    opacity: 0.8;
+    font-size: 11px;
+    color: var(--text-tertiary);
     font-style: italic;
 }
 
 .ticker-loading {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 14px;
+    color: var(--text-tertiary);
+    font-size: 13px;
     padding: 4px 16px;
 }
 

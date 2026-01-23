@@ -290,15 +290,43 @@ async function loadPostsFromDB(limit = 100) {
         if (isNeon) {
             // Neon: usar query direta com parâmetros
             // Filtrar data_source corrompido (HTML) na query
+            // Verificar se coluna image existe antes de usar
             const query = `
                 SELECT 
                     id, title, excerpt, content, category,
-                    date_published, date_modified, icon, read_time, source, image,
+                    date_published, date_modified, icon, read_time, source,
                     CASE 
                         WHEN data_source::text LIKE '<%' OR data_source::text LIKE '<!%' 
                         THEN '{}'::jsonb
                         ELSE data_source
-                    END as data_source
+                    END as data_source,
+                    COALESCE(
+                        (SELECT column_name FROM information_schema.columns 
+                         WHERE table_name = 'blog_posts' AND column_name = 'image'),
+                        NULL
+                    ) as has_image_column
+                FROM blog_posts
+                ORDER BY date_published DESC
+                LIMIT ${limit}
+            `;
+            
+            // Tentar adicionar coluna image se não existir
+            try {
+                await executeQuery(`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS image TEXT`);
+            } catch (e) {
+                // Ignorar se já existir ou erro
+            }
+            
+            const queryWithImage = `
+                SELECT 
+                    id, title, excerpt, content, category,
+                    date_published, date_modified, icon, read_time, source,
+                    CASE 
+                        WHEN data_source::text LIKE '<%' OR data_source::text LIKE '<!%' 
+                        THEN '{}'::jsonb
+                        ELSE data_source
+                    END as data_source,
+                    COALESCE(image, NULL) as image
                 FROM blog_posts
                 ORDER BY date_published DESC
                 LIMIT ${limit}
@@ -306,10 +334,18 @@ async function loadPostsFromDB(limit = 100) {
             result = await sql(query);
         } else {
             // Vercel Postgres: usar template tag
+            // Tentar adicionar coluna image se não existir (Vercel Postgres)
+            try {
+                await sql`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS image TEXT`;
+            } catch (e) {
+                // Ignorar se já existir ou erro
+            }
+            
             result = await sql`
                 SELECT 
                     id, title, excerpt, content, category,
-                    date_published, date_modified, icon, read_time, source, data_source, image
+                    date_published, date_modified, icon, read_time, source, data_source,
+                    COALESCE(image, NULL) as image
                 FROM blog_posts
                 ORDER BY date_published DESC
                 LIMIT ${limit}
@@ -373,10 +409,18 @@ async function loadPostFromDB(postId) {
     }
 
     try {
+        // Tentar adicionar coluna image se não existir
+        try {
+            await executeQuery(`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS image TEXT`);
+        } catch (e) {
+            // Ignorar se já existir ou erro
+        }
+        
         const query = `
             SELECT 
                 id, title, excerpt, content, category,
-                date_published, date_modified, icon, read_time, source, data_source, COALESCE(image, NULL) as image
+                date_published, date_modified, icon, read_time, source, data_source,
+                COALESCE(image, NULL) as image
             FROM blog_posts
             WHERE id = $1
             LIMIT 1
