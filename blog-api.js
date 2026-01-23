@@ -1034,7 +1034,7 @@ async function processAllSources() {
             
             // Fontes Governamentais Brasileiras
             { url: 'https://www.bcb.gov.br/rss/noticias/moedaestabilidadefin.xml', name: 'Banco Central do Brasil', category: 'noticias' },
-            { url: 'https://www.gov.br/mdic/pt-br/assuntos/noticias/rss', name: 'MDIC - Notícias', category: 'noticias' },
+            // { url: 'https://www.gov.br/mdic/pt-br/assuntos/noticias/rss', name: 'MDIC - Notícias', category: 'noticias' }, // 404 - removido
             
             // ============================================================
             // FONTES INTERNACIONAIS - Bloomberg (múltiplos feeds)
