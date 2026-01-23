@@ -54,7 +54,72 @@ module.exports = async (req, res) => {
                 .trim();
         };
         
-        // 1. Remover posts de teste/exemplo/fake
+        // 1. Remover notícias antigas que não são relevantes para Supply Chain/Comércio Exterior
+        console.log('🧹 Removendo notícias não relevantes...');
+        let irrelevantRemoved = 0;
+        
+        // Lista de termos que indicam notícias NÃO relevantes
+        const irrelevantTerms = [
+            'cricket', 'sport', 'consumer sentiment', 'equity rally', 'stock market',
+            'bank rules', 'private credit', 'silver tops', 'thyssenkrupp', 'bearings',
+            'camera', 'aviation', 'winter storm', 'snow', 'ice', 'weather',
+            'blue aviators', 'fashion', 'style', 'trending', 'viral',
+            'consumer', 'sentiment', 'regulator', 'eased', 'mull stakes'
+        ];
+        
+        // Remover notícias RSS que contêm termos não relevantes
+        for (const term of irrelevantTerms) {
+            const deleteQuery = `
+                DELETE FROM blog_posts
+                WHERE source = 'rss'
+                  AND category = 'noticias'
+                  AND LOWER(title) LIKE '%${term.toLowerCase().replace(/'/g, "''")}%'
+            `;
+            try {
+                const result = await db.executeQuery(deleteQuery);
+                const rowCount = Array.isArray(result) ? result.length : (result?.rowCount || 0);
+                irrelevantRemoved += rowCount;
+            } catch (e) {
+                console.warn(`⚠️ Erro ao remover termo "${term}":`, e.message);
+            }
+        }
+        
+        // Remover notícias RSS que NÃO têm palavras-chave relevantes
+        const deleteNonRelevantQuery = `
+            DELETE FROM blog_posts
+            WHERE source = 'rss'
+              AND category = 'noticias'
+              AND (
+                LOWER(title) NOT LIKE '%supply chain%'
+                AND LOWER(title) NOT LIKE '%logistics%'
+                AND LOWER(title) NOT LIKE '%freight%'
+                AND LOWER(title) NOT LIKE '%shipping%'
+                AND LOWER(title) NOT LIKE '%trade%'
+                AND LOWER(title) NOT LIKE '%export%'
+                AND LOWER(title) NOT LIKE '%import%'
+                AND LOWER(title) NOT LIKE '%customs%'
+                AND LOWER(title) NOT LIKE '%commercial%'
+                AND LOWER(title) NOT LIKE '%international%'
+                AND LOWER(title) NOT LIKE '%comércio%'
+                AND LOWER(title) NOT LIKE '%transporte%'
+                AND LOWER(title) NOT LIKE '%cargo%'
+                AND LOWER(title) NOT LIKE '%commodity%'
+                AND LOWER(title) NOT LIKE '%commodities%'
+                AND LOWER(title) NOT LIKE '%trading%'
+                AND LOWER(title) NOT LIKE '%cross-border%'
+                AND LOWER(title) NOT LIKE '%global trade%'
+              )
+        `;
+        try {
+            const result = await db.executeQuery(deleteNonRelevantQuery);
+            const rowCount = Array.isArray(result) ? result.length : (result?.rowCount || 0);
+            irrelevantRemoved += rowCount;
+            console.log(`✅ Removidas ${rowCount} notícias sem palavras-chave relevantes`);
+        } catch (e) {
+            console.warn('⚠️ Erro ao remover notícias não relevantes:', e.message);
+        }
+        
+        // 2. Remover posts de teste/exemplo/fake
         console.log('🧹 Removendo posts de teste/exemplo/fake...');
         
         // Palavras-chave para identificar artigos fake
@@ -149,10 +214,11 @@ module.exports = async (req, res) => {
         
         res.status(200).json({ 
             success: true,
-            message: 'Limpeza concluída',
+            message: `Limpeza concluída: ${irrelevantRemoved} não relevantes, ${testRemoved} teste, ${duplicatesRemoved} duplicatas`,
+            irrelevantRemoved: irrelevantRemoved,
             testRemoved: testRemoved,
             duplicatesRemoved: duplicatesRemoved,
-            totalRemoved: testRemoved + duplicatesRemoved
+            totalRemoved: irrelevantRemoved + testRemoved + duplicatesRemoved
         });
     } catch (error) {
         console.error('Erro ao limpar duplicatas:', error);
