@@ -129,7 +129,7 @@ const server = http.createServer((req, res) => {
             // GET /api/blog/posts?category=all
             if (req.method === 'GET' && pathname === '/api/blog/posts') {
                 try {
-                    const category = parsedUrl.query.category || 'all';
+                    const category = query.category || 'all';
                     blogApi.loadPosts().then(posts => {
                         let filteredPosts = posts;
                         if (category !== 'all') {
@@ -156,7 +156,7 @@ const server = http.createServer((req, res) => {
             // GET /api/blog/post?id=article-123
             if (req.method === 'GET' && pathname === '/api/blog/post') {
                 try {
-                    const postId = parsedUrl.query.id;
+                    const postId = query.id;
                     if (!postId) {
                         res.writeHead(400, { 'Content-Type': 'application/json' });
                         res.end(JSON.stringify({ error: 'Post ID required. Use: /api/blog/post?id=article-123' }), 'utf-8');
