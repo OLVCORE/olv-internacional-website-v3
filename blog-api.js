@@ -1227,13 +1227,7 @@ async function processAllSources() {
                                                           linkLower.includes('wto.org') ||
                                                           linkLower.includes('iccwbo.org');
                         
-                        // ACEITAR se:
-                        // 1. Tem palavra-chave primária - SEMPRE ACEITAR
-                        // 2. OU tem palavra-chave secundária E vem de fonte confiável - ACEITAR
-                        // 3. OU tem palavra-chave secundária E menciona países/regiões relevantes - ACEITAR
-                        // 4. OU vem de fonte brasileira confiável E tem palavras relacionadas - ACEITAR
-                        // 5. OU vem de fonte muito confiável (brasileira ou internacional) - ACEITAR QUASE TUDO
-                        // 6. OU menciona tópicos específicos (Mercosul, UE, Venezuela, Rússia, China, tarifas) - ACEITAR
+                        // Verificar se menciona tópicos específicos mencionados pelo usuário
                         const mentionsSpecificTopics = allText.includes('mercosul') ||
                                                       allText.includes('mercosur') ||
                                                       allText.includes('european union') ||
@@ -1245,7 +1239,11 @@ async function processAllSources() {
                                                       allText.includes('tariff') ||
                                                       allText.includes('tarifa') ||
                                                       allText.includes('barrier') ||
-                                                      allText.includes('barreira');
+                                                      allText.includes('barreira') ||
+                                                      allText.includes('restriction') ||
+                                                      allText.includes('restrição') ||
+                                                      allText.includes('sanction') ||
+                                                      allText.includes('sanção');
                         
                         // Para fontes internacionais confiáveis (Bloomberg, Reuters), ser mais permissivo também
                         const isVeryTrustedInternational = linkLower.includes('bloomberg.com') ||
