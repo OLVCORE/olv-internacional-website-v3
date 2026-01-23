@@ -165,7 +165,88 @@
             flex-wrap: wrap;
             gap: 12px;
             justify-content: center;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
+        }
+        /* Seletor de Posts por Página */
+        .blog-posts-per-page {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-bottom: 30px;
+            padding: 12px 0;
+        }
+        .blog-posts-per-page label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .blog-posts-per-page select {
+            padding: 8px 16px;
+            border: 2px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-primary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        .blog-posts-per-page select:hover,
+        .blog-posts-per-page select:focus {
+            border-color: var(--accent-primary);
+            outline: none;
+        }
+        /* Paginação estilo Google */
+        .blog-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 40px 0 20px;
+            flex-wrap: wrap;
+        }
+        .pagination-btn,
+        .pagination-number {
+            min-width: 40px;
+            height: 40px;
+            padding: 0 12px;
+            border: 2px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-primary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pagination-btn:hover,
+        .pagination-number:hover {
+            border-color: var(--accent-primary);
+            background: var(--accent-primary);
+            color: white;
+        }
+        .pagination-number.active {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+            font-weight: 700;
+        }
+        .pagination-ellipsis {
+            padding: 0 8px;
+            color: var(--text-tertiary);
+            font-weight: 500;
+        }
+        .pagination-info {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 12px;
         }
         .filter-btn {
             padding: 10px 20px;
@@ -308,6 +389,16 @@
             .blog-grid {
                 grid-template-columns: 1fr;
             }
+            .blog-posts-per-page {
+                justify-content: center;
+            }
+            .pagination-btn,
+            .pagination-number {
+                min-width: 36px;
+                height: 36px;
+                font-size: 12px;
+                padding: 0 8px;
+            }
         }
     </style>
 </head>
@@ -383,6 +474,20 @@
                 <button class="filter-btn" data-category="insights">Insights</button>
             </div>
 
+            <!-- Seletor de Posts por Página -->
+            <div class="blog-posts-per-page">
+                <label for="posts-per-page-select">
+                    <i class="fas fa-list"></i>
+                    Posts por página:
+                </label>
+                <select id="posts-per-page-select" onchange="changePostsPerPage(this.value)">
+                    <option value="6">6</option>
+                    <option value="12" selected>12</option>
+                    <option value="24">24</option>
+                    <option value="48">48</option>
+                </select>
+            </div>
+
             <div id="blog-posts-container">
                 <div class="blog-loading">
                     <i class="fas fa-spinner fa-spin" style="font-size: 32px; margin-bottom: 16px;"></i>
@@ -401,8 +506,11 @@
         // Carregar contadores de categorias
         async function updateCategoryCounts() {
             try {
-                const response = await fetch('/api/blog/posts?category=all');
-                const allPosts = await response.json();
+                const response = await fetch('/api/blog/posts?category=all&page=1&perPage=1000');
+                const data = await response.json();
+                
+                // Verificar se é formato antigo (array) ou novo (objeto)
+                const allPosts = Array.isArray(data) ? data : (data.posts || []);
                 
                 const counts = {
                     all: allPosts.length,
@@ -413,24 +521,60 @@
                 };
                 
                 // Atualizar contadores no painel
-                document.getElementById('count-all').textContent = counts.all;
-                document.getElementById('count-analises').textContent = counts.analises;
-                document.getElementById('count-noticias').textContent = counts.noticias;
-                document.getElementById('count-guias').textContent = counts.guias;
-                document.getElementById('count-insights').textContent = counts.insights;
+                const countAllEl = document.getElementById('count-all');
+                const countAnalisesEl = document.getElementById('count-analises');
+                const countNoticiasEl = document.getElementById('count-noticias');
+                const countGuiasEl = document.getElementById('count-guias');
+                const countInsightsEl = document.getElementById('count-insights');
+                
+                if (countAllEl) countAllEl.textContent = counts.all;
+                if (countAnalisesEl) countAnalisesEl.textContent = counts.analises;
+                if (countNoticiasEl) countNoticiasEl.textContent = counts.noticias;
+                if (countGuiasEl) countGuiasEl.textContent = counts.guias;
+                if (countInsightsEl) countInsightsEl.textContent = counts.insights;
             } catch (error) {
                 console.error('Erro ao carregar contadores:', error);
             }
         }
 
+        // Estado global de paginação
+        let currentPage = 1;
+        let currentPerPage = 12;
+        let currentCategory = 'all';
+        let totalPages = 1;
+        let totalPosts = 0;
+
         // Carregar artigos do blog
-        async function loadBlogPosts(category = 'all') {
+        async function loadBlogPosts(category = 'all', page = 1, perPage = 12) {
             const container = document.getElementById('blog-posts-container');
+            currentCategory = category;
+            currentPage = page;
+            currentPerPage = perPage;
             
             try {
                 // Usar rota relativa (funciona tanto local quanto Vercel)
-                const response = await fetch(`/api/blog/posts?category=${category}`);
-                const posts = await response.json();
+                const response = await fetch(`/api/blog/posts?category=${category}&page=${page}&perPage=${perPage}`);
+                const data = await response.json();
+                
+                // Verificar se é formato antigo (array) ou novo (objeto com pagination)
+                let posts, pagination;
+                if (Array.isArray(data)) {
+                    posts = data;
+                    pagination = {
+                        currentPage: 1,
+                        perPage: data.length,
+                        totalPosts: data.length,
+                        totalPages: 1,
+                        hasNextPage: false,
+                        hasPrevPage: false
+                    };
+                } else {
+                    posts = data.posts || [];
+                    pagination = data.pagination || {};
+                }
+                
+                totalPages = pagination.totalPages || 1;
+                totalPosts = pagination.totalPosts || posts.length;
 
                 // Atualizar contadores após carregar posts
                 updateCategoryCounts();
@@ -442,6 +586,7 @@
                             <p>Nenhum artigo encontrado nesta categoria.</p>
                         </div>
                     `;
+                    renderPagination(pagination);
                     return;
                 }
 
@@ -537,6 +682,9 @@
                         }).join('')}
                     </div>
                 `;
+                
+                // Renderizar paginação
+                renderPagination(pagination);
             } catch (error) {
                 console.error('Erro ao carregar posts:', error);
                 container.innerHTML = `
@@ -548,6 +696,84 @@
             }
         }
 
+        // Renderizar paginação estilo Google
+        function renderPagination(pagination) {
+            const container = document.getElementById('blog-posts-container');
+            const paginationContainer = document.getElementById('blog-pagination');
+            
+            if (!paginationContainer) {
+                // Criar container de paginação se não existir
+                const pagDiv = document.createElement('div');
+                pagDiv.id = 'blog-pagination';
+                container.parentNode.appendChild(pagDiv);
+            }
+            
+            const pagEl = document.getElementById('blog-pagination');
+            if (!pagEl) return;
+            
+            const { currentPage, totalPages, totalPosts, hasNextPage, hasPrevPage } = pagination;
+            
+            if (totalPages <= 1) {
+                pagEl.innerHTML = '';
+                return;
+            }
+            
+            // Calcular quais páginas mostrar (máximo 10 números como Google)
+            let startPage = Math.max(1, currentPage - 4);
+            let endPage = Math.min(totalPages, startPage + 9);
+            
+            // Ajustar se estiver no final
+            if (endPage - startPage < 9) {
+                startPage = Math.max(1, endPage - 9);
+            }
+            
+            let paginationHTML = '<div class="blog-pagination">';
+            
+            // Botão Anterior
+            if (hasPrevPage) {
+                paginationHTML += `<button class="pagination-btn" onclick="loadBlogPosts('${currentCategory}', ${currentPage - 1}, ${currentPerPage})" aria-label="Página anterior">
+                    <i class="fas fa-chevron-left"></i>
+                </button>`;
+            }
+            
+            // Primeira página
+            if (startPage > 1) {
+                paginationHTML += `<button class="pagination-number ${1 === currentPage ? 'active' : ''}" onclick="loadBlogPosts('${currentCategory}', 1, ${currentPerPage})">1</button>`;
+                if (startPage > 2) {
+                    paginationHTML += `<span class="pagination-ellipsis">...</span>`;
+                }
+            }
+            
+            // Números de página
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHTML += `<button class="pagination-number ${i === currentPage ? 'active' : ''}" onclick="loadBlogPosts('${currentCategory}', ${i}, ${currentPerPage})">${i}</button>`;
+            }
+            
+            // Última página
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    paginationHTML += `<span class="pagination-ellipsis">...</span>`;
+                }
+                paginationHTML += `<button class="pagination-number ${totalPages === currentPage ? 'active' : ''}" onclick="loadBlogPosts('${currentCategory}', ${totalPages}, ${currentPerPage})">${totalPages}</button>`;
+            }
+            
+            // Botão Próximo
+            if (hasNextPage) {
+                paginationHTML += `<button class="pagination-btn" onclick="loadBlogPosts('${currentCategory}', ${currentPage + 1}, ${currentPerPage})" aria-label="Próxima página">
+                    <i class="fas fa-chevron-right"></i>
+                </button>`;
+            }
+            
+            paginationHTML += '</div>';
+            
+            // Informação de posts
+            const startPost = (currentPage - 1) * currentPerPage + 1;
+            const endPost = Math.min(currentPage * currentPerPage, totalPosts);
+            paginationHTML += `<div class="pagination-info">Mostrando ${startPost}-${endPost} de ${totalPosts} artigos</div>`;
+            
+            pagEl.innerHTML = paginationHTML;
+        }
+
         // Filtros de categoria e painel de categorias
         document.addEventListener('DOMContentLoaded', function() {
             // Carregar contadores
@@ -556,13 +782,27 @@
             // Carregar posts iniciais
             loadBlogPosts();
 
+        // Mudar posts por página
+        function changePostsPerPage(perPage) {
+            currentPerPage = parseInt(perPage);
+            loadBlogPosts(currentCategory, 1, currentPerPage); // Resetar para página 1
+        }
+
+        // Filtros de botão
+        document.addEventListener('DOMContentLoaded', function() {
+            // Carregar contadores
+            updateCategoryCounts();
+            
+            // Carregar posts iniciais
+            loadBlogPosts('all', 1, 12);
+
             // Filtros de botão
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
                     const category = this.dataset.category;
-                    loadBlogPosts(category);
+                    loadBlogPosts(category, 1, currentPerPage); // Resetar para página 1
                     
                     // Scroll suave para a seção de posts
                     document.getElementById('blog-posts-container').scrollIntoView({ 
@@ -591,8 +831,8 @@
                     });
                     this.classList.add('active');
                     
-                    // Carregar posts da categoria
-                    loadBlogPosts(category);
+                    // Carregar posts da categoria (resetar para página 1)
+                    loadBlogPosts(category, 1, currentPerPage);
                     
                     // Scroll suave para a seção de posts
                     document.getElementById('blog-posts-container').scrollIntoView({ 
