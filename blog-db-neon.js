@@ -706,5 +706,6 @@ module.exports = {
     loadPostsFromDB,
     loadPostFromDB,
     cleanupOldPosts,
-    cleanupOldPostsByDate
+    cleanupOldPostsByDate,
+    executeQuery
 };

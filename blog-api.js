@@ -324,10 +324,123 @@ async function fetchRSSFeed(feedUrl) {
     }
 }
 
+// Normalizar título para comparação (remover acentos, espaços extras, etc)
+function normalizeTitle(title) {
+    if (!title) return '';
+    return title
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+        .replace(/[^\w\s]/g, '') // Remove pontuação
+        .replace(/\s+/g, ' ') // Normaliza espaços
+        .trim();
+}
+
+// Gerar ID único baseado no conteúdo (para evitar duplicatas)
+function generateUniqueArticleId(data, type) {
+    const crypto = require('crypto');
+    
+    // Para RSS: usar título + URL
+    if (type === 'rss') {
+        const title = normalizeTitle(data.title || '');
+        const url = data.link || data.guid || '';
+        const hashInput = `${title}|${url}`;
+        const hash = crypto.createHash('md5').update(hashInput).digest('hex').substring(0, 12);
+        return `article-rss-${hash}`;
+    }
+    
+    // Para APIs: usar título + source + data específica
+    if (type === 'comexstat') {
+        const title = normalizeTitle('Análise de Comércio Exterior - Dados MDIC');
+        const hash = crypto.createHash('md5').update(`${title}|comexstat|${new Date().toISOString().split('T')[0]}`).digest('hex').substring(0, 12);
+        return `article-comexstat-${hash}`;
+    }
+    
+    if (type === 'unComtrade') {
+        const title = normalizeTitle('Tendências Globais de Comércio Internacional');
+        const hash = crypto.createHash('md5').update(`${title}|unComtrade|${new Date().toISOString().split('T')[0]}`).digest('hex').substring(0, 12);
+        return `article-uncomtrade-${hash}`;
+    }
+    
+    if (type === 'worldBank') {
+        const title = normalizeTitle('Indicadores Econômicos e Comércio Internacional');
+        const hash = crypto.createHash('md5').update(`${title}|worldBank|${new Date().toISOString().split('T')[0]}`).digest('hex').substring(0, 12);
+        return `article-worldbank-${hash}`;
+    }
+    
+    // Fallback: timestamp + random
+    return `article-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
+// Verificar se artigo já existe no banco (por título normalizado ou URL)
+async function articleExists(article) {
+    if (!db || !db.hasPostgres) {
+        // Se não tem banco, verificar em memória (fallback)
+        try {
+            const allPosts = await loadPosts();
+            const normalizedTitle = normalizeTitle(article.title);
+            
+            // Para RSS: verificar por URL também
+            if (article.source === 'rss' && article.dataSource && article.dataSource.link) {
+                return allPosts.some(p => {
+                    const pTitle = normalizeTitle(p.title);
+                    const pLink = p.dataSource?.link || '';
+                    return (pTitle === normalizedTitle && p.source === 'rss') || pLink === article.dataSource.link;
+                });
+            }
+            
+            // Para outros tipos: verificar por título normalizado + source
+            return allPosts.some(p => {
+                const pTitle = normalizeTitle(p.title);
+                return pTitle === normalizedTitle && p.source === article.source;
+            });
+        } catch (error) {
+            return false;
+        }
+    }
+    
+    try {
+        const normalizedTitle = normalizeTitle(article.title);
+        
+        // Para RSS: verificar por URL também
+        if (article.source === 'rss' && article.dataSource && article.dataSource.link) {
+            // Escapar URL para SQL
+            const escapedLink = article.dataSource.link.replace(/'/g, "''");
+            const checkQuery = `
+                SELECT id FROM blog_posts 
+                WHERE (
+                    LOWER(REGEXP_REPLACE(title, '[^a-z0-9\\s]', '', 'g')) = LOWER(REGEXP_REPLACE('${article.title.replace(/'/g, "''")}', '[^a-z0-9\\s]', '', 'g'))
+                    OR (data_source::text LIKE '%"link":"${escapedLink}"%')
+                )
+                LIMIT 1
+            `;
+            const result = await db.executeQuery(checkQuery);
+            return result && (Array.isArray(result) ? result.length > 0 : (result.rows?.length > 0));
+        }
+        
+        // Para outros tipos: verificar por título normalizado + source
+        const escapedTitle = article.title.replace(/'/g, "''");
+        const escapedSource = article.source.replace(/'/g, "''");
+        const checkQuery = `
+            SELECT id FROM blog_posts 
+            WHERE (
+                LOWER(REGEXP_REPLACE(title, '[^a-z0-9\\s]', '', 'g')) = LOWER(REGEXP_REPLACE('${escapedTitle}', '[^a-z0-9\\s]', '', 'g'))
+                AND source = '${escapedSource}'
+            )
+            LIMIT 1
+        `;
+        const result = await db.executeQuery(checkQuery);
+        return result && (Array.isArray(result) ? result.length > 0 : (result.rows?.length > 0));
+    } catch (error) {
+        console.warn('⚠️ Erro ao verificar duplicata:', error.message);
+        return false; // Em caso de erro, permitir salvar
+    }
+}
+
 // Gerar artigo baseado em dados
 function generateArticleFromData(data, type) {
     const now = new Date();
-    const articleId = `article-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const articleId = generateUniqueArticleId(data, type);
     
     // Extrair data de publicação real da fonte (se disponível)
     let sourcePublishedDate = null;
@@ -810,9 +923,14 @@ async function processAllSources() {
         const comexData = await fetchComexStatData();
         if (comexData) {
             const article = generateArticleFromData(comexData, 'comexstat');
-            await saveArticle(article);
-            articles.push(article);
-            console.log('✅ Artigo do ComexStat gerado');
+            const exists = await articleExists(article);
+            if (!exists) {
+                await saveArticle(article);
+                articles.push(article);
+                console.log('✅ Artigo do ComexStat gerado');
+            } else {
+                console.log('⏭️  Artigo do ComexStat já existe, ignorado');
+            }
         }
     } catch (error) {
         console.error('❌ Erro ao processar ComexStat:', error.message);
@@ -823,9 +941,14 @@ async function processAllSources() {
         const unData = await fetchUNComtradeData();
         if (unData) {
             const article = generateArticleFromData(unData, 'unComtrade');
-            await saveArticle(article);
-            articles.push(article);
-            console.log('✅ Artigo do UN Comtrade gerado');
+            const exists = await articleExists(article);
+            if (!exists) {
+                await saveArticle(article);
+                articles.push(article);
+                console.log('✅ Artigo do UN Comtrade gerado');
+            } else {
+                console.log('⏭️  Artigo do UN Comtrade já existe, ignorado');
+            }
         }
     } catch (error) {
         console.error('❌ Erro ao processar UN Comtrade:', error.message);
@@ -836,9 +959,14 @@ async function processAllSources() {
         const wbData = await fetchWorldBankData();
         if (wbData) {
             const article = generateArticleFromData(wbData, 'worldBank');
-            await saveArticle(article);
-            articles.push(article);
-            console.log('✅ Artigo do World Bank gerado');
+            const exists = await articleExists(article);
+            if (!exists) {
+                await saveArticle(article);
+                articles.push(article);
+                console.log('✅ Artigo do World Bank gerado');
+            } else {
+                console.log('⏭️  Artigo do World Bank já existe, ignorado');
+            }
         }
     } catch (error) {
         console.error('❌ Erro ao processar World Bank:', error.message);
@@ -874,6 +1002,13 @@ async function processAllSources() {
 
                         if (isRelevant) {
                             const article = generateArticleFromData(item, 'rss');
+                            
+                            // Verificar se artigo já existe (deduplicação)
+                            const exists = await articleExists(article);
+                            if (exists) {
+                                console.log(`⏭️  Artigo duplicado ignorado: "${article.title}"`);
+                                continue; // Pular este artigo
+                            }
                             
                             // Garantir que a data da fonte seja preservada
                             // Se o item tem pubDate, usar essa data como sourcePublishedDate
