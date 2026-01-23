@@ -1016,6 +1016,9 @@ async function processAllSources() {
     }
 
     // 4. RSS Feeds
+    console.log('📡 ============================================================');
+    console.log('📡 INICIANDO PROCESSAMENTO DE RSS FEEDS');
+    console.log('📡 ============================================================');
     try {
         // Fontes RSS ESPECÍFICAS para Supply Chain Global e Comércio Exterior
         // Priorizando fontes brasileiras que realmente têm feeds RSS funcionais
@@ -1085,9 +1088,18 @@ async function processAllSources() {
             // { url: 'https://www.cepea.org.br/br/rss-cepea.aspx', name: 'CEPEA', category: 'noticias' }, // XML malformado
         ];
 
+        console.log(`📡 Total de feeds RSS configurados: ${RSS_FEEDS.length}`);
+        let totalFeedsProcessed = 0;
+        let totalFeedsWithItems = 0;
+        let totalItemsFound = 0;
+        let totalItemsAccepted = 0;
+        let totalItemsRejected = 0;
+        
         for (const feed of RSS_FEEDS) {
             try {
-                console.log(`📡 Processando feed: ${feed.name} (${feed.url})`);
+                totalFeedsProcessed++;
+                console.log(`📡 [${totalFeedsProcessed}/${RSS_FEEDS.length}] Processando feed: ${feed.name}`);
+                console.log(`   🔗 URL: ${feed.url}`);
                 const feedData = await fetchRSSFeed(feed.url);
                 if (!feedData) {
                     console.warn(`   ⚠️ Feed ${feed.name} não retornou dados (feedData é null)`);
@@ -1096,9 +1108,12 @@ async function processAllSources() {
                 let acceptedCount = 0;
                 let rejectedCount = 0;
                 if (feedData && feedData.items && feedData.items.length > 0) {
+                    totalFeedsWithItems++;
+                    totalItemsFound += feedData.items.length;
                     console.log(`   ✅ ${feedData.items.length} itens encontrados no feed ${feed.name}`);
                     // Processar os 20 primeiros itens mais recentes de cada feed (aumentado para mais conteúdo)
                     const recentItems = feedData.items.slice(0, 20);
+                    console.log(`   🔄 Processando ${recentItems.length} itens mais recentes...`);
                     for (const item of recentItems) {
                         // ============================================================
                         // MODELO EDITORIAL OLV - FILTRO BASEADO EM TEMAS MACRO
@@ -1318,17 +1333,22 @@ async function processAllSources() {
                         // Se não é relevante, REJEITAR
                         if (!isRelevant) {
                             rejectedCount++;
-                            console.log(`⏭️  Artigo rejeitado: "${item.title?.substring(0, 60)}..." (sem temas relevantes)`);
+                            totalItemsRejected++;
+                            // Log apenas a cada 5 rejeições para não poluir muito
+                            if (rejectedCount % 5 === 0 || rejectedCount <= 3) {
+                                console.log(`   ⏭️  [${rejectedCount}] Artigo rejeitado: "${item.title?.substring(0, 60)}..." (sem temas relevantes)`);
+                            }
                             continue; // Pular este artigo
                         }
                         
                         acceptedCount++;
+                        totalItemsAccepted++;
                         const reason = hasTechnicalTheme ? 'tema técnico' : 
                                       hasMacroTheme ? 'tema macro' : 
                                       isVeryTrustedBrazilian ? 'fonte confiável BR' : 
                                       isVeryTrustedInternational ? 'fonte confiável INT' : 
                                       'região estratégica + economia';
-                        console.log(`✅ Artigo aceito: "${item.title?.substring(0, 60)}..." (${reason})`);
+                        console.log(`   ✅ [${acceptedCount}] Artigo aceito: "${item.title?.substring(0, 60)}..." (${reason})`);
                         
                         // ============================================================
                         // CAMADA 2: PROCESSAR E CLASSIFICAR COMO NOTÍCIA
@@ -1500,13 +1520,28 @@ async function processAllSources() {
                 }
                 
                 console.log(`   📊 Feed ${feed.name}: ${acceptedCount} aceitos, ${rejectedCount} rejeitados`);
+                totalItemsAccepted += acceptedCount;
+                totalItemsRejected += rejectedCount;
             } catch (feedError) {
                 console.error(`❌ Erro ao processar feed ${feed.name}:`, feedError.message);
                 console.error('Stack:', feedError.stack);
             }
         }
+        
+        // Resumo final do processamento RSS
+        console.log('📡 ============================================================');
+        console.log('📡 RESUMO DO PROCESSAMENTO RSS');
+        console.log('📡 ============================================================');
+        console.log(`   📊 Feeds processados: ${totalFeedsProcessed}/${RSS_FEEDS.length}`);
+        console.log(`   ✅ Feeds com itens: ${totalFeedsWithItems}`);
+        console.log(`   📰 Total de itens encontrados: ${totalItemsFound}`);
+        console.log(`   ✅ Itens aceitos: ${totalItemsAccepted}`);
+        console.log(`   ⏭️  Itens rejeitados: ${totalItemsRejected}`);
+        console.log(`   📈 Taxa de aceitação: ${totalItemsFound > 0 ? ((totalItemsAccepted / totalItemsFound) * 100).toFixed(1) : 0}%`);
+        console.log('📡 ============================================================');
     } catch (error) {
         console.error('❌ Erro ao processar RSS Feeds:', error.message);
+        console.error('Stack:', error.stack);
     }
 
     // 5. Criar artigos de exemplo para outras categorias (se não houver)
