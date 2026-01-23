@@ -142,8 +142,9 @@ module.exports = async (req, res) => {
                 DELETE FROM blog_posts
                 WHERE id IN (${idsToDelete.map(id => `'${id.replace(/'/g, "''")}'`).join(',')})
             `;
-            const result = await neon(deleteDuplicatesQuery);
-            duplicatesRemoved = result.rowCount || 0;
+            const result = await db.executeQuery(deleteDuplicatesQuery);
+            const rowCount = Array.isArray(result) ? result.length : (result?.rowCount || 0);
+            duplicatesRemoved += rowCount;
         }
         
         res.status(200).json({ 
