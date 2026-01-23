@@ -16,9 +16,15 @@ try {
 }
 
 module.exports = async (req, res) => {
+    // Verificar se é chamada do cron (Vercel Cron pode usar GET ou POST)
+    const isCronCall = req.headers['x-vercel-cron'] || 
+                       req.headers['cron-secret'] || 
+                       req.query.secret === process.env.VERCEL_CRON_SECRET ||
+                       req.method === 'GET'; // Vercel Cron pode usar GET
+    
     // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     // Handle preflight
@@ -27,10 +33,17 @@ module.exports = async (req, res) => {
         return;
     }
 
-    // Only POST allowed
-    if (req.method !== 'POST') {
+    // Permitir POST e GET (GET para cron do Vercel)
+    if (req.method !== 'POST' && req.method !== 'GET') {
         res.status(405).json({ error: 'Method not allowed' });
         return;
+    }
+    
+    // Log quando chamado pelo cron
+    if (isCronCall) {
+        console.log('⏰ Processamento iniciado pelo Vercel Cron');
+    } else {
+        console.log('🔧 Processamento iniciado manualmente');
     }
 
     try {
