@@ -67,8 +67,31 @@
     <section class="content-section" style="padding: 40px 0; background: var(--bg-secondary);">
         <div class="container">
             <div style="max-width: 600px; margin: 0 auto; background: var(--bg-primary); padding: 40px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-                <h2 style="text-align: center; margin-bottom: 10px; color: var(--accent-primary);">Agende Seu Diagnóstico Gratuito</h2>
-                <p style="text-align: center; color: var(--text-secondary); margin-bottom: 30px;">Preencha o formulário e nossa equipe entrará em contato em até 24 horas.</p>
+                <h2 style="text-align: center; margin-bottom: 10px; color: var(--accent-primary);">Identifique os Principais Desafios da Sua Empresa</h2>
+                <p style="text-align: center; color: var(--text-secondary); margin-bottom: 20px; font-size: 1.1rem;">
+                    <strong>Como executivo ou empresário, você se preocupa com:</strong>
+                </p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 30px;">
+                    <div style="text-align: center; padding: 16px; background: var(--bg-secondary); border-radius: 12px;">
+                        <i class="fas fa-dollar-sign" style="font-size: 2rem; color: var(--accent-primary); margin-bottom: 8px;"></i>
+                        <p style="margin: 0; font-weight: 600; color: var(--text-primary);">Custos Ocultos</p>
+                    </div>
+                    <div style="text-align: center; padding: 16px; background: var(--bg-secondary); border-radius: 12px;">
+                        <i class="fas fa-shield-alt" style="font-size: 2rem; color: var(--accent-primary); margin-bottom: 8px;"></i>
+                        <p style="margin: 0; font-weight: 600; color: var(--text-primary);">Compliance</p>
+                    </div>
+                    <div style="text-align: center; padding: 16px; background: var(--bg-secondary); border-radius: 12px;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: var(--accent-primary); margin-bottom: 8px;"></i>
+                        <p style="margin: 0; font-weight: 600; color: var(--text-primary);">Riscos</p>
+                    </div>
+                    <div style="text-align: center; padding: 16px; background: var(--bg-secondary); border-radius: 12px;">
+                        <i class="fas fa-chart-line" style="font-size: 2rem; color: var(--accent-primary); margin-bottom: 8px;"></i>
+                        <p style="margin: 0; font-weight: 600; color: var(--text-primary);">Eficiência</p>
+                    </div>
+                </div>
+                <p style="text-align: center; color: var(--text-secondary); margin-bottom: 30px;">
+                    Preencha o formulário abaixo e nossa equipe identificará os principais desafios da sua empresa e como a OLV pode ajudar. Entraremos em contato em até 24 horas.
+                </p>
                 
                 <form class="contato-form" onsubmit="trackConversion('landing_page_form_submit', {'form_type': 'diagnostico_gratis', 'page_path': window.location.pathname});">
                     <div class="form-group">
@@ -86,6 +109,48 @@
                     <div class="form-group">
                         <label for="empresa">Empresa *</label>
                         <input type="text" id="empresa" name="empresa" placeholder="Nome da sua empresa" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cargo">Cargo/Função *</label>
+                        <select id="cargo" name="cargo" required style="width: 100%; padding: 12px; border: 2px solid var(--border-color); background: var(--card-bg); color: var(--text-primary); border-radius: 8px; font-size: 1rem;">
+                            <option value="">Selecione seu cargo</option>
+                            <option value="CEO/Presidente">CEO/Presidente</option>
+                            <option value="Diretor">Diretor</option>
+                            <option value="Gerente">Gerente</option>
+                            <option value="Coordenador">Coordenador</option>
+                            <option value="Analista">Analista</option>
+                            <option value="Empresário">Empresário</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="principais_desafios">Quais são os principais desafios da sua empresa? (Selecione todos que se aplicam) *</label>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 8px;">
+                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px; background: var(--bg-secondary); border-radius: 8px; cursor: pointer;">
+                                <input type="checkbox" name="desafios[]" value="custos_ocultos" style="margin: 0;">
+                                <span>Custos Ocultos</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px; background: var(--bg-secondary); border-radius: 8px; cursor: pointer;">
+                                <input type="checkbox" name="desafios[]" value="compliance" style="margin: 0;">
+                                <span>Compliance</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px; background: var(--bg-secondary); border-radius: 8px; cursor: pointer;">
+                                <input type="checkbox" name="desafios[]" value="riscos" style="margin: 0;">
+                                <span>Gestão de Riscos</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px; background: var(--bg-secondary); border-radius: 8px; cursor: pointer;">
+                                <input type="checkbox" name="desafios[]" value="fornecedores" style="margin: 0;">
+                                <span>Gestão de Fornecedores</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px; background: var(--bg-secondary); border-radius: 8px; cursor: pointer;">
+                                <input type="checkbox" name="desafios[]" value="tco" style="margin: 0;">
+                                <span>Controle de TCO</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px; background: var(--bg-secondary); border-radius: 8px; cursor: pointer;">
+                                <input type="checkbox" name="desafios[]" value="expansao" style="margin: 0;">
+                                <span>Expansão Internacional</span>
+                            </label>
+                        </div>
                     </div>
                     <input type="hidden" name="interesse" value="Diagnóstico Gratuito de Comércio Exterior">
                     <input type="hidden" name="origem" value="landing_page_diagnostico">
