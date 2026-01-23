@@ -49,21 +49,55 @@ async function executeQuery(query, params = []) {
         throw new Error('Banco de dados não configurado');
     }
 
-    // Neon usa função direta com string SQL
-    if (typeof sql === 'function' && query.includes('CREATE TABLE') || query.includes('SELECT') || query.includes('INSERT') || query.includes('UPDATE') || query.includes('DELETE')) {
-        if (params && params.length > 0) {
-            // Query parametrizada
-            let queryStr = query;
-            params.forEach((param, index) => {
-                queryStr = queryStr.replace(`$${index + 1}`, typeof param === 'string' ? `'${param.replace(/'/g, "''")}'` : param);
-            });
-            return await sql(queryStr);
-        } else {
-            return await sql(query);
+    // Detectar se é Neon (função) ou Vercel Postgres (tagged template)
+    const isNeon = typeof sql === 'function' && !sql.unsafe;
+    
+    if (isNeon) {
+        // Neon: usar sql template tag ou função direta
+        try {
+            // Tentar usar template tag do Neon (se disponível)
+            if (sql.unsafe) {
+                // Usar unsafe para queries dinâmicas
+                if (params && params.length > 0) {
+                    // Substituir parâmetros manualmente (apenas para queries simples)
+                    let queryStr = query;
+                    params.forEach((param, index) => {
+                        const placeholder = `$${index + 1}`;
+                        const value = typeof param === 'string' 
+                            ? `'${param.replace(/'/g, "''")}'` 
+                            : (param === null ? 'NULL' : param);
+                        queryStr = queryStr.replace(placeholder, value);
+                    });
+                    return await sql(queryStr);
+                } else {
+                    return await sql(query);
+                }
+            } else {
+                // Usar função direta do Neon
+                if (params && params.length > 0) {
+                    // Neon aceita array de parâmetros como segundo argumento
+                    return await sql(query, params);
+                } else {
+                    return await sql(query);
+                }
+            }
+        } catch (error) {
+            console.error('Erro ao executar query Neon:', error);
+            throw error;
         }
     } else {
         // Vercel Postgres usa tagged template
-        return await sql(query, ...params);
+        // Converter query string para template tag
+        if (params && params.length > 0) {
+            // Criar template tag dinâmico
+            const template = query.replace(/\$\d+/g, (match) => {
+                const index = parseInt(match.substring(1)) - 1;
+                return params[index] !== undefined ? params[index] : match;
+            });
+            return await sql.unsafe(template);
+        } else {
+            return await sql.unsafe(query);
+        }
     }
 }
 
@@ -123,6 +157,7 @@ async function initDatabase() {
 // Salvar artigo no banco
 async function saveArticleToDB(article) {
     if (!hasPostgres || !sql) {
+        console.log('⚠️ Banco não disponível para saveArticleToDB');
         return null;
     }
 
@@ -130,44 +165,90 @@ async function saveArticleToDB(article) {
         const now = new Date().toISOString();
         const dataSourceJson = JSON.stringify(article.dataSource || {});
         
-        const insertQuery = `
-            INSERT INTO blog_posts (
-                id, title, excerpt, content, category,
-                date_published, date_modified, icon, read_time, source, data_source, updated_at
-            )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-            ON CONFLICT (id) 
-            DO UPDATE SET
-                title = EXCLUDED.title,
-                excerpt = EXCLUDED.excerpt,
-                content = EXCLUDED.content,
-                category = EXCLUDED.category,
-                date_modified = EXCLUDED.date_modified,
-                icon = EXCLUDED.icon,
-                read_time = EXCLUDED.read_time,
-                source = EXCLUDED.source,
-                data_source = EXCLUDED.data_source,
-                updated_at = EXCLUDED.updated_at
-        `;
+        // Escapar strings para SQL seguro
+        const escapeString = (str) => {
+            if (str === null || str === undefined) return 'NULL';
+            return `'${String(str).replace(/'/g, "''")}'`;
+        };
+        
+        const isNeon = typeof sql === 'function' && !sql.unsafe;
+        
+        if (isNeon) {
+            // Neon: usar query direta com valores escapados
+            const query = `
+                INSERT INTO blog_posts (
+                    id, title, excerpt, content, category,
+                    date_published, date_modified, icon, read_time, source, data_source, updated_at
+                )
+                VALUES (
+                    ${escapeString(article.id)},
+                    ${escapeString(article.title)},
+                    ${escapeString(article.excerpt || '')},
+                    ${escapeString(article.content)},
+                    ${escapeString(article.category)},
+                    ${escapeString(article.datePublished)},
+                    ${escapeString(article.dateModified || article.datePublished)},
+                    ${escapeString(article.icon || 'fas fa-chart-line')},
+                    ${article.readTime || 5},
+                    ${escapeString(article.source || '')},
+                    ${escapeString(dataSourceJson)},
+                    ${escapeString(now)}
+                )
+                ON CONFLICT (id) 
+                DO UPDATE SET
+                    title = EXCLUDED.title,
+                    excerpt = EXCLUDED.excerpt,
+                    content = EXCLUDED.content,
+                    category = EXCLUDED.category,
+                    date_modified = EXCLUDED.date_modified,
+                    icon = EXCLUDED.icon,
+                    read_time = EXCLUDED.read_time,
+                    source = EXCLUDED.source,
+                    data_source = EXCLUDED.data_source,
+                    updated_at = EXCLUDED.updated_at
+            `;
+            await sql(query);
+        } else {
+            // Vercel Postgres: usar template tag
+            await sql`
+                INSERT INTO blog_posts (
+                    id, title, excerpt, content, category,
+                    date_published, date_modified, icon, read_time, source, data_source, updated_at
+                )
+                VALUES (
+                    ${article.id},
+                    ${article.title},
+                    ${article.excerpt || ''},
+                    ${article.content},
+                    ${article.category},
+                    ${article.datePublished},
+                    ${article.dateModified || article.datePublished},
+                    ${article.icon || 'fas fa-chart-line'},
+                    ${article.readTime || 5},
+                    ${article.source || ''},
+                    ${dataSourceJson},
+                    ${now}
+                )
+                ON CONFLICT (id) 
+                DO UPDATE SET
+                    title = EXCLUDED.title,
+                    excerpt = EXCLUDED.excerpt,
+                    content = EXCLUDED.content,
+                    category = EXCLUDED.category,
+                    date_modified = EXCLUDED.date_modified,
+                    icon = EXCLUDED.icon,
+                    read_time = EXCLUDED.read_time,
+                    source = EXCLUDED.source,
+                    data_source = EXCLUDED.data_source,
+                    updated_at = EXCLUDED.updated_at
+            `;
+        }
 
-        await executeQuery(insertQuery, [
-            article.id,
-            article.title,
-            article.excerpt || '',
-            article.content,
-            article.category,
-            article.datePublished,
-            article.dateModified || article.datePublished,
-            article.icon || 'fas fa-chart-line',
-            article.readTime || 5,
-            article.source || '',
-            dataSourceJson,
-            now
-        ]);
-
+        console.log(`✅ Artigo salvo no banco: ${article.id}`);
         return article;
     } catch (error) {
         console.error('❌ Erro ao salvar artigo no banco:', error);
+        console.error('Stack:', error.stack);
         throw error;
     }
 }
@@ -175,23 +256,42 @@ async function saveArticleToDB(article) {
 // Carregar todos os posts do banco
 async function loadPostsFromDB(limit = 100) {
     if (!hasPostgres || !sql) {
+        console.log('⚠️ Banco não disponível para loadPostsFromDB');
         return null;
     }
 
     try {
-        const query = `
-            SELECT 
-                id, title, excerpt, content, category,
-                date_published, date_modified, icon, read_time, source, data_source
-            FROM blog_posts
-            ORDER BY date_published DESC
-            LIMIT $1
-        `;
-
-        const result = await executeQuery(query, [limit]);
+        // Neon aceita parâmetros diretamente
+        const isNeon = typeof sql === 'function' && !sql.unsafe;
+        
+        let result;
+        if (isNeon) {
+            // Neon: usar query direta com parâmetros
+            const query = `
+                SELECT 
+                    id, title, excerpt, content, category,
+                    date_published, date_modified, icon, read_time, source, data_source
+                FROM blog_posts
+                ORDER BY date_published DESC
+                LIMIT ${limit}
+            `;
+            result = await sql(query);
+        } else {
+            // Vercel Postgres: usar template tag
+            result = await sql`
+                SELECT 
+                    id, title, excerpt, content, category,
+                    date_published, date_modified, icon, read_time, source, data_source
+                FROM blog_posts
+                ORDER BY date_published DESC
+                LIMIT ${limit}
+            `;
+        }
 
         // Converter para formato esperado
         const rows = Array.isArray(result) ? result : (result.rows || []);
+        
+        console.log(`✅ Carregados ${rows.length} posts do banco`);
         
         return rows.map(row => ({
             id: row.id,
@@ -208,6 +308,7 @@ async function loadPostsFromDB(limit = 100) {
         }));
     } catch (error) {
         console.error('❌ Erro ao carregar posts do banco:', error);
+        console.error('Stack:', error.stack);
         return null;
     }
 }
