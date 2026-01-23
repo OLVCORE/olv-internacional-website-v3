@@ -286,15 +286,24 @@ async function saveArticle(article) {
     // Tentar salvar no banco primeiro (se disponível)
     if (db && db.hasPostgres) {
         try {
+            console.log(`💾 Tentando salvar artigo no banco: ${article.id}`);
             const saved = await db.saveArticleToDB(article);
             if (saved) {
-                // Limpar posts antigos periodicamente
-                await db.cleanupOldPosts(100);
+                console.log(`✅ Artigo salvo no banco: ${article.id}`);
+                // Limpar posts antigos periodicamente (apenas a cada 10 artigos para performance)
+                if (Math.random() < 0.1) {
+                    await db.cleanupOldPosts(100);
+                }
                 return saved;
+            } else {
+                console.warn('⚠️ saveArticleToDB retornou null, usando fallback');
             }
         } catch (error) {
             console.warn('⚠️ Erro ao salvar no banco, usando fallback de arquivo:', error.message);
+            console.error('Stack:', error.stack);
         }
+    } else {
+        console.log('⚠️ Banco não disponível para salvar, usando arquivo');
     }
 
     // Fallback: salvar em arquivo
@@ -336,22 +345,33 @@ async function loadPosts() {
     // Tentar carregar do banco primeiro (se disponível)
     if (db && db.hasPostgres) {
         try {
+            console.log('🔄 Tentando carregar posts do banco...');
             const posts = await db.loadPostsFromDB(100);
-            if (posts !== null) {
+            if (posts !== null && Array.isArray(posts)) {
+                console.log(`✅ Carregados ${posts.length} posts do banco`);
                 return posts;
+            } else {
+                console.log('⚠️ Banco retornou null ou não é array, usando fallback');
             }
         } catch (error) {
             console.warn('⚠️ Erro ao carregar do banco, usando fallback de arquivo:', error.message);
+            console.error('Stack:', error.stack);
         }
+    } else {
+        console.log('⚠️ Banco não disponível (db:', !!db, 'hasPostgres:', db?.hasPostgres, ')');
     }
 
     // Fallback: carregar de arquivo
+    console.log('🔄 Tentando carregar posts de arquivo...');
     await ensureBlogDataDir();
     
     try {
         const data = await fs.readFile(POSTS_FILE, 'utf8');
-        return JSON.parse(data);
+        const posts = JSON.parse(data);
+        console.log(`✅ Carregados ${posts.length} posts de arquivo`);
+        return posts;
     } catch (error) {
+        console.log('⚠️ Arquivo não encontrado ou vazio');
         return [];
     }
 }
