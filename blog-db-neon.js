@@ -163,12 +163,30 @@ async function saveArticleToDB(article) {
 
     try {
         const now = new Date().toISOString();
-        const dataSourceJson = JSON.stringify(article.dataSource || {});
+        // Garantir que dataSource seja um objeto válido antes de stringify
+        let dataSourceObj = {};
+        if (article.dataSource) {
+            if (typeof article.dataSource === 'object') {
+                dataSourceObj = article.dataSource;
+            } else if (typeof article.dataSource === 'string') {
+                try {
+                    dataSourceObj = JSON.parse(article.dataSource);
+                if (!dataSourceObj || typeof dataSourceObj !== 'object') {
+                    dataSourceObj = {};
+                }
+                } catch (e) {
+                    dataSourceObj = {};
+                }
+            }
+        }
+        const dataSourceJson = JSON.stringify(dataSourceObj);
         
         // Escapar strings para SQL seguro
         const escapeString = (str) => {
             if (str === null || str === undefined) return 'NULL';
-            return `'${String(str).replace(/'/g, "''")}'`;
+            const strValue = String(str);
+            // Escapar aspas simples e barras
+            return `'${strValue.replace(/'/g, "''").replace(/\\/g, "\\\\")}'`;
         };
         
         const isNeon = typeof sql === 'function' && !sql.unsafe;
@@ -293,19 +311,43 @@ async function loadPostsFromDB(limit = 100) {
         
         console.log(`✅ Carregados ${rows.length} posts do banco`);
         
-        return rows.map(row => ({
-            id: row.id,
-            title: row.title,
-            excerpt: row.excerpt,
-            content: row.content,
-            category: row.category,
-            datePublished: row.date_published ? new Date(row.date_published).toISOString() : new Date().toISOString(),
-            dateModified: row.date_modified ? new Date(row.date_modified).toISOString() : new Date().toISOString(),
-            icon: row.icon,
-            readTime: row.read_time,
-            source: row.source,
-            dataSource: typeof row.data_source === 'string' ? JSON.parse(row.data_source) : (row.data_source || {})
-        }));
+        return rows.map(row => {
+            // Tratar data_source com segurança
+            let dataSource = {};
+            if (row.data_source) {
+                if (typeof row.data_source === 'string') {
+                    // Verificar se é JSON válido (não HTML)
+                    if (row.data_source.trim().startsWith('{') || row.data_source.trim().startsWith('[')) {
+                        try {
+                            dataSource = JSON.parse(row.data_source);
+                        } catch (parseError) {
+                            console.warn('⚠️ Erro ao fazer parse de data_source:', parseError.message);
+                            dataSource = {};
+                        }
+                    } else {
+                        // Se começa com <, provavelmente é HTML (erro)
+                        console.warn('⚠️ data_source parece ser HTML, ignorando');
+                        dataSource = {};
+                    }
+                } else if (typeof row.data_source === 'object') {
+                    dataSource = row.data_source;
+                }
+            }
+
+            return {
+                id: row.id,
+                title: row.title,
+                excerpt: row.excerpt,
+                content: row.content,
+                category: row.category,
+                datePublished: row.date_published ? new Date(row.date_published).toISOString() : new Date().toISOString(),
+                dateModified: row.date_modified ? new Date(row.date_modified).toISOString() : new Date().toISOString(),
+                icon: row.icon,
+                readTime: row.read_time,
+                source: row.source,
+                dataSource: dataSource
+            };
+        });
     } catch (error) {
         console.error('❌ Erro ao carregar posts do banco:', error);
         console.error('Stack:', error.stack);
@@ -337,6 +379,28 @@ async function loadPostFromDB(postId) {
         }
 
         const row = rows[0];
+        
+        // Tratar data_source com segurança
+        let dataSource = {};
+        if (row.data_source) {
+            if (typeof row.data_source === 'string') {
+                // Verificar se é JSON válido (não HTML)
+                if (row.data_source.trim().startsWith('{') || row.data_source.trim().startsWith('[')) {
+                    try {
+                        dataSource = JSON.parse(row.data_source);
+                    } catch (parseError) {
+                        console.warn('⚠️ Erro ao fazer parse de data_source:', parseError.message);
+                        dataSource = {};
+                    }
+                } else {
+                    console.warn('⚠️ data_source parece ser HTML, ignorando');
+                    dataSource = {};
+                }
+            } else if (typeof row.data_source === 'object') {
+                dataSource = row.data_source;
+            }
+        }
+
         return {
             id: row.id,
             title: row.title,
@@ -348,7 +412,7 @@ async function loadPostFromDB(postId) {
             icon: row.icon,
             readTime: row.read_time,
             source: row.source,
-            dataSource: typeof row.data_source === 'string' ? JSON.parse(row.data_source) : (row.data_source || {})
+            dataSource: dataSource
         };
     } catch (error) {
         console.error('❌ Erro ao carregar post do banco:', error);
