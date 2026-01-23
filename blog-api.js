@@ -1214,98 +1214,24 @@ async function processAllSources() {
                         const allText = `${titleLower} ${descLower} ${contentLower}`;
                         const linkLower = (item.link || '').toLowerCase();
                         
-                        // Verificar se tem palavra-chave primária
-                        const hasPrimaryKeyword = primaryKeywords.some(keyword => 
-                            allText.includes(keyword.toLowerCase())
+                        // ============================================================
+                        // CAMADA 1: COLETA AMPLA (aceitar fatos relevantes)
+                        // ============================================================
+                        
+                        // Verificar se tem tema editorial técnico (supply chain, logística, etc)
+                        const hasTechnicalTheme = editorialThemes.some(theme => 
+                            allText.includes(theme.toLowerCase())
                         );
                         
-                        // Verificar se tem palavra-chave secundária
-                        const hasSecondaryKeyword = secondaryKeywords.some(keyword => 
-                            allText.includes(keyword.toLowerCase())
+                        // Verificar se tem tema macro (geopolítica, acordos, tarifas, energia)
+                        const hasMacroTheme = macroThemes.some(theme => 
+                            allText.includes(theme.toLowerCase())
                         );
                         
                         // Verificar se vem de fonte confiável
                         const isFromTrustedSource = trustedSources.some(source => 
                             linkLower.includes(source.toLowerCase())
                         );
-                        
-                        // ACEITAR se:
-                        // 1. Tem palavra-chave primária (fortemente relacionado) - SEMPRE ACEITAR
-                        // 2. OU tem palavra-chave secundária E vem de fonte confiável - ACEITAR
-                        // 3. OU tem palavra-chave secundária E menciona países/regiões relevantes - ACEITAR
-                        // 4. OU vem de fonte brasileira confiável (Valor, MDIC, etc) E tem qualquer palavra relacionada - ACEITAR
-                        // 5. OU menciona commodities, oil, trade, export, import - ACEITAR (muito relevante)
-                        const isBrazilianSource = linkLower.includes('valor.com.br') || 
-                                                  linkLower.includes('mdic.gov.br') || 
-                                                  linkLower.includes('comexstat') ||
-                                                  linkLower.includes('receita.fazenda') ||
-                                                  linkLower.includes('portos.gov.br');
-                        
-                        const hasTradeRelated = allText.includes('trade') || 
-                                               allText.includes('export') || 
-                                               allText.includes('import') ||
-                                               allText.includes('commodit') ||
-                                               allText.includes('oil') ||
-                                               allText.includes('crude') ||
-                                               allText.includes('petroleum') ||
-                                               allText.includes('ethanol') ||
-                                               allText.includes('etanol') ||
-                                               allText.includes('soy') ||
-                                               allText.includes('soja') ||
-                                               allText.includes('corn') ||
-                                               allText.includes('milho') ||
-                                               allText.includes('sugar') ||
-                                               allText.includes('açúcar') ||
-                                               allText.includes('coffee') ||
-                                               allText.includes('café') ||
-                                               // NOVAS - Tópicos específicos
-                                               allText.includes('mercosul') ||
-                                               allText.includes('mercosur') ||
-                                               allText.includes('european union') ||
-                                               allText.includes('união europeia') ||
-                                               allText.includes('venezuela') ||
-                                               allText.includes('russia') ||
-                                               allText.includes('rússia') ||
-                                               allText.includes('tariff') ||
-                                               allText.includes('tarifa') ||
-                                               allText.includes('barrier') ||
-                                               allText.includes('barreira') ||
-                                               allText.includes('restriction') ||
-                                               allText.includes('restrição') ||
-                                               allText.includes('sanction') ||
-                                               allText.includes('sanção') ||
-                                               allText.includes('price') ||
-                                               allText.includes('preço');
-                        
-                        // Para fontes brasileiras confiáveis, ser MUITO mais permissivo
-                        // Aceitar quase tudo de Valor, MDIC, etc (são fontes especializadas)
-                        const isVeryTrustedBrazilian = linkLower.includes('valor.com.br') || 
-                                                      linkLower.includes('mdic.gov.br') ||
-                                                      linkLower.includes('comexstat');
-                        
-                        // Para fontes internacionais confiáveis (Bloomberg, Reuters), ser mais permissivo também
-                        const isVeryTrustedInternational = linkLower.includes('bloomberg.com') ||
-                                                          linkLower.includes('reuters.com') ||
-                                                          linkLower.includes('wto.org') ||
-                                                          linkLower.includes('iccwbo.org');
-                        
-                        // Verificar se menciona tópicos específicos mencionados pelo usuário
-                        const mentionsSpecificTopics = allText.includes('mercosul') ||
-                                                      allText.includes('mercosur') ||
-                                                      allText.includes('european union') ||
-                                                      allText.includes('união europeia') ||
-                                                      allText.includes('venezuela') ||
-                                                      allText.includes('russia') ||
-                                                      allText.includes('rússia') ||
-                                                      allText.includes('china') ||
-                                                      allText.includes('tariff') ||
-                                                      allText.includes('tarifa') ||
-                                                      allText.includes('barrier') ||
-                                                      allText.includes('barreira') ||
-                                                      allText.includes('restriction') ||
-                                                      allText.includes('restrição') ||
-                                                      allText.includes('sanction') ||
-                                                      allText.includes('sanção');
                         
                         // Fontes muito confiáveis (aceitar quase tudo delas)
                         const isVeryTrustedBrazilian = linkLower.includes('valor.com.br') || 
