@@ -290,6 +290,13 @@ function initAccordions() {
             const hasCheckedItem = Array.from(checkboxes).some(cb => cb.checked);
             
             if (hasCheckedItem) {
+                // Mostrar botão quando há itens marcados
+                if (submitBtn) {
+                    submitBtn.style.opacity = '1';
+                    submitBtn.style.visibility = 'visible';
+                    submitBtn.style.transform = 'translateY(0)';
+                }
+                
                 updateOriginalPosition();
                 
                 // Verificar se o botão original está visível na tela
@@ -305,7 +312,12 @@ function initAccordions() {
                     submitBtn.classList.remove('floating');
                 }
             } else {
-                // Nenhum checkbox marcado, remover flutuante
+                // Nenhum checkbox marcado, ocultar botão
+                if (submitBtn) {
+                    submitBtn.style.opacity = '0';
+                    submitBtn.style.visibility = 'hidden';
+                    submitBtn.style.transform = 'translateY(20px)';
+                }
                 submitBtn.classList.remove('floating');
             }
         }

@@ -319,15 +319,15 @@
                                 Identifique os principais desafios da sua empresa e descubra como a OLV pode ser seu aliado estratégico.
                             </p>
                         </div>
-                        <a href="diagnostico-gratis.html" 
+                        <a href="#diagnostico-checklist" 
                            class="btn btn-executive-cta" 
                            style="background: white; color: var(--accent-primary); padding: 16px 32px; font-size: 1.1rem; font-weight: 700; border-radius: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 12px; white-space: nowrap; box-shadow: 0 4px 16px rgba(0,0,0,0.2); transition: all 0.3s ease;"
                            onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.3)';"
                            onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 16px rgba(0,0,0,0.2)';"
-                           onclick="trackConversion('cta_executive_diagnostico', {'cta_location': 'hero', 'cta_text': 'Identificar Principais Desafios'});">
+                           onclick="event.preventDefault(); trackConversion('cta_executive_diagnostico', {'cta_location': 'hero', 'cta_text': 'Identificar Principais Desafios'}); document.getElementById('diagnostico-checklist').scrollIntoView({behavior: 'smooth', block: 'start'});">
                             <i class="fas fa-clipboard-check" style="font-size: 1.2rem;"></i>
                             <span>Identificar Principais Desafios</span>
-                            <i class="fas fa-arrow-right"></i>
+                            <i class="fas fa-arrow-down"></i>
                         </a>
                     </div>
                 </div>
@@ -454,7 +454,7 @@
     </section>
 
     <!-- DIAGNÓSTICO -->
-    <section class="diagnostico">
+    <section class="diagnostico" id="diagnostico-checklist">
         <div class="container">
             <h2 class="section-title">Você se identifica com isso?</h2>
             <div class="checklist-container">

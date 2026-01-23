@@ -2838,6 +2838,10 @@ section {
 /* Botão flutuante para checklist */
 #checklistSubmitBtn {
     transition: all 0.3s ease;
+    /* Botão inicialmente oculto - aparece quando itens são marcados */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
 }
 
 #checklistSubmitBtn.floating {
