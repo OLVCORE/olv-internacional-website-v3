@@ -19,7 +19,6 @@ module.exports = async (req, res) => {
     // Verificar se é chamada do cron (Vercel Cron pode usar GET ou POST)
     const isCronCall = req.headers['x-vercel-cron'] || 
                        req.headers['cron-secret'] || 
-                       req.query.secret === process.env.VERCEL_CRON_SECRET ||
                        req.method === 'GET'; // Vercel Cron pode usar GET
     
     // CORS headers
