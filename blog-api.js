@@ -548,13 +548,18 @@ function generateArticleFromData(data, type) {
             article.content = generateRSSContent(data);
             article._needsTranslation = false; // Flag para indicar se precisa tradução
             
-            // Detectar se está em inglês (verificação simples)
-            const isEnglish = detectLanguage(originalTitle + ' ' + originalExcerpt);
+            // Detectar se está em inglês (verificação mais robusta)
+            const combinedText = (originalTitle + ' ' + originalExcerpt).toLowerCase();
+            const isEnglish = detectLanguage(combinedText);
+            
             if (isEnglish) {
                 article._needsTranslation = true;
                 article._originalTitle = originalTitle;
                 article._originalExcerpt = originalExcerpt;
                 article._originalContent = originalContent;
+                console.log(`🌐 Artigo detectado como inglês: "${originalTitle.substring(0, 50)}..."`);
+            } else {
+                console.log(`🇧🇷 Artigo detectado como português (ou outro idioma): "${originalTitle.substring(0, 50)}..."`);
             }
             
             // Imagem: priorizar data.image (já extraída), senão tentar extrair novamente
@@ -943,40 +948,115 @@ async function processAllSources() {
 
     // 4. RSS Feeds
     try {
+        // Fontes RSS ESPECÍFICAS para Supply Chain Global e Comércio Exterior
         const RSS_FEEDS = [
-            { url: 'https://www.valor.com.br/rss', name: 'Valor Econômico' },
-            { url: 'https://exame.com/feed/', name: 'Exame' },
-            { url: 'https://agenciabrasil.ebc.com.br/rss', name: 'Agência Brasil' },
-            { url: 'https://www.reuters.com/rssFeed/worldNews', name: 'Reuters' },
-            // Novas fontes adicionadas
-            { url: 'https://www.bcb.gov.br/rss/noticias/moedaestabilidadefin.xml', name: 'Banco Central do Brasil' },
-            { url: 'https://www.iccwbo.org/news-publications/news/rss/', name: 'Câmara de Comércio Internacional' },
-            { url: 'https://feeds.bloomberg.com/markets/news.rss', name: 'Bloomberg Markets' }
+            // Fontes Brasileiras Específicas
+            { url: 'https://www.valor.com.br/rss', name: 'Valor Econômico', category: 'noticias' },
+            { url: 'https://www.mdic.gov.br/index.php/comercio-exterior/noticias', name: 'MDIC - Comércio Exterior', category: 'noticias' },
+            
+            // Fontes Internacionais Específicas
+            { url: 'https://www.reuters.com/rssFeed/worldNews', name: 'Reuters World News', category: 'noticias' },
+            { url: 'https://www.reuters.com/rssFeed/businessNews', name: 'Reuters Business', category: 'noticias' },
+            { url: 'https://feeds.bloomberg.com/markets/news.rss', name: 'Bloomberg Markets', category: 'noticias' },
+            { url: 'https://www.iccwbo.org/news-publications/news/rss/', name: 'Câmara de Comércio Internacional', category: 'noticias' },
+            
+            // Fontes de Logística e Supply Chain
+            { url: 'https://www.logisticsmgmt.com/rss', name: 'Logistics Management', category: 'noticias' },
+            { url: 'https://www.supplychaindive.com/feed/', name: 'Supply Chain Dive', category: 'noticias' },
+            { url: 'https://www.joc.com/rss', name: 'Journal of Commerce', category: 'noticias' },
+            
+            // Fontes de Comércio Exterior
+            { url: 'https://www.wto.org/english/news_e/rss_e/rss_e.xml', name: 'WTO News', category: 'noticias' },
+            { url: 'https://www.bcb.gov.br/rss/noticias/moedaestabilidadefin.xml', name: 'Banco Central do Brasil', category: 'noticias' }
         ];
 
         for (const feed of RSS_FEEDS) {
             try {
+                console.log(`📡 Processando feed: ${feed.name} (${feed.url})`);
                 const feedData = await fetchRSSFeed(feed.url);
                 if (feedData && feedData.items && feedData.items.length > 0) {
-                    // Processar os 15 primeiros itens mais recentes de cada feed (aumentado para mais conteúdo)
+                    console.log(`   ✅ ${feedData.items.length} itens encontrados no feed ${feed.name}`);
+                    // Processar os 15 primeiros itens mais recentes de cada feed
                     const recentItems = feedData.items.slice(0, 15);
                     for (const item of recentItems) {
-                        // Filtrar apenas notícias relevantes (filtro mais permissivo para capturar mais conteúdo)
-                        const keywords = ['comércio', 'exportação', 'importação', 'trade', 'economia', 'brasil', 'internacional', 'mercado', 'negócio', 'empresa', 'indústria', 'negócios', 'business', 'commercial', 'export', 'import', 'supply', 'chain', 'logística', 'logistics', 'aduana', 'customs', 'frete', 'shipping', 'cargo', 'mercado', 'market', 'financeiro', 'financial', 'petróleo', 'oil', 'commodities', 'commodity', 'dólar', 'dollar', 'câmbio', 'exchange', 'taxa', 'rate', 'juros', 'interest', 'inflação', 'inflation', 'PIB', 'GDP', 'crescimento', 'growth'];
+                        // FILTRO MUITO ESPECÍFICO: Apenas notícias relacionadas a Supply Chain Global e Comércio Exterior
+                        // Palavras-chave PRIMÁRIAS (obrigatórias - pelo menos uma deve estar presente)
+                        const primaryKeywords = [
+                            // Supply Chain & Logística
+                            'supply chain', 'supply-chain', 'cadeia de suprimentos', 'cadeia de abastecimento',
+                            'logística', 'logistics', 'logístico', 'logistic',
+                            'frete', 'freight', 'fretamento', 'shipping', 'transporte', 'transport',
+                            'frete aéreo', 'air freight', 'frete marítimo', 'sea freight', 'maritime', 'marítimo',
+                            'frete rodoviário', 'road freight', 'frete ferroviário', 'rail freight', 'railway',
+                            'armazenagem', 'warehouse', 'warehousing', 'armazém', 'estoque', 'inventory',
+                            'distribuição', 'distribution', 'distribuidor', 'distributor',
+                            
+                            // Comércio Exterior
+                            'comércio exterior', 'foreign trade', 'comércio internacional', 'international trade',
+                            'exportação', 'export', 'exportar', 'exporting', 'exportador', 'exporter',
+                            'importação', 'import', 'importar', 'importing', 'importador', 'importer',
+                            'compras internacionais', 'international procurement', 'procurement internacional',
+                            'expansão de mercado', 'market expansion', 'expansão internacional',
+                            'fornecedor internacional', 'international supplier', 'supplier global',
+                            'fornecedor qualificado', 'qualified supplier', 'supplier qualification',
+                            
+                            // Aduana & Regulamentação
+                            'aduana', 'customs', 'alfândega', 'despacho aduaneiro', 'customs clearance',
+                            'barreira comercial', 'trade barrier', 'barreiras comerciais', 'commercial barriers',
+                            'tarifa', 'tariff', 'tarifas', 'tariffs', 'imposto de importação', 'import tax',
+                            'regime aduaneiro', 'customs regime', 'drawback', 'ex-tarifário', 'recof',
+                            
+                            // Acordos & Negociações
+                            'acordo comercial', 'trade agreement', 'acordos comerciais', 'trade agreements',
+                            'negociação internacional', 'international negotiation', 'negociações comerciais',
+                            'bloco comercial', 'trade bloc', 'mercado comum', 'common market',
+                            'Mercosul', 'Mercosur', 'União Europeia', 'European Union', 'EU',
+                            'NAFTA', 'USMCA', 'CPTPP', 'RCEP',
+                            
+                            // Transporte Internacional
+                            'transporte internacional', 'international transport', 'transporte global',
+                            'navegação', 'navigation', 'navio', 'ship', 'vessel', 'container', 'conteiner',
+                            'porto', 'port', 'terminal', 'terminal portuário', 'port terminal',
+                            'aeroporto', 'airport', 'carga aérea', 'air cargo', 'carga marítima', 'sea cargo',
+                            
+                            // Incoterms & Documentação
+                            'incoterm', 'incoterms', 'FOB', 'CIF', 'EXW', 'DDP', 'DAP',
+                            'documentação', 'documentation', 'documento de transporte', 'transport document',
+                            'conhecimento de embarque', 'bill of lading', 'B/L', 'BL',
+                            
+                            // TCO & Custos
+                            'TCO', 'total cost of ownership', 'custo total de propriedade',
+                            'custo logístico', 'logistics cost', 'custo de importação', 'import cost',
+                            'custo de exportação', 'export cost'
+                        ];
+                        
+                        // Palavras-chave SECUNDÁRIAS (devem aparecer em combinação com primárias)
+                        const secondaryKeywords = [
+                            'internacional', 'international', 'global', 'global',
+                            'mercado', 'market', 'negócio', 'business',
+                            'empresa', 'company', 'empresarial', 'corporate'
+                        ];
+                        
                         const titleLower = (item.title || '').toLowerCase();
                         const descLower = (item.description || item.contentSnippet || '').toLowerCase();
                         const contentLower = (item.content || '').toLowerCase();
+                        const allText = `${titleLower} ${descLower} ${contentLower}`;
                         
-                        // Verificar em título, descrição E conteúdo (mais permissivo)
-                        const isRelevant = keywords.some(keyword => 
-                            titleLower.includes(keyword) || descLower.includes(keyword) || contentLower.includes(keyword)
+                        // Verificar se tem pelo menos UMA palavra-chave primária
+                        const hasPrimaryKeyword = primaryKeywords.some(keyword => 
+                            allText.includes(keyword.toLowerCase())
                         );
-
-                        // Se não for relevante, ainda assim processar se vier de fontes confiáveis (Bloomberg, Valor, etc)
-                        const trustedSources = ['bloomberg.com', 'valor.com.br', 'exame.com', 'reuters.com'];
-                        const isFromTrustedSource = item.link && trustedSources.some(source => item.link.includes(source));
                         
-                        if (isRelevant || isFromTrustedSource) {
+                        // Se não tem palavra-chave primária, REJEITAR (não processar)
+                        if (!hasPrimaryKeyword) {
+                            console.log(`⏭️  Artigo rejeitado (sem palavras-chave específicas): "${item.title?.substring(0, 60)}..."`);
+                            continue; // Pular este artigo
+                        }
+                        
+                        // Se tem palavra-chave primária, processar (mesmo sem secundária)
+                        const isRelevant = hasPrimaryKeyword;
+                        
+                        if (isRelevant) {
                             const article = generateArticleFromData(item, 'rss');
                             
                             // Traduzir para português se necessário
