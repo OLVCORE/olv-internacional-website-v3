@@ -992,9 +992,18 @@ async function processAllSources() {
     try {
         // Fontes RSS ESPECÍFICAS para Supply Chain Global e Comércio Exterior
         const RSS_FEEDS = [
-            // Fontes Brasileiras Específicas
+            // Fontes Brasileiras Específicas de Comércio Exterior
             { url: 'https://www.valor.com.br/rss', name: 'Valor Econômico', category: 'noticias' },
             { url: 'https://www.mdic.gov.br/index.php/comercio-exterior/noticias', name: 'MDIC - Comércio Exterior', category: 'noticias' },
+            { url: 'https://www.comexstat.mdic.gov.br/noticias', name: 'ComexStat - Notícias', category: 'noticias' },
+            { url: 'https://www.receita.fazenda.gov.br/noticias', name: 'Receita Federal', category: 'noticias' },
+            { url: 'https://www.portos.gov.br/noticias', name: 'Portos e Navios', category: 'noticias' },
+            { url: 'https://www.anac.gov.br/noticias', name: 'ANAC - Aviação', category: 'noticias' },
+            { url: 'https://www.antaq.gov.br/noticias', name: 'ANTAQ - Transporte Aquaviário', category: 'noticias' },
+            
+            // Fontes de Agronegócio e Commodities (muito relevantes para comércio exterior)
+            { url: 'https://www.noticiasagricolas.com.br/rss', name: 'Notícias Agrícolas', category: 'noticias' },
+            { url: 'https://www.agrolink.com.br/rss', name: 'Agrolink', category: 'noticias' },
             
             // Fontes Internacionais Específicas
             { url: 'https://www.reuters.com/rssFeed/worldNews', name: 'Reuters World News', category: 'noticias' },
@@ -1009,7 +1018,11 @@ async function processAllSources() {
             
             // Fontes de Comércio Exterior
             { url: 'https://www.wto.org/english/news_e/rss_e/rss_e.xml', name: 'WTO News', category: 'noticias' },
-            { url: 'https://www.bcb.gov.br/rss/noticias/moedaestabilidadefin.xml', name: 'Banco Central do Brasil', category: 'noticias' }
+            { url: 'https://www.bcb.gov.br/rss/noticias/moedaestabilidadefin.xml', name: 'Banco Central do Brasil', category: 'noticias' },
+            
+            // Fontes de Transporte e Portos
+            { url: 'https://www.portosermarinas.com.br/rss', name: 'Portos e Marinas', category: 'noticias' },
+            { url: 'https://www.transportabrasil.com.br/rss', name: 'Transporta Brasil', category: 'noticias' }
         ];
 
         for (const feed of RSS_FEEDS) {
@@ -1021,8 +1034,10 @@ async function processAllSources() {
                     // Processar os 15 primeiros itens mais recentes de cada feed
                     const recentItems = feedData.items.slice(0, 15);
                     for (const item of recentItems) {
-                        // FILTRO MUITO ESPECÍFICO: Apenas notícias relacionadas a Supply Chain Global e Comércio Exterior
-                        // Palavras-chave PRIMÁRIAS (obrigatórias - pelo menos uma deve estar presente)
+                        // FILTRO INTELIGENTE: Notícias relacionadas a Supply Chain Global e Comércio Exterior
+                        // Estratégia: Aceitar se tiver palavra-chave primária OU se vier de fonte confiável E tiver palavra-chave secundária
+                        
+                        // Palavras-chave PRIMÁRIAS (fortemente relacionadas)
                         const primaryKeywords = [
                             // Supply Chain & Logística
                             'supply chain', 'supply-chain', 'cadeia de suprimentos', 'cadeia de abastecimento',
@@ -1069,39 +1084,70 @@ async function processAllSources() {
                             // TCO & Custos
                             'TCO', 'total cost of ownership', 'custo total de propriedade',
                             'custo logístico', 'logistics cost', 'custo de importação', 'import cost',
-                            'custo de exportação', 'export cost',
-                            
-                            // Palavras adicionais específicas para filtrar melhor
-                            'commodities', 'commodity', 'commodities trading', 'trading', 'commercial',
-                            'cross-border', 'cross border', 'global trade', 'world trade',
-                            'trade war', 'trade dispute', 'trade negotiations'
+                            'custo de exportação', 'export cost'
                         ];
                         
-                        // Palavras-chave SECUNDÁRIAS (devem aparecer em combinação com primárias)
+                        // Palavras-chave SECUNDÁRIAS (relacionadas, mas mais amplas)
                         const secondaryKeywords = [
-                            'internacional', 'international', 'global', 'global',
+                            'commodities', 'commodity', 'commodities trading', 'trading', 'commercial',
+                            'cross-border', 'cross border', 'global trade', 'world trade',
+                            'trade war', 'trade dispute', 'trade negotiations', 'trade group',
+                            'oil trade', 'crude', 'petroleum', 'petróleo', 'óleo',
+                            'ethanol', 'etanol', 'agricultural', 'agrícola', 'agronegócio',
+                            'brazil', 'brasil', 'brazilian', 'brasileiro',
+                            'china', 'china', 'chinese', 'chinês',
+                            'russia', 'russian', 'russo',
+                            'india', 'indian', 'índia', 'indiano',
+                            'europe', 'europa', 'european', 'europeu',
+                            'usa', 'united states', 'estados unidos', 'americano',
+                            'mercosur', 'mercosul',
+                            'internacional', 'international', 'global',
                             'mercado', 'market', 'negócio', 'business',
                             'empresa', 'company', 'empresarial', 'corporate'
+                        ];
+                        
+                        // Fontes confiáveis específicas de Supply Chain/Comércio Exterior
+                        const trustedSources = [
+                            'valor.com.br', 'mdic.gov.br', 'comexstat', 'comex',
+                            'iccwbo.org', 'wto.org', 'reuters.com', 'bloomberg.com',
+                            'logisticsmgmt.com', 'supplychaindive.com', 'joc.com',
+                            'bcb.gov.br', 'receita.fazenda.gov.br', 'portos.gov.br'
                         ];
                         
                         const titleLower = (item.title || '').toLowerCase();
                         const descLower = (item.description || item.contentSnippet || '').toLowerCase();
                         const contentLower = (item.content || '').toLowerCase();
                         const allText = `${titleLower} ${descLower} ${contentLower}`;
+                        const linkLower = (item.link || '').toLowerCase();
                         
-                        // Verificar se tem pelo menos UMA palavra-chave primária
+                        // Verificar se tem palavra-chave primária
                         const hasPrimaryKeyword = primaryKeywords.some(keyword => 
                             allText.includes(keyword.toLowerCase())
                         );
                         
-                        // Se não tem palavra-chave primária, REJEITAR (não processar)
-                        if (!hasPrimaryKeyword) {
-                            console.log(`⏭️  Artigo rejeitado (sem palavras-chave específicas): "${item.title?.substring(0, 60)}..."`);
+                        // Verificar se tem palavra-chave secundária
+                        const hasSecondaryKeyword = secondaryKeywords.some(keyword => 
+                            allText.includes(keyword.toLowerCase())
+                        );
+                        
+                        // Verificar se vem de fonte confiável
+                        const isFromTrustedSource = trustedSources.some(source => 
+                            linkLower.includes(source.toLowerCase())
+                        );
+                        
+                        // ACEITAR se:
+                        // 1. Tem palavra-chave primária (fortemente relacionado)
+                        // 2. OU tem palavra-chave secundária E vem de fonte confiável
+                        // 3. OU tem palavra-chave secundária E menciona países/regiões relevantes
+                        const isRelevant = hasPrimaryKeyword || 
+                                          (hasSecondaryKeyword && isFromTrustedSource) ||
+                                          (hasSecondaryKeyword && (allText.includes('brazil') || allText.includes('brasil') || allText.includes('trade')));
+                        
+                        // Se não é relevante, REJEITAR
+                        if (!isRelevant) {
+                            console.log(`⏭️  Artigo rejeitado: "${item.title?.substring(0, 60)}..." (sem palavras-chave relevantes)`);
                             continue; // Pular este artigo
                         }
-                        
-                        // Se tem palavra-chave primária, processar (mesmo sem secundária)
-                        const isRelevant = hasPrimaryKeyword;
                         
                         if (isRelevant) {
                             const article = generateArticleFromData(item, 'rss');
