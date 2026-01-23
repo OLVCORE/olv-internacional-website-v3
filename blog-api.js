@@ -1247,6 +1247,37 @@ async function processAllSources() {
                                                       allText.includes('barrier') ||
                                                       allText.includes('barreira');
                         
+                        // Para fontes internacionais confiáveis (Bloomberg, Reuters), ser mais permissivo também
+                        const isVeryTrustedInternational = linkLower.includes('bloomberg.com') ||
+                                                          linkLower.includes('reuters.com') ||
+                                                          linkLower.includes('wto.org') ||
+                                                          linkLower.includes('iccwbo.org');
+                        
+                        // Verificar se menciona tópicos específicos mencionados pelo usuário
+                        const mentionsSpecificTopics = allText.includes('mercosul') ||
+                                                      allText.includes('mercosur') ||
+                                                      allText.includes('european union') ||
+                                                      allText.includes('união europeia') ||
+                                                      allText.includes('venezuela') ||
+                                                      allText.includes('russia') ||
+                                                      allText.includes('rússia') ||
+                                                      allText.includes('china') ||
+                                                      allText.includes('tariff') ||
+                                                      allText.includes('tarifa') ||
+                                                      allText.includes('barrier') ||
+                                                      allText.includes('barreira') ||
+                                                      allText.includes('restriction') ||
+                                                      allText.includes('restrição') ||
+                                                      allText.includes('sanction') ||
+                                                      allText.includes('sanção');
+                        
+                        // ACEITAR se:
+                        // 1. Tem palavra-chave primária - SEMPRE ACEITAR
+                        // 2. OU tem palavra-chave secundária E vem de fonte confiável - ACEITAR
+                        // 3. OU tem palavra-chave secundária E menciona países/regiões relevantes - ACEITAR
+                        // 4. OU vem de fonte brasileira confiável E tem palavras relacionadas - ACEITAR
+                        // 5. OU vem de fonte muito confiável (brasileira ou internacional) - ACEITAR QUASE TUDO
+                        // 6. OU menciona tópicos específicos (Mercosul, UE, Venezuela, Rússia, China, tarifas) - ACEITAR
                         const isRelevant = hasPrimaryKeyword || 
                                           (hasSecondaryKeyword && isFromTrustedSource) ||
                                           (hasSecondaryKeyword && (allText.includes('brazil') || allText.includes('brasil') || allText.includes('trade'))) ||
@@ -1254,8 +1285,8 @@ async function processAllSources() {
                                           (isBrazilianSource && hasSecondaryKeyword) ||
                                           (isVeryTrustedBrazilian && (hasTradeRelated || hasSecondaryKeyword || allText.includes('economia') || allText.includes('economy'))) ||
                                           (isVeryTrustedBrazilian) || // Aceitar TUDO de fontes muito confiáveis brasileiras
-                                          (isVeryTrustedInternational && (hasTradeRelated || hasSecondaryKeyword || mentionsSpecificTopics)) || // Aceitar de fontes internacionais confiáveis
-                                          (mentionsSpecificTopics && (hasSecondaryKeyword || isFromTrustedSource)); // Aceitar se menciona tópicos específicos
+                                          (isVeryTrustedInternational && (hasTradeRelated || hasSecondaryKeyword || mentionsSpecificTopics || allText.includes('trade') || allText.includes('commercial'))) || // Aceitar de fontes internacionais confiáveis
+                                          (mentionsSpecificTopics && (hasSecondaryKeyword || isFromTrustedSource || isBrazilianSource || isVeryTrustedInternational)); // Aceitar se menciona tópicos específicos
                         
                         // Se não é relevante, REJEITAR
                         if (!isRelevant) {
