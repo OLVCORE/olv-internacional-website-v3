@@ -217,11 +217,29 @@ async function fetchRSSFeed(feedUrl) {
             const parser = new Parser({
                 timeout: 10000,
                 customFields: {
-                    item: ['dc:creator', 'content:encoded']
+                    item: ['dc:creator', 'content:encoded', 'dc:date', 'published']
                 }
             });
             
             const feed = await parser.parseURL(feedUrl);
+            // Garantir que todos os itens tenham pubDate (usar isoDate se disponível)
+            if (feed.items) {
+                feed.items = feed.items.map(item => {
+                    // Se não tem pubDate mas tem isoDate, usar isoDate
+                    if (!item.pubDate && item.isoDate) {
+                        item.pubDate = item.isoDate;
+                    }
+                    // Se não tem pubDate mas tem published, usar published
+                    if (!item.pubDate && item.published) {
+                        item.pubDate = item.published;
+                    }
+                    // Se não tem pubDate mas tem dc:date, usar dc:date
+                    if (!item.pubDate && item['dc:date']) {
+                        item.pubDate = item['dc:date'];
+                    }
+                    return item;
+                });
+            }
             return {
                 items: feed.items || [],
                 title: feed.title || '',
@@ -247,11 +265,21 @@ function generateArticleFromData(data, type) {
     
     // Extrair data de publicação real da fonte (se disponível)
     let sourcePublishedDate = null;
-    if (type === 'rss' && data.pubDate) {
-        try {
-            sourcePublishedDate = new Date(data.pubDate).toISOString();
-        } catch (e) {
-            console.warn('Erro ao parsear data da fonte:', e);
+    if (type === 'rss') {
+        // Tentar extrair de várias fontes possíveis
+        const pubDateSource = data.pubDate || data.isoDate || data['dc:date'] || data.published;
+        if (pubDateSource) {
+            try {
+                const parsedDate = new Date(pubDateSource);
+                if (!isNaN(parsedDate.getTime())) {
+                    sourcePublishedDate = parsedDate.toISOString();
+                    console.log(`📅 Data da fonte extraída: ${parsedDate.toLocaleDateString('pt-BR')} de ${pubDateSource}`);
+                }
+            } catch (e) {
+                console.warn('⚠️ Erro ao parsear data da fonte:', e, 'Valor:', pubDateSource);
+            }
+        } else {
+            console.warn('⚠️ Nenhuma data de publicação encontrada no item RSS');
         }
     }
     
@@ -261,7 +289,9 @@ function generateArticleFromData(data, type) {
         excerpt: '',
         content: '',
         category: 'analises',
-        datePublished: sourcePublishedDate || now.toISOString(), // Usar data da fonte se disponível
+        // Para RSS: usar data da fonte se disponível, senão usar hoje (para aparecer no ticker)
+        // Para outras fontes: usar hoje
+        datePublished: (type === 'rss' && sourcePublishedDate) ? sourcePublishedDate : now.toISOString(),
         dateModified: now.toISOString(),
         sourcePublishedDate: sourcePublishedDate || null, // Data original da fonte
         icon: 'fas fa-chart-line',
@@ -747,12 +777,26 @@ async function processAllSources() {
 
                         if (isRelevant) {
                             const article = generateArticleFromData(item, 'rss');
-                            // Usar data real da fonte (pubDate) se disponível, senão usar hoje
-                            // A sourcePublishedDate já foi extraída em generateArticleFromData
-                            // datePublished será a data da fonte ou hoje (para aparecer no ticker)
+                            // Garantir que a data da fonte seja preservada
+                            // Se o item tem pubDate, usar essa data como sourcePublishedDate
+                            if (item.pubDate && !article.sourcePublishedDate) {
+                                try {
+                                    article.sourcePublishedDate = new Date(item.pubDate).toISOString();
+                                } catch (e) {
+                                    console.warn('Erro ao parsear pubDate do item:', e);
+                                }
+                            }
+                            // datePublished será a data da fonte (se disponível) ou hoje
+                            // Isso garante que artigos recentes apareçam no ticker
+                            if (!article.datePublished || article.datePublished === article.dateModified) {
+                                // Se não tem data da fonte, usar hoje para aparecer no ticker
+                                article.datePublished = article.sourcePublishedDate || new Date().toISOString();
+                            }
                             await saveArticle(article);
                             articles.push(article);
-                            console.log(`✅ Artigo RSS gerado: ${article.title} (Fonte: ${article.sourcePublishedDate ? new Date(article.sourcePublishedDate).toLocaleDateString('pt-BR') : 'Hoje'})`);
+                            const sourceDateStr = article.sourcePublishedDate ? new Date(article.sourcePublishedDate).toLocaleDateString('pt-BR') : 'Data não disponível';
+                            console.log(`✅ Artigo RSS gerado: ${article.title}`);
+                            console.log(`   📅 Data da fonte: ${sourceDateStr}`);
                         }
                     }
                 }
