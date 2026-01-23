@@ -84,9 +84,11 @@ module.exports = async (req, res) => {
             }
         }
         
-        // Remover notícias RSS que NÃO têm palavras-chave relevantes
-        const deleteNonRelevantQuery = `
-            DELETE FROM blog_posts
+        // Remover notícias RSS que NÃO têm palavras-chave relevantes (usar OR para cada palavra-chave)
+        // Buscar primeiro os IDs das notícias não relevantes
+        const findNonRelevantQuery = `
+            SELECT id, title
+            FROM blog_posts
             WHERE source = 'rss'
               AND category = 'noticias'
               AND (
@@ -108,15 +110,42 @@ module.exports = async (req, res) => {
                 AND LOWER(title) NOT LIKE '%trading%'
                 AND LOWER(title) NOT LIKE '%cross-border%'
                 AND LOWER(title) NOT LIKE '%global trade%'
+                AND LOWER(title) NOT LIKE '%foreign trade%'
+                AND LOWER(title) NOT LIKE '%port%'
+                AND LOWER(title) NOT LIKE '%container%'
+                AND LOWER(title) NOT LIKE '%vessel%'
+                AND LOWER(title) NOT LIKE '%ship%'
               )
         `;
         try {
-            const result = await db.executeQuery(deleteNonRelevantQuery);
-            const rowCount = Array.isArray(result) ? result.length : (result?.rowCount || 0);
-            irrelevantRemoved += rowCount;
-            console.log(`✅ Removidas ${rowCount} notícias sem palavras-chave relevantes`);
+            const nonRelevantResult = await db.executeQuery(findNonRelevantQuery);
+            const nonRelevantPosts = Array.isArray(nonRelevantResult) ? nonRelevantResult : (nonRelevantResult?.rows || []);
+            
+            if (nonRelevantPosts.length > 0) {
+                console.log(`📋 Encontradas ${nonRelevantPosts.length} notícias não relevantes para remover`);
+                const idsToDelete = nonRelevantPosts.map(p => p.id || p.id).filter(id => id);
+                
+                if (idsToDelete.length > 0) {
+                    // Deletar em lotes para evitar query muito longa
+                    const batchSize = 50;
+                    for (let i = 0; i < idsToDelete.length; i += batchSize) {
+                        const batch = idsToDelete.slice(i, i + batchSize);
+                        const deleteQuery = `
+                            DELETE FROM blog_posts
+                            WHERE id IN (${batch.map(id => `'${String(id).replace(/'/g, "''")}'`).join(', ')})
+                        `;
+                        const deleteResult = await db.executeQuery(deleteQuery);
+                        const deletedCount = Array.isArray(deleteResult) ? deleteResult.length : (deleteResult?.rowCount || 0);
+                        irrelevantRemoved += deletedCount;
+                    }
+                    console.log(`✅ Removidas ${irrelevantRemoved} notícias sem palavras-chave relevantes`);
+                }
+            } else {
+                console.log('✅ Nenhuma notícia não relevante encontrada');
+            }
         } catch (e) {
             console.warn('⚠️ Erro ao remover notícias não relevantes:', e.message);
+            console.error('Stack:', e.stack);
         }
         
         // 2. Remover posts de teste/exemplo/fake
