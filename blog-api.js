@@ -1563,8 +1563,31 @@ async function processAllSources() {
         console.log(`   📰 Total de itens encontrados: ${totalItemsFound}`);
         console.log(`   ✅ Itens aceitos: ${totalItemsAccepted}`);
         console.log(`   ⏭️  Itens rejeitados: ${totalItemsRejected}`);
-        console.log(`   💾 ARTIGOS SALVOS NESTA EXECUÇÃO: ${articles.length}`);
-        console.log(`   ⚠️  Se este número for 0, há um problema crítico no salvamento!`);
+        console.log(`   💾 💾 💾 ARTIGOS SALVOS NESTA EXECUÇÃO: ${articles.length} 💾 💾 💾`);
+        console.log(`   ⚠️  ⚠️  ⚠️  ATENÇÃO: Se este número for 0, há um problema crítico no salvamento! ⚠️  ⚠️  ⚠️`);
+        
+        // Verificar quantos posts existem no banco AGORA
+        if (db && db.hasPostgres) {
+            try {
+                const countQuery = 'SELECT COUNT(*) as total FROM blog_posts';
+                const countResult = await db.executeQuery(countQuery);
+                const totalInDB = parseInt(countResult?.rows?.[0]?.total || countResult?.[0]?.total || 0);
+                console.log(`   📊 Total de posts no banco AGORA: ${totalInDB}`);
+                
+                // Contar por categoria
+                const catQuery = 'SELECT category, COUNT(*) as count FROM blog_posts GROUP BY category';
+                const catResult = await db.executeQuery(catQuery);
+                if (catResult?.rows) {
+                    console.log(`   📊 Distribuição por categoria:`);
+                    catResult.rows.forEach(row => {
+                        console.log(`      - ${row.category}: ${row.count}`);
+                    });
+                }
+            } catch (dbError) {
+                console.warn(`   ⚠️  Erro ao verificar banco: ${dbError.message}`);
+            }
+        }
+        
         console.log('📡 ============================================================');
         console.log(`   📈 Taxa de aceitação: ${totalItemsFound > 0 ? ((totalItemsAccepted / totalItemsFound) * 100).toFixed(1) : 0}%`);
         console.log('📡 ============================================================');

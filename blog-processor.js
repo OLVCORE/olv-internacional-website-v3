@@ -77,14 +77,34 @@ async function processAndPublish() {
             return enrichArticle(article, article.dataSource);
         });
         
-        // Limpar posts antigos (manter apenas últimos 100)
+        // Limpar posts antigos APENAS se houver muitos posts (não deletar se tiver poucos)
         if (db && db.hasPostgres) {
             try {
-                await db.cleanupOldPosts(100);
-                // Deletar posts com mais de 90 dias (exceto artigos manuais/importantes)
-                await db.cleanupOldPostsByDate(90);
+                // Verificar quantos posts existem antes de limpar
+                const countQuery = 'SELECT COUNT(*) as total FROM blog_posts';
+                const countResult = await db.executeQuery(countQuery);
+                const totalPosts = parseInt(countResult?.rows?.[0]?.total || countResult?.[0]?.total || 0);
+                
+                console.log(`📊 Total de posts no banco antes da limpeza: ${totalPosts}`);
+                
+                // Só limpar se tiver mais de 200 posts (deixar espaço para crescimento)
+                if (totalPosts > 200) {
+                    console.log(`🧹 Limpando posts antigos (mantendo últimos 200)...`);
+                    await db.cleanupOldPosts(200);
+                } else {
+                    console.log(`✅ Não é necessário limpar posts (total: ${totalPosts} < 200)`);
+                }
+                
+                // Deletar posts com mais de 90 dias APENAS se tiver muitos posts
+                if (totalPosts > 150) {
+                    console.log(`🗑️  Deletando posts com mais de 90 dias...`);
+                    await db.cleanupOldPostsByDate(90);
+                } else {
+                    console.log(`✅ Não é necessário deletar posts antigos (total: ${totalPosts} < 150)`);
+                }
             } catch (cleanupError) {
                 console.warn('⚠️ Erro ao limpar posts antigos:', cleanupError.message);
+                // Não bloquear o processamento se a limpeza falhar
             }
         }
         

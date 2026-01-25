@@ -3,13 +3,16 @@
 
 const { processAndPublish } = require('../../blog-processor');
 let initDatabase = null;
+let db = null;
 try {
     const dbNeon = require('../../blog-db-neon');
     initDatabase = dbNeon.initDatabase;
+    db = dbNeon;
 } catch (error) {
     try {
-        const db = require('../../blog-db');
-        initDatabase = db.initDatabase;
+        const dbModule = require('../../blog-db');
+        initDatabase = dbModule.initDatabase;
+        db = dbModule;
     } catch (error2) {
         console.warn('Banco de dados não disponível');
     }
@@ -60,11 +63,36 @@ module.exports = async (req, res) => {
         const articles = await processAndPublish();
         console.log(`✅ Processamento concluído: ${articles.length} artigos processados`);
         
+        // Verificar quantos posts existem no banco AGORA (após processamento)
+        let totalPostsInDB = 0;
+        let postsByCategory = {};
+        try {
+            const { loadPosts } = require('../../blog-api');
+            const allPosts = await loadPosts();
+            totalPostsInDB = allPosts.length;
+            
+            // Contar por categoria
+            postsByCategory = {
+                all: allPosts.length,
+                analises: allPosts.filter(p => p.category === 'analises').length,
+                noticias: allPosts.filter(p => p.category === 'noticias').length,
+                guias: allPosts.filter(p => p.category === 'guias').length,
+                insights: allPosts.filter(p => p.category === 'insights').length
+            };
+            
+            console.log(`📊 Total de posts no banco APÓS processamento: ${totalPostsInDB}`);
+            console.log(`📊 Distribuição por categoria:`, postsByCategory);
+        } catch (countError) {
+            console.warn('⚠️ Erro ao contar posts no banco:', countError.message);
+        }
+        
         // No Vercel, retornar os artigos também para garantir que estão disponíveis
         res.status(200).json({ 
             success: true, 
             message: `${articles.length} artigos processados`,
             articles: articles.length,
+            totalPostsInDB: totalPostsInDB,
+            postsByCategory: postsByCategory,
             posts: articles // Incluir posts na resposta
         });
     } catch (error) {
