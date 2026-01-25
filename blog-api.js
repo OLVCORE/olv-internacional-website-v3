@@ -1496,22 +1496,48 @@ async function processAllSources() {
                         
                         // Salvar artigo (não duplicado)
                         try {
+                            console.log(`💾 Tentando salvar artigo: "${article.title.substring(0, 60)}..."`);
+                            console.log(`   📋 ID: ${article.id}`);
+                            console.log(`   🔗 URL: ${article.dataSource?.link?.substring(0, 80) || 'N/A'}...`);
+                            console.log(`   📅 Data: ${article.datePublished || 'N/A'}`);
+                            
                             const saved = await saveArticle(article);
                             if (saved) {
                                 articles.push(article);
                                 
                                 const sourceDateStr = article.sourcePublishedDate ? new Date(article.sourcePublishedDate).toLocaleDateString('pt-BR') : 'Data não disponível';
                                 const imageStatus = article.image ? '✅ Com imagem' : '❌ Sem imagem';
-                                console.log(`✅ Artigo RSS salvo: "${article.title.substring(0, 60)}..." (Total: ${articles.length})`);
+                                console.log(`✅ ✅ ✅ Artigo RSS SALVO COM SUCESSO: "${article.title.substring(0, 60)}..." (Total salvo nesta execução: ${articles.length})`);
                                 console.log(`   📅 Data da fonte: ${sourceDateStr} | ${imageStatus}`);
-                                console.log(`   🖼️  ${imageStatus}`);
                                 console.log(`   💾 ID: ${article.id}`);
+                                console.log(`   📊 Total acumulado: ${articles.length} artigos`);
                             } else {
-                                console.warn(`⚠️ Artigo não foi salvo (saveArticle retornou null): ${article.title}`);
+                                console.error(`❌ ❌ ❌ FALHA CRÍTICA: Artigo NÃO foi salvo (saveArticle retornou null/false)`);
+                                console.error(`   Título: "${article.title}"`);
+                                console.error(`   ID: ${article.id}`);
+                                console.error(`   URL: ${article.dataSource?.link || 'N/A'}`);
+                                // Tentar salvar novamente como fallback
+                                try {
+                                    console.log(`🔄 Tentando salvar novamente como fallback...`);
+                                    const retrySaved = await saveArticle(article);
+                                    if (retrySaved) {
+                                        articles.push(article);
+                                        console.log(`✅ ✅ Artigo salvo na segunda tentativa!`);
+                                    } else {
+                                        console.error(`❌ ❌ Falha também na segunda tentativa`);
+                                    }
+                                } catch (retryError) {
+                                    console.error(`❌ Erro na segunda tentativa:`, retryError.message);
+                                }
                             }
                         } catch (saveError) {
-                            console.error(`❌ Erro ao salvar artigo "${article.title}":`, saveError.message);
-                            console.error('Stack:', saveError.stack);
+                            console.error(`❌ ❌ ❌ ERRO CRÍTICO ao salvar artigo "${article.title}":`, saveError.message);
+                            console.error(`   Stack:`, saveError.stack);
+                            console.error(`   Artigo que falhou:`, {
+                                id: article.id,
+                                title: article.title.substring(0, 50),
+                                url: article.dataSource?.link?.substring(0, 80)
+                            });
                             // Continuar processando outros artigos mesmo se um falhar
                         }
                     }
@@ -1537,6 +1563,9 @@ async function processAllSources() {
         console.log(`   📰 Total de itens encontrados: ${totalItemsFound}`);
         console.log(`   ✅ Itens aceitos: ${totalItemsAccepted}`);
         console.log(`   ⏭️  Itens rejeitados: ${totalItemsRejected}`);
+        console.log(`   💾 ARTIGOS SALVOS NESTA EXECUÇÃO: ${articles.length}`);
+        console.log(`   ⚠️  Se este número for 0, há um problema crítico no salvamento!`);
+        console.log('📡 ============================================================');
         console.log(`   📈 Taxa de aceitação: ${totalItemsFound > 0 ? ((totalItemsAccepted / totalItemsFound) * 100).toFixed(1) : 0}%`);
         console.log('📡 ============================================================');
     } catch (error) {
