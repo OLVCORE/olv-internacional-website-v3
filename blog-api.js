@@ -1022,78 +1022,55 @@ async function processAllSources() {
     try {
         // Fontes RSS ESPECÍFICAS para Supply Chain Global e Comércio Exterior
         // Priorizando fontes brasileiras que realmente têm feeds RSS funcionais
+        // ============================================================
+        // FEEDS RSS PRINCIPAIS - Focando nos que funcionam
+        // ============================================================
         const RSS_FEEDS = [
-            // ============================================================
-            // FONTES BRASILEIRAS - Comércio Exterior e Economia
-            // ============================================================
+            // FONTES BRASILEIRAS CONFIÁVEIS
             { url: 'https://www.valor.com.br/rss', name: 'Valor Econômico', category: 'noticias' },
-            { url: 'https://www.valor.com.br/rss/economia', name: 'Valor - Economia', category: 'noticias' },
-            { url: 'https://www.valor.com.br/rss/empresas', name: 'Valor - Empresas', category: 'noticias' },
-            { url: 'https://www.valor.com.br/rss/agronegocios', name: 'Valor - Agronegócios', category: 'noticias' },
-            { url: 'https://www.valor.com.br/rss/internacional', name: 'Valor - Internacional', category: 'noticias' },
+            { url: 'https://exame.com/feed/', name: 'Exame', category: 'noticias' },
+            { url: 'https://agenciabrasil.ebc.com.br/rss', name: 'Agência Brasil', category: 'noticias' },
             
-            // Fontes Governamentais Brasileiras
-            { url: 'https://www.bcb.gov.br/rss/noticias/moedaestabilidadefin.xml', name: 'Banco Central do Brasil', category: 'noticias' },
-            // { url: 'https://www.gov.br/mdic/pt-br/assuntos/noticias/rss', name: 'MDIC - Notícias', category: 'noticias' }, // 404 - removido
-            
-            // ============================================================
-            // FONTES INTERNACIONAIS - Bloomberg (múltiplos feeds)
-            // ============================================================
+            // FONTES INTERNACIONAIS CONFIÁVEIS
             { url: 'https://feeds.bloomberg.com/markets/news.rss', name: 'Bloomberg Markets', category: 'noticias' },
             { url: 'https://feeds.bloomberg.com/world-news.rss', name: 'Bloomberg World News', category: 'noticias' },
-            { url: 'https://feeds.bloomberg.com/politics.rss', name: 'Bloomberg Politics', category: 'noticias' },
-            { url: 'https://feeds.bloomberg.com/energy.rss', name: 'Bloomberg Energy', category: 'noticias' },
-            { url: 'https://feeds.bloomberg.com/commodities.rss', name: 'Bloomberg Commodities', category: 'noticias' },
-            { url: 'https://feeds.bloomberg.com/technology.rss', name: 'Bloomberg Technology', category: 'noticias' },
             
-            // ============================================================
             // FONTES DE LOGÍSTICA E SUPPLY CHAIN
-            // ============================================================
-            { url: 'https://www.logisticsmgmt.com/rss', name: 'Logistics Management', category: 'noticias' },
             { url: 'https://www.supplychaindive.com/feed/', name: 'Supply Chain Dive', category: 'noticias' },
             { url: 'https://www.joc.com/rss', name: 'Journal of Commerce', category: 'noticias' },
-            { url: 'https://www.freightwaves.com/feed', name: 'FreightWaves', category: 'noticias' },
-            { url: 'https://www.aircargonews.net/feed/', name: 'Air Cargo News', category: 'noticias' },
-            { url: 'https://www.seatrade-maritime.com/rss.xml', name: 'Seatrade Maritime', category: 'noticias' },
             
-            // ============================================================
-            // FONTES DE COMÉRCIO EXTERIOR E TRADE
-            // ============================================================
+            // FONTES DE COMÉRCIO EXTERIOR
             { url: 'https://www.wto.org/english/news_e/rss_e/rss_e.xml', name: 'WTO News', category: 'noticias' },
-            { url: 'https://www.iccwbo.org/news-publications/news/rss/', name: 'Câmara de Comércio Internacional', category: 'noticias' },
-            { url: 'https://www.trade.gov/rss', name: 'US Trade.gov', category: 'noticias' },
-            { url: 'https://www.export.gov/rss', name: 'Export.gov', category: 'noticias' },
             
             // ============================================================
-            // FONTES DE ECONOMIA E FINANÇAS INTERNACIONAIS
+            // FEEDS ADICIONAIS (podem ser adicionados depois)
             // ============================================================
-            { url: 'https://www.ft.com/rss/home', name: 'Financial Times', category: 'noticias' },
-            { url: 'https://www.ft.com/rss/world', name: 'Financial Times World', category: 'noticias' },
-            { url: 'https://feeds.feedburner.com/wsj/xml/rss/3_7085', name: 'WSJ World News', category: 'noticias' },
-            { url: 'https://feeds.feedburner.com/wsj/xml/rss/3_7014', name: 'WSJ Business', category: 'noticias' },
-            
-            // ============================================================
-            // FONTES DE PORTOS E TRANSPORTE MARÍTIMO
-            // ============================================================
-            { url: 'https://www.portos.gov.br/rss', name: 'Portos do Brasil', category: 'noticias' },
-            { url: 'https://www.porttechnology.org/feed/', name: 'Port Technology', category: 'noticias' },
-            
-            // ============================================================
-            // FONTES REMOVIDAS (quebradas ou bloqueadas)
-            // ============================================================
-            // { url: 'https://www.noticiasagricolas.com.br/rss', name: 'Notícias Agrícolas', category: 'noticias' }, // 404
-            // { url: 'https://www.agrolink.com.br/rss', name: 'Agrolink', category: 'noticias' }, // 403
-            // { url: 'https://www.reuters.com/rssFeed/worldNews', name: 'Reuters World News', category: 'noticias' }, // 401
-            // { url: 'https://www.reuters.com/rssFeed/businessNews', name: 'Reuters Business', category: 'noticias' }, // 401
-            // { url: 'https://www.cepea.org.br/br/rss-cepea.aspx', name: 'CEPEA', category: 'noticias' }, // XML malformado
+            // { url: 'https://www.valor.com.br/rss/economia', name: 'Valor - Economia', category: 'noticias' },
+            // { url: 'https://www.valor.com.br/rss/empresas', name: 'Valor - Empresas', category: 'noticias' },
+            // { url: 'https://www.valor.com.br/rss/agronegocios', name: 'Valor - Agronegócios', category: 'noticias' },
+            // REMOVIDO: { url: 'https://www.valor.com.br/rss/internacional', name: 'Valor - Internacional', category: 'noticias' }, // 502 - URL quebrada
+            // { url: 'https://www.bcb.gov.br/rss/noticias/moedaestabilidadefin.xml', name: 'Banco Central do Brasil', category: 'noticias' },
+            // { url: 'https://www.logisticsmgmt.com/rss', name: 'Logistics Management', category: 'noticias' },
+            // { url: 'https://www.freightwaves.com/feed', name: 'FreightWaves', category: 'noticias' },
+            // { url: 'https://www.portos.gov.br/rss', name: 'Portos do Brasil', category: 'noticias' },
         ];
 
+        console.log(`📡 ============================================================`);
+        console.log(`📡 INICIANDO PROCESSAMENTO DE RSS FEEDS`);
+        console.log(`📡 ============================================================`);
         console.log(`📡 Total de feeds RSS configurados: ${RSS_FEEDS.length}`);
+        console.log(`📡 Feeds que serão processados:`);
+        RSS_FEEDS.forEach((feed, idx) => {
+            console.log(`   ${idx + 1}. ${feed.name} - ${feed.url}`);
+        });
+        console.log(`📡 ============================================================`);
         let totalFeedsProcessed = 0;
         let totalFeedsWithItems = 0;
         let totalItemsFound = 0;
         let totalItemsAccepted = 0;
         let totalItemsRejected = 0;
+        let totalItemsSaved = 0;
+        let totalItemsDuplicated = 0;
         
         for (const feed of RSS_FEEDS) {
             try {
@@ -1287,7 +1264,9 @@ async function processAllSources() {
                         // Fontes muito confiáveis (aceitar quase tudo delas)
                         const isVeryTrustedBrazilian = linkLower.includes('valor.com.br') || 
                                                       linkLower.includes('mdic.gov.br') ||
-                                                      linkLower.includes('comexstat');
+                                                      linkLower.includes('comexstat') ||
+                                                      linkLower.includes('exame.com') ||
+                                                      linkLower.includes('agenciabrasil.ebc.com.br');
                         
                         const isVeryTrustedInternational = linkLower.includes('bloomberg.com') ||
                                                           linkLower.includes('reuters.com') ||
@@ -1300,7 +1279,7 @@ async function processAllSources() {
                         // Aceitar se:
                         // 1. Tem tema técnico (supply chain, logística) - SEMPRE ACEITAR
                         // 2. OU tem tema macro (geopolítica, acordos, tarifas, energia) - ACEITAR
-                        // 3. OU vem de fonte muito confiável (Valor, Bloomberg, etc) - ACEITAR QUASE TUDO
+                        // 3. OU vem de fonte muito confiável (Valor, Exame, Agência Brasil, etc) - ACEITAR QUASE TUDO
                         // 4. OU menciona países/blocos estratégicos + qualquer tema econômico - ACEITAR
                         const mentionsStrategicRegion = allText.includes('mercosul') ||
                                                       allText.includes('mercosur') ||
@@ -1322,11 +1301,23 @@ async function processAllSources() {
                                                      allText.includes('export') ||
                                                      allText.includes('import') ||
                                                      allText.includes('price') ||
-                                                     allText.includes('preço');
+                                                     allText.includes('preço') ||
+                                                     allText.includes('negócio') ||
+                                                     allText.includes('business') ||
+                                                     allText.includes('mercado') ||
+                                                     allText.includes('market');
+                        
+                        // AJUSTE: Aceitar mais artigos de fontes confiáveis brasileiras
+                        // Se for de fonte muito confiável brasileira, aceitar quase tudo (apenas filtrar spam óbvio)
+                        const isSpam = allText.includes('casino') || 
+                                      allText.includes('bet') || 
+                                      allText.includes('aposta') ||
+                                      allText.includes('viagra') ||
+                                      allText.includes('crypto scam');
                         
                         const isRelevant = hasTechnicalTheme || // Tema técnico (supply chain, logística)
                                           hasMacroTheme || // Tema macro (geopolítica, acordos, tarifas)
-                                          (isVeryTrustedBrazilian) || // Aceitar TUDO de fontes muito confiáveis brasileiras
+                                          (isVeryTrustedBrazilian && !isSpam) || // Aceitar TUDO de fontes muito confiáveis brasileiras (exceto spam)
                                           (isVeryTrustedInternational && (hasMacroTheme || mentionsEconomicTopic || mentionsStrategicRegion)) || // Fontes internacionais confiáveis
                                           (mentionsStrategicRegion && mentionsEconomicTopic); // Região estratégica + tema econômico
                         
@@ -1334,9 +1325,14 @@ async function processAllSources() {
                         if (!isRelevant) {
                             rejectedCount++;
                             totalItemsRejected++;
-                            // Log apenas a cada 5 rejeições para não poluir muito
-                            if (rejectedCount % 5 === 0 || rejectedCount <= 3) {
-                                console.log(`   ⏭️  [${rejectedCount}] Artigo rejeitado: "${item.title?.substring(0, 60)}..." (sem temas relevantes)`);
+                            // Log mais detalhado para diagnosticar problemas
+                            if (rejectedCount <= 10 || rejectedCount % 10 === 0) {
+                                const rejectionReason = isSpam ? 'spam detectado' : 
+                                                      !hasTechnicalTheme && !hasMacroTheme ? 'sem temas relevantes' :
+                                                      !isVeryTrustedBrazilian && !isVeryTrustedInternational ? 'fonte não confiável' :
+                                                      'não atende critérios';
+                                console.log(`   ⏭️  [${rejectedCount}] Artigo rejeitado: "${item.title?.substring(0, 60)}..." (${rejectionReason})`);
+                                console.log(`       🔗 URL: ${item.link?.substring(0, 80) || 'N/A'}...`);
                             }
                             continue; // Pular este artigo
                         }
@@ -1349,6 +1345,7 @@ async function processAllSources() {
                                       isVeryTrustedInternational ? 'fonte confiável INT' : 
                                       'região estratégica + economia';
                         console.log(`   ✅ [${acceptedCount}] Artigo aceito: "${item.title?.substring(0, 60)}..." (${reason})`);
+                        console.log(`       🔗 URL: ${item.link?.substring(0, 80) || 'N/A'}...`);
                         
                         // ============================================================
                         // CAMADA 2: PROCESSAR E CLASSIFICAR COMO NOTÍCIA
@@ -1433,34 +1430,61 @@ async function processAllSources() {
                                     if (db && db.hasPostgres) {
                                         // Normalizar URL: remover query params e fragmentos, mas manter path completo
                                         const url = article.dataSource.link.split('?')[0].split('#')[0].trim();
-                                        // Escapar caracteres especiais para SQL
+                                        // Escapar caracteres especiais para SQL (escapar aspas simples e barras)
                                         const escapedUrl = url.replace(/'/g, "''").replace(/\\/g, '\\\\');
-                                        // Usar JSONB path para busca mais precisa
+                                        
+                                        // Query para verificar duplicata por URL completa
                                         const checkQuery = `
                                             SELECT id FROM blog_posts 
                                             WHERE data_source->>'link' = '${escapedUrl}'
                                                OR data_source::text LIKE '%"link":"${escapedUrl}"%'
                                             LIMIT 1
                                         `;
-                                        const result = await db.executeQuery(checkQuery);
-                                        exists = result && (Array.isArray(result) ? result.length > 0 : (result.rows?.length > 0));
-                                        if (exists) {
-                                            console.log(`⏭️  URL já existe no banco: ${url.substring(0, 80)}...`);
+                                        
+                                        try {
+                                            const result = await db.executeQuery(checkQuery);
+                                            exists = result && (Array.isArray(result) ? result.length > 0 : (result.rows?.length > 0));
+                                            
+                                            if (exists) {
+                                                console.log(`⏭️  URL já existe no banco: ${url.substring(0, 80)}...`);
+                                            } else {
+                                                console.log(`✅ URL não existe no banco, será salva: ${url.substring(0, 80)}...`);
+                                            }
+                                        } catch (queryError) {
+                                            // Se erro na query, tentar verificação alternativa
+                                            console.warn('⚠️ Erro ao executar query de duplicata, tentando verificação alternativa:', queryError.message);
+                                            exists = await articleExists(article);
+                                            if (exists) {
+                                                console.log(`⏭️  Artigo já existe (verificação alternativa): "${article.title.substring(0, 60)}..."`);
+                                            }
                                         }
                                     } else {
-                                        // Fallback: não verificar se banco não disponível (mais permissivo)
-                                        console.log('⚠️ Banco não disponível para verificar duplicata, salvando mesmo assim');
-                                        exists = false;
+                                        // Fallback: usar função articleExists se banco não disponível
+                                        console.log('⚠️ Banco não disponível para verificar duplicata, usando verificação em memória');
+                                        exists = await articleExists(article);
+                                        if (exists) {
+                                            console.log(`⏭️  Artigo já existe (verificação em memória): "${article.title.substring(0, 60)}..."`);
+                                        }
                                     }
                                 } catch (e) {
                                     // Se erro na verificação, continuar e salvar (não bloquear)
                                     console.warn('⚠️ Erro ao verificar duplicata, salvando mesmo assim:', e.message);
+                                    console.warn('   Stack:', e.stack);
                                     exists = false;
+                                }
+                            } else {
+                                // Se não tem link, verificar por título
+                                console.log('⚠️ Artigo RSS sem link, verificando por título...');
+                                exists = await articleExists(article);
+                                if (exists) {
+                                    console.log(`⏭️  Artigo já existe (verificação por título): "${article.title.substring(0, 60)}..."`);
                                 }
                             }
                             
                             if (exists) {
-                                console.log(`⏭️  Artigo duplicado ignorado (mesma URL completa): "${article.title.substring(0, 60)}..."`);
+                                totalItemsDuplicated++;
+                                console.log(`⏭️  [${totalItemsDuplicated}] Artigo duplicado ignorado (mesma URL completa): "${article.title.substring(0, 60)}..."`);
+                                console.log(`       🔗 URL: ${article.dataSource?.link?.substring(0, 80) || 'N/A'}...`);
                                 continue; // Pular apenas se URL completa for exatamente igual
                             }
                             
@@ -1504,13 +1528,15 @@ async function processAllSources() {
                             const saved = await saveArticle(article);
                             if (saved) {
                                 articles.push(article);
+                                totalItemsSaved++;
                                 
                                 const sourceDateStr = article.sourcePublishedDate ? new Date(article.sourcePublishedDate).toLocaleDateString('pt-BR') : 'Data não disponível';
                                 const imageStatus = article.image ? '✅ Com imagem' : '❌ Sem imagem';
-                                console.log(`✅ ✅ ✅ Artigo RSS SALVO COM SUCESSO: "${article.title.substring(0, 60)}..." (Total salvo nesta execução: ${articles.length})`);
+                                console.log(`✅ ✅ ✅ [${totalItemsSaved}] Artigo RSS SALVO COM SUCESSO: "${article.title.substring(0, 60)}..."`);
                                 console.log(`   📅 Data da fonte: ${sourceDateStr} | ${imageStatus}`);
                                 console.log(`   💾 ID: ${article.id}`);
-                                console.log(`   📊 Total acumulado: ${articles.length} artigos`);
+                                console.log(`   🔗 URL: ${article.dataSource?.link?.substring(0, 80) || 'N/A'}...`);
+                                console.log(`   📊 Total acumulado nesta execução: ${articles.length} artigos`);
                             } else {
                                 console.error(`❌ ❌ ❌ FALHA CRÍTICA: Artigo NÃO foi salvo (saveArticle retornou null/false)`);
                                 console.error(`   Título: "${article.title}"`);
@@ -1561,10 +1587,15 @@ async function processAllSources() {
         console.log(`   📊 Feeds processados: ${totalFeedsProcessed}/${RSS_FEEDS.length}`);
         console.log(`   ✅ Feeds com itens: ${totalFeedsWithItems}`);
         console.log(`   📰 Total de itens encontrados: ${totalItemsFound}`);
-        console.log(`   ✅ Itens aceitos: ${totalItemsAccepted}`);
-        console.log(`   ⏭️  Itens rejeitados: ${totalItemsRejected}`);
-        console.log(`   💾 💾 💾 ARTIGOS SALVOS NESTA EXECUÇÃO: ${articles.length} 💾 💾 💾`);
+        console.log(`   ✅ Itens aceitos pelo filtro: ${totalItemsAccepted}`);
+        console.log(`   ⏭️  Itens rejeitados pelo filtro: ${totalItemsRejected}`);
+        console.log(`   🔄 Itens duplicados (já existiam): ${totalItemsDuplicated}`);
+        console.log(`   💾 💾 💾 ARTIGOS SALVOS NESTA EXECUÇÃO: ${totalItemsSaved} 💾 💾 💾`);
         console.log(`   ⚠️  ⚠️  ⚠️  ATENÇÃO: Se este número for 0, há um problema crítico no salvamento! ⚠️  ⚠️  ⚠️`);
+        if (totalItemsAccepted > 0 && totalItemsSaved === 0) {
+            console.log(`   🚨 🚨 🚨 PROBLEMA CRÍTICO: ${totalItemsAccepted} artigos foram aceitos mas NENHUM foi salvo! 🚨 🚨 🚨`);
+            console.log(`   🚨 Verifique os logs acima para erros de salvamento! 🚨`);
+        }
         
         // Verificar quantos posts existem no banco AGORA
         if (db && db.hasPostgres) {

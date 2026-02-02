@@ -703,7 +703,7 @@ function initAccordions() {
                 console.error('   1. Acesse: https://dashboard.emailjs.com/admin/account');
                 console.error('   2. Copie sua Public Key');
                 console.error('   3. Atualize script.js linha ~526 com sua Public Key');
-                alert('⚠️ Configuração de Email Necessária\n\nO sistema de email ainda não foi configurado.\n\nPor favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444\n\nOu configure EmailJS seguindo as instruções em EMAILJS-CONFIG.md');
+                alert('⚠️ Configuração de Email Necessária\n\nO sistema de email ainda não foi configurado.\n\nPor favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 91007-4444\n\nOu configure EmailJS seguindo as instruções em EMAILJS-CONFIG.md');
                 if (modal) modal.classList.remove('active');
                 if (document.body) document.body.style.overflow = '';
                 return;
@@ -712,7 +712,7 @@ function initAccordions() {
             // Verificar se EmailJS está carregado
             if (typeof emailjs === 'undefined') {
                 console.error('EmailJS não está carregado. Verifique se o CDN está incluído.');
-                alert('Erro: Sistema de email não configurado. Por favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444');
+                alert('Erro: Sistema de email não configurado. Por favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 91007-4444');
                 if (modal) modal.classList.remove('active');
                 if (document.body) document.body.style.overflow = '';
                 return;
@@ -779,14 +779,14 @@ function initAccordions() {
                 console.error('Texto:', error.text);
                 
                 // Mensagem de erro amigável
-                let errorMessage = `Desculpe, ${data.nome}. Ocorreu um erro ao enviar seu relatório automaticamente.\n\nPor favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444\n\nNossa equipe está pronta para ajudar e analisar seu relatório de aderência!`;
+                let errorMessage = `Desculpe, ${data.nome}. Ocorreu um erro ao enviar seu relatório automaticamente.\n\nPor favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 91007-4444\n\nNossa equipe está pronta para ajudar e analisar seu relatório de aderência!`;
                 
                 if (error.status === 400) {
                     if (error.text && error.text.includes('Public Key is invalid')) {
                         console.error('🔑 Public Key inválida! Configure em: https://dashboard.emailjs.com/admin/account');
-                        errorMessage = `⚠️ Erro de configuração do sistema de email.\n\nA Public Key do EmailJS precisa ser configurada.\n\nPor favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444`;
+                        errorMessage = `⚠️ Erro de configuração do sistema de email.\n\nA Public Key do EmailJS precisa ser configurada.\n\nPor favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 91007-4444`;
                     } else {
-                        errorMessage = `Erro de configuração do sistema de email. Por favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444`;
+                        errorMessage = `Erro de configuração do sistema de email. Por favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 91007-4444`;
                     }
                 }
                 
@@ -886,7 +886,7 @@ function showConfirmationPage(nome, empresa, adherence, selectedItems) {
                     </p>
                     <p>
                         <i class="fab fa-whatsapp"></i> 
-                        <a href="https://wa.me/5511999244444" target="_blank">+55 11 99924-4444</a>
+                        <a href="https://wa.me/5511910074444" target="_blank">+55 11 91007-4444</a>
                     </p>
                 </div>
             </div>
@@ -1001,7 +1001,7 @@ document.addEventListener('click', function(e) {
                 console.error('   1. Acesse: https://dashboard.emailjs.com/admin/account');
                 console.error('   2. Copie sua Public Key');
                 console.error('   3. Atualize script.js linha ~737 com sua Public Key');
-                alert('⚠️ Configuração de Email Necessária\n\nO sistema de email ainda não foi configurado.\n\nPor favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444\n\nOu configure EmailJS seguindo as instruções em EMAILJS-CONFIG.md');
+                alert('⚠️ Configuração de Email Necessária\n\nO sistema de email ainda não foi configurado.\n\nPor favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 91007-4444\n\nOu configure EmailJS seguindo as instruções em EMAILJS-CONFIG.md');
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;
                 return;
@@ -1010,7 +1010,7 @@ document.addEventListener('click', function(e) {
             // Verificar se EmailJS está carregado
             if (typeof emailjs === 'undefined') {
                 console.error('EmailJS não está carregado. Verifique se o CDN está incluído.');
-                alert('Erro: Sistema de email não configurado. Por favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444');
+                alert('Erro: Sistema de email não configurado. Por favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 91007-4444');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
                 
@@ -1076,14 +1076,14 @@ document.addEventListener('click', function(e) {
                 console.error('Status:', error.status);
                 console.error('Texto:', error.text);
                 
-                let errorMessage = '❌ Erro ao enviar mensagem. Por favor, tente novamente ou entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444';
+                let errorMessage = '❌ Erro ao enviar mensagem. Por favor, tente novamente ou entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 91007-4444';
                 
                 if (error.status === 400) {
                     if (error.text && error.text.includes('Public Key is invalid')) {
                         console.error('🔑 Public Key inválida! Configure em: https://dashboard.emailjs.com/admin/account');
-                        errorMessage = '⚠️ Erro de configuração do sistema de email.\n\nA Public Key do EmailJS precisa ser configurada.\n\nPor favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444';
+                        errorMessage = '⚠️ Erro de configuração do sistema de email.\n\nA Public Key do EmailJS precisa ser configurada.\n\nPor favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 91007-4444';
                     } else {
-                        errorMessage = 'Erro de configuração do sistema de email. Por favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 99924-4444';
+                        errorMessage = 'Erro de configuração do sistema de email. Por favor, entre em contato diretamente:\n\n📧 Email: consultores@olvinternacional.com.br\n📱 WhatsApp: +55 11 91007-4444';
                     }
                 }
                 

@@ -1,129 +1,198 @@
 // news-ticker.js - News Ticker Component (Barra de Notícias)
-// Carrega notícias das últimas 24 horas e exibe em ticker animado
+// Carrega notícias do blog (últimas 24h preferidas; fallback: últimos posts disponíveis)
+// Funciona com ingestão automática diária (cron 8h e 20h UTC)
 
-async function loadNewsTicker() {
-    const tickerContent = document.getElementById('news-ticker-content');
-    if (!tickerContent) return;
+(function () {
+    'use strict';
 
-    try {
-        // Buscar posts das últimas 24 horas
-        const response = await fetch('/api/blog/posts?category=all&perPage=100');
-        const data = await response.json();
-        
-        // A API retorna {posts: [...], pagination: {...}}
-        const posts = Array.isArray(data) ? data : (data.posts || []);
+    var TICKER_API_BASE = '';
+    var TICKER_REFRESH_MS = 10 * 60 * 1000; // 10 minutes (menos requisições)
+    var TICKER_STORAGE_KEY = 'olv-news-ticker-cache';
+    var TICKER_CACHE_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutes (usa cache mais tempo)
 
-        if (!posts || posts.length === 0) {
-            tickerContent.innerHTML = '<span class="ticker-loading">Nenhuma notícia disponível no momento</span>';
-            return;
+    function getApiBase() {
+        if (TICKER_API_BASE) return TICKER_API_BASE;
+        if (typeof window !== 'undefined' && window.location && window.location.origin) {
+            TICKER_API_BASE = window.location.origin;
+        } else {
+            TICKER_API_BASE = '';
         }
-
-        // Filtrar posts das últimas 24 horas (ou 48h se houver poucos)
-        const now = new Date();
-        const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-        const last48Hours = new Date(now.getTime() - 48 * 60 * 60 * 1000);
-        
-        let recentPosts = posts.filter(post => {
-            const postDate = new Date(post.datePublished);
-            return postDate >= last24Hours;
-        });
-
-        // Se houver menos de 3 posts nas últimas 24h, expandir para 48h
-        if (recentPosts.length < 3) {
-            recentPosts = posts.filter(post => {
-                const postDate = new Date(post.datePublished);
-                return postDate >= last48Hours;
-            });
-        }
-
-        if (recentPosts.length === 0) {
-            tickerContent.innerHTML = '<span class="ticker-loading">Nenhuma notícia recente disponível</span>';
-            return;
-        }
-
-        // Remover duplicatas por título (evitar mostrar a mesma notícia várias vezes)
-        const uniquePosts = [];
-        const seenTitles = new Set();
-        
-        for (const post of recentPosts) {
-            const titleKey = post.title.toLowerCase().trim();
-            if (!seenTitles.has(titleKey)) {
-                seenTitles.add(titleKey);
-                uniquePosts.push(post);
-            }
-        }
-
-        // Se houver menos de 5 notícias únicas, buscar mais posts (até 7 dias)
-        if (uniquePosts.length < 5) {
-            const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            const olderPosts = posts.filter(post => {
-                const postDate = new Date(post.datePublished);
-                return postDate >= last7Days && postDate < last48Hours;
-            });
-            
-            for (const post of olderPosts) {
-                const titleKey = post.title.toLowerCase().trim();
-                if (!seenTitles.has(titleKey) && uniquePosts.length < 10) {
-                    seenTitles.add(titleKey);
-                    uniquePosts.push(post);
-                }
-            }
-        }
-
-        if (uniquePosts.length === 0) {
-            tickerContent.innerHTML = '<span class="ticker-loading">Nenhuma notícia recente disponível</span>';
-            return;
-        }
-
-        // Criar itens do ticker apenas com posts únicos
-        const tickerItems = uniquePosts.map(post => {
-            // Determinar nome da fonte
-            let sourceName = 'OLV Blog';
-            if (post.source === 'rss') {
-                if (post.dataSource && post.dataSource.link) {
-                    try {
-                        const url = new URL(post.dataSource.link);
-                        if (url.hostname.includes('valor.com.br')) sourceName = 'Valor';
-                        else if (url.hostname.includes('exame.com')) sourceName = 'Exame';
-                        else if (url.hostname.includes('ebc.com.br') || url.hostname.includes('agenciabrasil')) sourceName = 'Agência Brasil';
-                        else if (url.hostname.includes('reuters.com')) sourceName = 'Reuters';
-                    } catch (e) {
-                        sourceName = 'RSS Feed';
-                    }
-                }
-            } else if (post.source === 'comexstat') {
-                sourceName = 'MDIC';
-            } else if (post.source === 'unComtrade') {
-                sourceName = 'UN Comtrade';
-            } else if (post.source === 'worldBank') {
-                sourceName = 'World Bank';
-            }
-
-            return `
-                <a href="blog-post.html?id=${post.id}" class="news-ticker-item" title="${post.title}">
-                    <span class="news-ticker-item-title">${post.title}</span>
-                    <span class="news-ticker-item-source">${sourceName}</span>
-                </a>
-            `;
-        });
-
-        // Duplicar itens para animação contínua (apenas se houver itens suficientes)
-        // Se houver poucos itens, não duplicar para evitar repetição excessiva
-        const finalItems = tickerItems.length >= 5 
-            ? [...tickerItems, ...tickerItems] 
-            : tickerItems;
-        
-        tickerContent.innerHTML = finalItems.join('');
-
-    } catch (error) {
-        console.error('Erro ao carregar news ticker:', error);
-        tickerContent.innerHTML = '<span class="ticker-loading">Erro ao carregar notícias</span>';
+        return TICKER_API_BASE;
     }
-}
 
-// Inicializar quando o DOM estiver pronto
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadNewsTicker);
-} else {
-    loadNewsTicker();
-}
+    function getTickerUrl() {
+        var base = getApiBase();
+        return base + '/api/blog/ticker';
+    }
+
+    function getTickerFallbackUrl() {
+        var base = getApiBase();
+        return base + '/api/blog/posts?category=all&perPage=30&page=1';
+    }
+
+    function safeTitle(post) {
+        if (!post) return '';
+        var t = post.title;
+        return (typeof t === 'string' && t.trim()) ? t.trim() : 'Sem título';
+    }
+
+    function safeDate(post) {
+        if (!post) return new Date(0);
+        var d = post.datePublished || post.dateModified || post.createdAt || null;
+        if (!d) return new Date(0);
+        var parsed = new Date(d);
+        return isNaN(parsed.getTime()) ? new Date(0) : parsed;
+    }
+
+    function getSourceName(post) {
+        if (!post) return 'OLV Blog';
+        if (post.source === 'rss' && post.dataSource && post.dataSource.link) {
+            try {
+                var url = post.dataSource.link;
+                if (url.indexOf('valor.com.br') !== -1) return 'Valor';
+                if (url.indexOf('exame.com') !== -1) return 'Exame';
+                if (url.indexOf('ebc.com.br') !== -1 || url.indexOf('agenciabrasil') !== -1) return 'Agência Brasil';
+                if (url.indexOf('reuters.com') !== -1) return 'Reuters';
+                if (url.indexOf('bloomberg') !== -1) return 'Bloomberg';
+            } catch (e) {}
+            return 'RSS';
+        }
+        if (post.source === 'comexstat') return 'MDIC';
+        if (post.source === 'unComtrade') return 'UN Comtrade';
+        if (post.source === 'worldBank') return 'World Bank';
+        return 'OLV Blog';
+    }
+
+    function escapeHtml(s) {
+        if (typeof s !== 'string') return '';
+        var div = document.createElement('div');
+        div.textContent = s;
+        return div.innerHTML;
+    }
+
+    function getCachedPosts() {
+        try {
+            var raw = localStorage.getItem(TICKER_STORAGE_KEY);
+            if (!raw) return null;
+            var data = JSON.parse(raw);
+            if (data && data.ts && (Date.now() - data.ts < TICKER_CACHE_MAX_AGE_MS) && Array.isArray(data.posts)) {
+                return data.posts;
+            }
+        } catch (e) {}
+        return null;
+    }
+
+    function setCachedPosts(posts) {
+        try {
+            localStorage.setItem(TICKER_STORAGE_KEY, JSON.stringify({
+                ts: Date.now(),
+                posts: posts || []
+            }));
+        } catch (e) {}
+    }
+
+    function loadNewsTicker() {
+        var tickerContent = document.getElementById('news-ticker-content');
+        if (!tickerContent) return;
+
+        function renderEmpty(msg) {
+            tickerContent.innerHTML = '<span class="ticker-loading">' + escapeHtml(msg || 'Carregando notícias...') + '</span>';
+        }
+
+        function renderItems(postsToShow) {
+            if (!postsToShow || postsToShow.length === 0) {
+                renderEmpty('Nenhuma notícia disponível no momento');
+                return;
+            }
+
+            var unique = [];
+            var seen = {};
+            for (var i = 0; i < postsToShow.length; i++) {
+                var p = postsToShow[i];
+                var titleKey = safeTitle(p).toLowerCase();
+                if (seen[titleKey]) continue;
+                seen[titleKey] = true;
+                unique.push(p);
+            }
+
+            var tickerItems = unique.map(function (post) {
+                var id = (post.id || '').toString();
+                var title = escapeHtml(safeTitle(post));
+                var sourceName = escapeHtml(getSourceName(post));
+                var href = 'blog-post.html?id=' + encodeURIComponent(id);
+                return '<a href="' + href + '" class="news-ticker-item" title="' + title + '">' +
+                    '<span class="news-ticker-item-title">' + title + '</span>' +
+                    '<span class="news-ticker-item-source">' + sourceName + '</span>' +
+                    '</a>';
+            });
+
+            var finalItems = tickerItems.length >= 5 ? tickerItems.concat(tickerItems) : tickerItems;
+            tickerContent.innerHTML = finalItems.join('');
+        }
+
+        var cached = getCachedPosts();
+        if (cached && cached.length > 0) {
+            cached.sort(function (a, b) { return safeDate(b).getTime() - safeDate(a).getTime(); });
+            renderItems(cached);
+        } else {
+            renderEmpty('Carregando notícias...');
+        }
+
+        function onData(data) {
+            var posts = Array.isArray(data) ? data : (data && data.posts);
+            if (!Array.isArray(posts)) posts = [];
+            posts = posts.filter(function (p) { return p && (p.id || safeTitle(p)); });
+            posts.sort(function (a, b) { return safeDate(b).getTime() - safeDate(a).getTime(); });
+            setCachedPosts(posts);
+            var now = new Date();
+            var last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+            var last48h = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+            var last7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            var recent24 = posts.filter(function (p) { return safeDate(p) >= last24h; });
+            var recent48 = posts.filter(function (p) { return safeDate(p) >= last48h; });
+            var recent7d = posts.filter(function (p) { return safeDate(p) >= last7d; });
+            var toShow = recent24.length >= 3 ? recent24 : (recent48.length >= 3 ? recent48 : (recent7d.length >= 1 ? recent7d : posts));
+            if (toShow.length === 0) toShow = posts.slice(0, 20);
+            renderItems(toShow);
+        }
+
+        fetch(getTickerUrl())
+            .then(function (res) {
+                if (res.ok) return res.json();
+                if (res.status === 404) return fetch(getTickerFallbackUrl()).then(function (r) { return r.ok ? r.json() : Promise.reject(new Error('fallback ' + r.status)); });
+                return Promise.reject(new Error('API ' + res.status));
+            })
+            .then(function (data) {
+                onData(data);
+            })
+            .catch(function (err) {
+                fetch(getTickerFallbackUrl())
+                    .then(function (res) { return res.ok ? res.json() : Promise.reject(res); })
+                    .then(onData)
+                    .catch(function () {
+                        if (cached && cached.length > 0) renderItems(getCachedPosts() || cached);
+                        else renderEmpty('Erro ao carregar notícias. Tente atualizar a página.');
+                    });
+            });
+    }
+
+    function scheduleRefresh() {
+        setInterval(loadNewsTicker, TICKER_REFRESH_MS);
+    }
+
+    if (typeof document !== 'undefined') {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function () {
+                loadNewsTicker();
+                scheduleRefresh();
+            });
+        } else {
+            loadNewsTicker();
+            scheduleRefresh();
+        }
+    }
+
+    if (typeof window !== 'undefined') {
+        window.loadNewsTicker = loadNewsTicker;
+    }
+})();

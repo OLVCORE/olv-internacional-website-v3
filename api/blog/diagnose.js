@@ -1,19 +1,7 @@
-// api/blog/diagnose.js - Diagnóstico do sistema de blog
+// api/blog/diagnose.js - Endpoint de diagnóstico do blog
 // GET /api/blog/diagnose
 
-let initDatabase = null;
-try {
-    const dbNeon = require('../../blog-db-neon');
-    initDatabase = dbNeon.initDatabase;
-} catch (error) {
-    try {
-        const db = require('../../blog-db');
-        initDatabase = db.initDatabase;
-    } catch (error2) {
-        console.warn('Banco de dados não disponível');
-    }
-}
-
+const { loadPosts } = require('../../blog-api');
 let db = null;
 try {
     db = require('../../blog-db-neon');
@@ -31,6 +19,7 @@ module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
+    // Handle preflight
     if (req.method === 'OPTIONS') {
         res.status(200).end();
         return;
@@ -44,113 +33,97 @@ module.exports = async (req, res) => {
     try {
         const diagnosis = {
             timestamp: new Date().toISOString(),
-            database: {},
-            posts: {},
-            rssFeeds: {},
-            errors: []
+            database: {
+                available: !!(db && db.hasPostgres),
+                hasPostgres: db?.hasPostgres || false,
+                databaseUrl: process.env.DATABASE_URL ? '✅ Definido' : '❌ Não definido'
+            },
+            posts: {
+                total: 0,
+                byCategory: {
+                    all: 0,
+                    analises: 0,
+                    noticias: 0,
+                    guias: 0,
+                    insights: 0
+                },
+                recent: [] // Últimos 10 posts
+            },
+            rssFeeds: {
+                configured: [
+                    { name: 'Valor Econômico', url: 'https://www.valor.com.br/rss' },
+                    { name: 'Exame', url: 'https://exame.com/feed/' },
+                    { name: 'Agência Brasil', url: 'https://agenciabrasil.ebc.com.br/rss' },
+                    { name: 'Reuters', url: 'https://www.reuters.com/rssFeed/worldNews' }
+                ],
+                count: 4
+            },
+            recommendations: []
         };
 
-        // 1. Verificar banco de dados
+        // Carregar posts
         try {
-            await initDatabase();
-            diagnosis.database.connected = true;
-            diagnosis.database.hasPostgres = db?.hasPostgres || false;
-            diagnosis.database.hasDatabaseUrl = !!process.env.DATABASE_URL;
+            const allPosts = await loadPosts();
+            diagnosis.posts.total = allPosts.length;
             
-            if (db && db.hasPostgres) {
-                try {
-                    const countQuery = 'SELECT COUNT(*) as total FROM blog_posts';
-                    const result = await db.executeQuery(countQuery);
-                    const total = result?.rows?.[0]?.total || result?.[0]?.total || 0;
-                    diagnosis.database.totalPosts = parseInt(total);
-                    
-                    // Contar por categoria
-                    const categoryQuery = 'SELECT category, COUNT(*) as count FROM blog_posts GROUP BY category';
-                    const categoryResult = await db.executeQuery(categoryQuery);
-                    diagnosis.database.byCategory = {};
-                    if (categoryResult?.rows) {
-                        categoryResult.rows.forEach(row => {
-                            diagnosis.database.byCategory[row.category] = parseInt(row.count);
-                        });
-                    }
-                    
-                    // Últimos posts
-                    const recentQuery = 'SELECT id, title, category, date_published FROM blog_posts ORDER BY date_published DESC LIMIT 10';
-                    const recentResult = await db.executeQuery(recentQuery);
-                    diagnosis.database.recentPosts = recentResult?.rows || [];
-                } catch (dbError) {
-                    diagnosis.errors.push(`Erro ao consultar banco: ${dbError.message}`);
-                }
+            // Contar por categoria
+            diagnosis.posts.byCategory = {
+                all: allPosts.length,
+                analises: allPosts.filter(p => p.category === 'analises').length,
+                noticias: allPosts.filter(p => p.category === 'noticias').length,
+                guias: allPosts.filter(p => p.category === 'guias').length,
+                insights: allPosts.filter(p => p.category === 'insights').length
+            };
+            
+            // Últimos 10 posts
+            diagnosis.posts.recent = allPosts
+                .sort((a, b) => new Date(b.datePublished || b.dateModified) - new Date(a.datePublished || a.dateModified))
+                .slice(0, 10)
+                .map(p => ({
+                    id: p.id,
+                    title: p.title.substring(0, 60),
+                    category: p.category,
+                    source: p.source,
+                    datePublished: p.datePublished || p.dateModified,
+                    hasImage: !!p.image
+                }));
+        } catch (error) {
+            diagnosis.posts.error = error.message;
+        }
+
+        // Verificar banco de dados
+        if (db && db.hasPostgres) {
+            try {
+                const countQuery = 'SELECT COUNT(*) as total FROM blog_posts';
+                const countResult = await db.executeQuery(countQuery);
+                const dbTotal = parseInt(countResult?.rows?.[0]?.total || countResult?.[0]?.total || 0);
+                diagnosis.database.postsInDB = dbTotal;
+            } catch (dbError) {
+                diagnosis.database.error = dbError.message;
             }
-        } catch (initError) {
-            diagnosis.database.connected = false;
-            diagnosis.errors.push(`Erro ao inicializar banco: ${initError.message}`);
         }
 
-        // 2. Verificar posts do arquivo (fallback)
-        try {
-            const { loadPosts } = require('../../blog-api');
-            const filePosts = await loadPosts();
-            diagnosis.posts.fromFile = filePosts.length;
-            diagnosis.posts.byCategory = {};
-            filePosts.forEach(post => {
-                const cat = post.category || 'unknown';
-                diagnosis.posts.byCategory[cat] = (diagnosis.posts.byCategory[cat] || 0) + 1;
-            });
-            
-            // Posts das últimas 24h
-            const now = new Date();
-            const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-            const recentPosts = filePosts.filter(p => {
-                const pubDate = new Date(p.datePublished || p.dateModified || 0);
-                return pubDate >= yesterday;
-            });
-            diagnosis.posts.last24h = recentPosts.length;
-        } catch (fileError) {
-            diagnosis.errors.push(`Erro ao carregar posts do arquivo: ${fileError.message}`);
+        // Gerar recomendações
+        if (diagnosis.posts.total === 0) {
+            diagnosis.recommendations.push('⚠️ Nenhum post encontrado. Execute o processamento manual: POST /api/blog/process');
+        } else if (diagnosis.posts.byCategory.noticias < 5) {
+            diagnosis.recommendations.push('⚠️ Poucas notícias encontradas. Verifique se os feeds RSS estão funcionando e se o filtro não está muito restritivo.');
         }
-
-        // 3. Testar RSS feeds
-        try {
-            const { fetchRSSFeed } = require('../../blog-api');
-            const RSS_FEEDS = [
-                { name: 'Valor', url: 'https://www.valor.com.br/rss' },
-                { name: 'Exame', url: 'https://exame.com/feed/' }
-            ];
-            
-            for (const feed of RSS_FEEDS) {
-                try {
-                    const feedData = await fetchRSSFeed(feed.url);
-                    diagnosis.rssFeeds[feed.name] = {
-                        available: !!feedData,
-                        itemsCount: feedData?.items?.length || 0,
-                        hasItems: !!(feedData?.items && feedData.items.length > 0)
-                    };
-                } catch (feedError) {
-                    diagnosis.rssFeeds[feed.name] = {
-                        available: false,
-                        error: feedError.message
-                    };
-                }
-            }
-        } catch (rssError) {
-            diagnosis.errors.push(`Erro ao testar RSS: ${rssError.message}`);
+        
+        if (!diagnosis.database.available) {
+            diagnosis.recommendations.push('⚠️ Banco de dados não disponível. Verifique se DATABASE_URL está configurada no Vercel.');
         }
-
-        // 4. Verificar variáveis de ambiente
-        diagnosis.environment = {
-            vercel: process.env.VERCEL === '1',
-            nodeEnv: process.env.NODE_ENV,
-            hasDatabaseUrl: !!process.env.DATABASE_URL
-        };
+        
+        if (diagnosis.posts.total < 20) {
+            diagnosis.recommendations.push('💡 Execute o processamento manual para adicionar mais conteúdo: POST /api/blog/process');
+        }
 
         res.status(200).json(diagnosis);
     } catch (error) {
         console.error('Erro no diagnóstico:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-            stack: error.stack
+        res.status(500).json({ 
+            success: false, 
+            error: error.message || 'Erro ao executar diagnóstico' 
         });
     }
 };

@@ -157,7 +157,7 @@ function createFooter() {
                         <div class="contact-info">
                             <p><i class="fas fa-envelope"></i> <a href="mailto:consultores@olvinternacional.com.br">consultores@olvinternacional.com.br</a></p>
                             <p><i class="fas fa-phone"></i> <a href="tel:+551126751446">+55 11 2675 1446</a></p>
-                            <p><i class="fab fa-whatsapp"></i> <a href="https://wa.me/5511999244444" target="_blank" rel="noopener noreferrer">+55 11 99924-4444</a></p>
+                            <p><i class="fab fa-whatsapp"></i> <a href="https://wa.me/5511910074444" target="_blank" rel="noopener noreferrer">+55 11 91007-4444</a></p>
                             <p><i class="fas fa-map-marker-alt"></i> Avenida Paulista, 1471 - Conj 1110<br>CEP 01311-927 - Bela Vista<br>São Paulo - SP</p>
                         </div>
                         <a href="contato.html" class="btn btn-secondary">Falar com especialista</a>
@@ -188,7 +188,7 @@ function createFooter() {
         </footer>
         
         <!-- Botão WhatsApp Flutuante -->
-        <a href="https://wa.me/5511999244444" class="whatsapp-float" target="_blank" rel="noopener noreferrer" aria-label="Fale conosco no WhatsApp">
+        <a href="https://wa.me/5511910074444" class="whatsapp-float" target="_blank" rel="noopener noreferrer" aria-label="Fale conosco no WhatsApp">
             <i class="fab fa-whatsapp"></i>
             <span class="whatsapp-tooltip">Fale conosco</span>
         </a>

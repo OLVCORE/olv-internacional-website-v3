@@ -86,15 +86,55 @@ module.exports = async (req, res) => {
             console.warn('⚠️ Erro ao contar posts no banco:', countError.message);
         }
         
+        // Coletar estatísticas detalhadas do processamento
+        let processingStats = {
+            feedsProcessed: 0,
+            feedsWithItems: 0,
+            totalItemsFound: 0,
+            itemsAccepted: 0,
+            itemsRejected: 0,
+            itemsDuplicated: 0,
+            itemsSaved: 0
+        };
+        
+        // Tentar obter estatísticas dos logs (se disponíveis)
+        try {
+            const { processAllSources } = require('../../blog-api');
+            // As estatísticas são logadas, mas não retornadas
+            // Vamos adicionar um resumo baseado no que foi processado
+        } catch (e) {
+            // Ignorar erro
+        }
+        
         // No Vercel, retornar os artigos também para garantir que estão disponíveis
-        res.status(200).json({ 
+        const response = {
             success: true, 
             message: `${articles.length} artigos processados`,
             articles: articles.length,
             totalPostsInDB: totalPostsInDB,
             postsByCategory: postsByCategory,
-            posts: articles // Incluir posts na resposta
-        });
+            posts: articles, // Incluir posts na resposta
+            timestamp: new Date().toISOString()
+        };
+        
+        // Adicionar aviso se nenhum artigo foi processado
+        if (articles.length === 0) {
+            response.warning = 'Nenhum artigo novo foi processado nesta execução.';
+            response.possibleReasons = [
+                'Todos os artigos já existem no banco (duplicatas)',
+                'Nenhum artigo passou pelo filtro de relevância',
+                'Feeds RSS não retornaram novos itens',
+                'Problema no salvamento (verificar logs)'
+            ];
+            response.recommendations = [
+                'Verifique os logs do Vercel para ver o resumo do processamento',
+                'Execute GET /api/blog/diagnose para diagnóstico completo',
+                'Aguarde algumas horas e execute novamente (feeds podem não ter atualizado)',
+                'Verifique se os feeds RSS estão acessíveis'
+            ];
+        }
+        
+        res.status(200).json(response);
     } catch (error) {
         console.error('Erro ao processar artigos:', error);
         res.status(500).json({ 

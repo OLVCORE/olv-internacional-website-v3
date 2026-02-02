@@ -23,6 +23,9 @@
     },
     "api/blog/process.js": {
       "maxDuration": 60
+    },
+    "api/blog/ticker.js": {
+      "maxDuration": 10
     }
   },
   "crons": [
@@ -32,7 +35,7 @@
     },
     {
       "path": "/api/blog/process",
-      "schedule": "0 14 * * *"
+      "schedule": "0 20 * * *"
     }
   ]
 }
