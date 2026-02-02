@@ -1,0 +1,15 @@
+---
+description: Fazer commit e push após melhorias no projeto
+alwaysApply: true
+---
+
+# Commit e push após melhorias
+
+Sempre que realizar melhorias, correções ou novas funcionalidades neste repositório:
+
+1. **Commit**: Fazer commit das alterações com mensagem clara e objetiva em português (ex.: "Ticker: cache com poucos itens e animação mais rápida").
+2. **Push**: Enviar para o repositório remoto (`git push`) na mesma sequência.
+
+Use `git add` nos arquivos alterados, `git commit -m "mensagem"` e `git push`. Solicite permissões `git_write` e `network` (ou `all`) conforme necessário para o comando executar no ambiente do usuário.
+
+Não pule o push: o objetivo é manter o remoto atualizado sempre que houver melhorias.
