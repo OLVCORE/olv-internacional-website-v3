@@ -234,15 +234,28 @@ async function saveArticleToDB(article) {
                 await executeQuery(`ALTER TABLE blog_posts ADD COLUMN source_published_date TIMESTAMP`);
                 console.log('✅ Coluna source_published_date adicionada em saveArticleToDB');
             }
+            // Coluna olv_analysis (análise Perplexity no contexto OLV)
+            const checkOlvQuery = `
+                SELECT column_name FROM information_schema.columns
+                WHERE table_name = 'blog_posts' AND column_name = 'olv_analysis'
+            `;
+            const checkOlvResult = await executeQuery(checkOlvQuery);
+            const hasOlvColumn = Array.isArray(checkOlvResult) ? checkOlvResult.length > 0 : (checkOlvResult.rows?.length > 0);
+            if (!hasOlvColumn) {
+                await executeQuery(`ALTER TABLE blog_posts ADD COLUMN olv_analysis TEXT`);
+                console.log('✅ Coluna olv_analysis adicionada em saveArticleToDB');
+            }
         } catch (e) {
             console.error('⚠️ Erro ao verificar/adicionar colunas em saveArticleToDB:', e.message);
-            // Tentar adicionar mesmo assim
             try {
                 await executeQuery(`ALTER TABLE blog_posts ADD COLUMN image TEXT`);
             } catch (e2) {}
             try {
                 await executeQuery(`ALTER TABLE blog_posts ADD COLUMN source_published_date TIMESTAMP`);
             } catch (e3) {}
+            try {
+                await executeQuery(`ALTER TABLE blog_posts ADD COLUMN olv_analysis TEXT`);
+            } catch (e4) {}
         }
         const now = new Date().toISOString();
         // Garantir que dataSource seja um objeto válido antes de stringify
@@ -275,10 +288,11 @@ async function saveArticleToDB(article) {
         
         if (isNeon) {
             // Neon: usar query direta com valores escapados
+            const olvAnalysis = (article.olvAnalysis && typeof article.olvAnalysis === 'string') ? article.olvAnalysis : null;
             const query = `
                 INSERT INTO blog_posts (
                     id, title, excerpt, content, category,
-                    date_published, date_modified, source_published_date, icon, read_time, source, data_source, image, updated_at
+                    date_published, date_modified, source_published_date, icon, read_time, source, data_source, image, olv_analysis, updated_at
                 )
                 VALUES (
                     ${escapeString(article.id)},
@@ -294,6 +308,7 @@ async function saveArticleToDB(article) {
                     ${escapeString(article.source || '')},
                     ${escapeString(dataSourceJson)},
                     ${escapeString(article.image || null)},
+                    ${olvAnalysis !== null ? escapeString(olvAnalysis) : 'NULL'},
                     ${escapeString(now)}
                 )
                 ON CONFLICT (id) 
@@ -309,15 +324,17 @@ async function saveArticleToDB(article) {
                     source = EXCLUDED.source,
                     data_source = EXCLUDED.data_source,
                     image = EXCLUDED.image,
+                    olv_analysis = EXCLUDED.olv_analysis,
                     updated_at = EXCLUDED.updated_at
             `;
             await sql(query);
         } else {
             // Vercel Postgres: usar template tag
+            const olvAnalysis = (article.olvAnalysis && typeof article.olvAnalysis === 'string') ? article.olvAnalysis : null;
             await sql`
                 INSERT INTO blog_posts (
                     id, title, excerpt, content, category,
-                    date_published, date_modified, source_published_date, icon, read_time, source, data_source, image, updated_at
+                    date_published, date_modified, source_published_date, icon, read_time, source, data_source, image, olv_analysis, updated_at
                 )
                 VALUES (
                     ${article.id},
@@ -333,6 +350,7 @@ async function saveArticleToDB(article) {
                     ${article.source || ''},
                     ${dataSourceJson},
                     ${article.image || null},
+                    ${olvAnalysis},
                     ${now}
                 )
                 ON CONFLICT (id) 
@@ -348,6 +366,7 @@ async function saveArticleToDB(article) {
                     source = EXCLUDED.source,
                     data_source = EXCLUDED.data_source,
                     image = EXCLUDED.image,
+                    olv_analysis = EXCLUDED.olv_analysis,
                     updated_at = EXCLUDED.updated_at
             `;
         }
@@ -406,15 +425,27 @@ async function loadPostsFromDB(limit = 500) {
                     await executeQuery(`ALTER TABLE blog_posts ADD COLUMN source_published_date TIMESTAMP`);
                     console.log('✅ Coluna source_published_date adicionada em loadPostsFromDB');
                 }
+                const checkOlvQuery = `
+                    SELECT column_name FROM information_schema.columns
+                    WHERE table_name = 'blog_posts' AND column_name = 'olv_analysis'
+                `;
+                const checkOlvResult = await executeQuery(checkOlvQuery);
+                const hasOlvColumn = Array.isArray(checkOlvResult) ? checkOlvResult.length > 0 : (checkOlvResult.rows?.length > 0);
+                if (!hasOlvColumn) {
+                    await executeQuery(`ALTER TABLE blog_posts ADD COLUMN olv_analysis TEXT`);
+                    console.log('✅ Coluna olv_analysis adicionada em loadPostsFromDB');
+                }
             } catch (e) {
                 console.error('⚠️ Erro ao verificar/adicionar colunas:', e.message);
-                // Tentar adicionar mesmo assim
                 try {
                     await executeQuery(`ALTER TABLE blog_posts ADD COLUMN image TEXT`);
                 } catch (e2) {}
                 try {
                     await executeQuery(`ALTER TABLE blog_posts ADD COLUMN source_published_date TIMESTAMP`);
                 } catch (e3) {}
+                try {
+                    await executeQuery(`ALTER TABLE blog_posts ADD COLUMN olv_analysis TEXT`);
+                } catch (e4) {}
             }
             
             const query = `
@@ -426,7 +457,8 @@ async function loadPostsFromDB(limit = 500) {
                         THEN '{}'::jsonb
                         ELSE data_source
                     END as data_source,
-                    COALESCE(image, NULL) as image
+                    COALESCE(image, NULL) as image,
+                    olv_analysis
                 FROM blog_posts
                 ORDER BY date_published DESC
                 LIMIT ${limit}
@@ -457,22 +489,33 @@ async function loadPostsFromDB(limit = 500) {
                     await sql`ALTER TABLE blog_posts ADD COLUMN source_published_date TIMESTAMP`;
                     console.log('✅ Coluna source_published_date adicionada em loadPostsFromDB (Vercel)');
                 }
+                const checkOlv = await sql`
+                    SELECT column_name FROM information_schema.columns
+                    WHERE table_name = 'blog_posts' AND column_name = 'olv_analysis'
+                `;
+                if (!checkOlv || checkOlv.length === 0) {
+                    await sql`ALTER TABLE blog_posts ADD COLUMN olv_analysis TEXT`;
+                    console.log('✅ Coluna olv_analysis adicionada em loadPostsFromDB (Vercel)');
+                }
             } catch (e) {
                 console.error('⚠️ Erro ao verificar/adicionar colunas (Vercel):', e.message);
-                // Tentar adicionar mesmo assim
                 try {
                     await sql`ALTER TABLE blog_posts ADD COLUMN image TEXT`;
                 } catch (e2) {}
                 try {
                     await sql`ALTER TABLE blog_posts ADD COLUMN source_published_date TIMESTAMP`;
                 } catch (e3) {}
+                try {
+                    await sql`ALTER TABLE blog_posts ADD COLUMN olv_analysis TEXT`;
+                } catch (e4) {}
             }
             
             result = await sql`
                 SELECT 
                     id, title, excerpt, content, category,
                     date_published, date_modified, source_published_date, icon, read_time, source, data_source,
-                    COALESCE(image, NULL) as image
+                    COALESCE(image, NULL) as image,
+                    olv_analysis
                 FROM blog_posts
                 ORDER BY date_published DESC
                 LIMIT ${limit}
@@ -520,7 +563,8 @@ async function loadPostsFromDB(limit = 500) {
                 readTime: row.read_time,
                 source: row.source,
                 dataSource: dataSource,
-                image: row.image || null
+                image: row.image || null,
+                olvAnalysis: row.olv_analysis || null
             };
         });
     } catch (error) {
@@ -566,22 +610,35 @@ async function loadPostFromDB(postId) {
                 await executeQuery(`ALTER TABLE blog_posts ADD COLUMN source_published_date TIMESTAMP`);
                 console.log('✅ Coluna source_published_date adicionada em loadPostFromDB');
             }
+            const checkOlvQuery = `
+                SELECT column_name FROM information_schema.columns
+                WHERE table_name = 'blog_posts' AND column_name = 'olv_analysis'
+            `;
+            const checkOlvResult = await executeQuery(checkOlvQuery);
+            const hasOlvColumn = Array.isArray(checkOlvResult) ? checkOlvResult.length > 0 : (checkOlvResult.rows?.length > 0);
+            if (!hasOlvColumn) {
+                await executeQuery(`ALTER TABLE blog_posts ADD COLUMN olv_analysis TEXT`);
+                console.log('✅ Coluna olv_analysis adicionada em loadPostFromDB');
+            }
         } catch (e) {
             console.error('⚠️ Erro ao verificar/adicionar colunas em loadPostFromDB:', e.message);
-            // Tentar adicionar mesmo assim
             try {
                 await executeQuery(`ALTER TABLE blog_posts ADD COLUMN image TEXT`);
             } catch (e2) {}
             try {
                 await executeQuery(`ALTER TABLE blog_posts ADD COLUMN source_published_date TIMESTAMP`);
             } catch (e3) {}
+            try {
+                await executeQuery(`ALTER TABLE blog_posts ADD COLUMN olv_analysis TEXT`);
+            } catch (e4) {}
         }
         
         const query = `
             SELECT 
                 id, title, excerpt, content, category,
                 date_published, date_modified, source_published_date, icon, read_time, source, data_source,
-                COALESCE(image, NULL) as image
+                COALESCE(image, NULL) as image,
+                olv_analysis
             FROM blog_posts
             WHERE id = $1
             LIMIT 1
@@ -625,10 +682,13 @@ async function loadPostFromDB(postId) {
             category: row.category,
             datePublished: row.date_published ? new Date(row.date_published).toISOString() : new Date().toISOString(),
             dateModified: row.date_modified ? new Date(row.date_modified).toISOString() : new Date().toISOString(),
+            sourcePublishedDate: row.source_published_date ? new Date(row.source_published_date).toISOString() : null,
             icon: row.icon,
             readTime: row.read_time,
             source: row.source,
-            dataSource: dataSource
+            dataSource: dataSource,
+            image: row.image || null,
+            olvAnalysis: row.olv_analysis || null
         };
     } catch (error) {
         console.error('❌ Erro ao carregar post do banco:', error);

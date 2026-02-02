@@ -3,6 +3,17 @@ const axios = require('axios');
 const fs = require('fs').promises;
 const path = require('path');
 
+// Carregar .env local (Vercel já injeta variáveis)
+try { require('dotenv').config(); } catch (e) {}
+
+let enrichArticleWithPerplexity = async (article) => article;
+try {
+    const perplexity = require('./perplexity-service');
+    enrichArticleWithPerplexity = perplexity.enrichArticleWithPerplexity;
+} catch (e) {
+    console.warn('⚠️ perplexity-service não carregado:', e.message);
+}
+
 // Detectar se está rodando no Vercel
 const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
 
@@ -1516,6 +1527,16 @@ async function processAllSources() {
                         if (!article.datePublished || article.datePublished === article.dateModified) {
                             // Se não tem data da fonte, usar hoje para aparecer no ticker
                             article.datePublished = article.sourcePublishedDate || new Date().toISOString();
+                        }
+                        
+                        // Enriquecer com análise OLV via Perplexity (apenas RSS, se API key configurada)
+                        if (process.env.PERPLEXITY_API_KEY) {
+                            try {
+                                await enrichArticleWithPerplexity(article, { maxTokens: 500 });
+                                if (article.olvAnalysis) console.log(`   📝 Análise OLV adicionada para: "${article.title.substring(0, 50)}..."`);
+                            } catch (perplexityErr) {
+                                console.warn('   ⚠️ Perplexity enrich skip:', perplexityErr.message);
+                            }
                         }
                         
                         // Salvar artigo (não duplicado)

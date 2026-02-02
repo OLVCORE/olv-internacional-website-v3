@@ -6,9 +6,10 @@
     'use strict';
 
     var TICKER_API_BASE = '';
-    var TICKER_REFRESH_MS = 10 * 60 * 1000; // 10 minutes (menos requisições)
+    var TICKER_REFRESH_MS = 5 * 60 * 1000; // 5 minutes (atualiza mais para refletir ingestão)
     var TICKER_STORAGE_KEY = 'olv-news-ticker-cache';
-    var TICKER_CACHE_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutes (usa cache mais tempo)
+    var TICKER_CACHE_VERSION = 2;
+    var TICKER_CACHE_MAX_AGE_MS = 2 * 60 * 1000; // 2 minutes (cache curto para dados frescos)
 
     function getApiBase() {
         if (TICKER_API_BASE) return TICKER_API_BASE;
@@ -27,7 +28,7 @@
 
     function getTickerFallbackUrl() {
         var base = getApiBase();
-        return base + '/api/blog/posts?category=all&perPage=30&page=1';
+        return base + '/api/blog/posts?category=all&perPage=50&page=1';
     }
 
     function safeTitle(post) {
@@ -75,7 +76,7 @@
             var raw = localStorage.getItem(TICKER_STORAGE_KEY);
             if (!raw) return null;
             var data = JSON.parse(raw);
-            if (data && data.ts && (Date.now() - data.ts < TICKER_CACHE_MAX_AGE_MS) && Array.isArray(data.posts)) {
+            if (data && data.v === TICKER_CACHE_VERSION && data.ts && (Date.now() - data.ts < TICKER_CACHE_MAX_AGE_MS) && Array.isArray(data.posts)) {
                 return data.posts;
             }
         } catch (e) {}
@@ -85,6 +86,7 @@
     function setCachedPosts(posts) {
         try {
             localStorage.setItem(TICKER_STORAGE_KEY, JSON.stringify({
+                v: TICKER_CACHE_VERSION,
                 ts: Date.now(),
                 posts: posts || []
             }));
@@ -126,15 +128,23 @@
                     '</a>';
             });
 
-            var finalItems = tickerItems.length >= 5 ? tickerItems.concat(tickerItems) : tickerItems;
+            // Duplicar lista para scroll contínuo; com poucos itens, repetir até ter pelo menos 16 para animação visível
+            var minForScroll = 16;
+            var finalItems = tickerItems.slice();
+            while (finalItems.length < minForScroll && tickerItems.length > 0) finalItems = finalItems.concat(tickerItems);
+            finalItems = finalItems.concat(tickerItems);
             tickerContent.innerHTML = finalItems.join('');
         }
 
         var cached = getCachedPosts();
-        if (cached && cached.length > 0) {
+        var useCached = cached && cached.length > 0 && cached.length > 2;
+        if (useCached) {
             cached.sort(function (a, b) { return safeDate(b).getTime() - safeDate(a).getTime(); });
             renderItems(cached);
         } else {
+            if (cached && cached.length > 0 && cached.length <= 2) {
+                try { localStorage.removeItem(TICKER_STORAGE_KEY); } catch (e) {}
+            }
             renderEmpty('Carregando notícias...');
         }
 
@@ -144,15 +154,7 @@
             posts = posts.filter(function (p) { return p && (p.id || safeTitle(p)); });
             posts.sort(function (a, b) { return safeDate(b).getTime() - safeDate(a).getTime(); });
             setCachedPosts(posts);
-            var now = new Date();
-            var last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-            var last48h = new Date(now.getTime() - 48 * 60 * 60 * 1000);
-            var last7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            var recent24 = posts.filter(function (p) { return safeDate(p) >= last24h; });
-            var recent48 = posts.filter(function (p) { return safeDate(p) >= last48h; });
-            var recent7d = posts.filter(function (p) { return safeDate(p) >= last7d; });
-            var toShow = recent24.length >= 3 ? recent24 : (recent48.length >= 3 ? recent48 : (recent7d.length >= 1 ? recent7d : posts));
-            if (toShow.length === 0) toShow = posts.slice(0, 20);
+            var toShow = posts.slice(0, 50);
             renderItems(toShow);
         }
 

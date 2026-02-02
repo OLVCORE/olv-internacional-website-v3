@@ -254,6 +254,14 @@
                     <div class="blog-post-content">
                         ${post.content}
                     </div>
+                    ${post.olvAnalysis ? `
+                        <div class="blog-post-content" style="margin-top: 32px; padding: 24px; background: linear-gradient(135deg, rgba(var(--accent-primary-rgb, 59, 130, 246), 0.08) 0%, rgba(var(--accent-secondary-rgb, 99, 102, 241), 0.08) 100%); border-radius: 12px; border-left: 4px solid var(--accent-primary);">
+                            <h3 style="margin: 0 0 16px 0; color: var(--accent-primary); font-size: 1.1rem;">
+                                <i class="fas fa-lightbulb"></i> Análise OLV — No contexto de supply chain e comércio exterior
+                            </h3>
+                            <p style="margin: 0; color: var(--text-primary); line-height: 1.7; white-space: pre-line;">${String(post.olvAnalysis).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/\n/g, '<br>')}</p>
+                        </div>
+                    ` : ''}
                     ${post.source ? `
                         <div style="background: var(--bg-secondary); padding: 20px; border-radius: 8px; margin: 32px 0; border-left: 4px solid var(--accent-primary);">
                             <p style="margin: 0; font-weight: 600; color: var(--text-primary);">
