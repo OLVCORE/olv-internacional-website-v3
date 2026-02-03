@@ -1103,6 +1103,7 @@ async function processAllSources() {
         let totalItemsRejected = 0;
         let totalItemsSaved = 0;
         let totalItemsDuplicated = 0;
+        let lastSaveError = null;
         
         for (const feed of RSS_FEEDS) {
             try {
@@ -1580,6 +1581,7 @@ async function processAllSources() {
                                 console.log(`   🔗 URL: ${article.dataSource?.link?.substring(0, 80) || 'N/A'}...`);
                                 console.log(`   📊 Total acumulado nesta execução: ${articles.length} artigos`);
                             } else {
+                                lastSaveError = 'saveArticle retornou null/false (banco ou arquivo falhou)';
                                 console.error(`❌ ❌ ❌ FALHA CRÍTICA: Artigo NÃO foi salvo (saveArticle retornou null/false)`);
                                 console.error(`   Título: "${article.title}"`);
                                 console.error(`   ID: ${article.id}`);
@@ -1599,6 +1601,7 @@ async function processAllSources() {
                                 }
                             }
                         } catch (saveError) {
+                            lastSaveError = saveError.message || String(saveError);
                             console.error(`❌ ❌ ❌ ERRO CRÍTICO ao salvar artigo "${article.title}":`, saveError.message);
                             console.error(`   Stack:`, saveError.stack);
                             console.error(`   Artigo que falhou:`, {
@@ -1668,6 +1671,7 @@ async function processAllSources() {
         rssStats.totalItemsRejected = totalItemsRejected;
         rssStats.totalItemsDuplicated = totalItemsDuplicated;
         rssStats.totalItemsSaved = totalItemsSaved;
+        if (lastSaveError) rssStats.lastSaveError = lastSaveError;
     } catch (error) {
         console.error('❌ Erro ao processar RSS Feeds:', error.message);
         console.error('Stack:', error.stack);

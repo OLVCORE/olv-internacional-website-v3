@@ -109,6 +109,7 @@ module.exports = async (req, res) => {
                 rssStats.totalItemsFound === 0 ? 'Feeds RSS não retornaram itens (502/timeout?)' : null,
                 rssStats.totalItemsAccepted === 0 && rssStats.totalItemsFound > 0 ? 'Nenhum artigo passou no filtro de relevância' : null,
                 rssStats.totalItemsDuplicated > 0 && rssStats.totalItemsSaved === 0 ? 'Todos os itens aceitos já existiam no banco (duplicatas)' : null,
+                rssStats.totalItemsAccepted > 0 && rssStats.totalItemsSaved === 0 && rssStats.lastSaveError ? `Salvamento falhou: ${rssStats.lastSaveError}` : null,
                 'Problema no salvamento (ver logs no Vercel)'
             ].filter(Boolean);
             response.recommendations = [
