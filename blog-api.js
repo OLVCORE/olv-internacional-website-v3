@@ -926,6 +926,7 @@ async function processAllSources() {
     console.log('🔄 Iniciando processamento de fontes de dados...');
     
     const articles = [];
+    const rssStats = { totalFeedsProcessed: 0, totalItemsFound: 0, totalItemsAccepted: 0, totalItemsRejected: 0, totalItemsDuplicated: 0, totalItemsSaved: 0 };
 
     // 1. ComexStat
     try {
@@ -1119,8 +1120,8 @@ async function processAllSources() {
                     totalFeedsWithItems++;
                     totalItemsFound += feedData.items.length;
                     console.log(`   ✅ ${feedData.items.length} itens encontrados no feed ${feed.name}`);
-                    // Processar os 20 primeiros itens mais recentes de cada feed (aumentado para mais conteúdo)
-                    const recentItems = feedData.items.slice(0, 20);
+                    // Processar os 30 primeiros itens mais recentes de cada feed (mais candidatos para notícias novas)
+                    const recentItems = feedData.items.slice(0, 30);
                     console.log(`   🔄 Processando ${recentItems.length} itens mais recentes...`);
                     for (const item of recentItems) {
                         // ============================================================
@@ -1613,8 +1614,6 @@ async function processAllSources() {
                 }
                 
                 console.log(`   📊 Feed ${feed.name}: ${acceptedCount} aceitos, ${rejectedCount} rejeitados`);
-                totalItemsAccepted += acceptedCount;
-                totalItemsRejected += rejectedCount;
             } catch (feedError) {
                 console.error(`❌ Erro ao processar feed ${feed.name}:`, feedError.message);
                 console.error('Stack:', feedError.stack);
@@ -1663,6 +1662,12 @@ async function processAllSources() {
         console.log('📡 ============================================================');
         console.log(`   📈 Taxa de aceitação: ${totalItemsFound > 0 ? ((totalItemsAccepted / totalItemsFound) * 100).toFixed(1) : 0}%`);
         console.log('📡 ============================================================');
+        rssStats.totalFeedsProcessed = totalFeedsProcessed;
+        rssStats.totalItemsFound = totalItemsFound;
+        rssStats.totalItemsAccepted = totalItemsAccepted;
+        rssStats.totalItemsRejected = totalItemsRejected;
+        rssStats.totalItemsDuplicated = totalItemsDuplicated;
+        rssStats.totalItemsSaved = totalItemsSaved;
     } catch (error) {
         console.error('❌ Erro ao processar RSS Feeds:', error.message);
         console.error('Stack:', error.stack);
@@ -1695,7 +1700,7 @@ async function processAllSources() {
         console.warn('⚠️ Erro ao verificar total de posts:', e.message);
     }
     
-    return articles;
+    return { articles, rssStats };
 }
 
 // Gerar Insights automaticamente a partir de notícias recentes

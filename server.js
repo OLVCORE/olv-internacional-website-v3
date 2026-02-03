@@ -189,7 +189,9 @@ const server = http.createServer((req, res) => {
             // POST /api/blog/process - Processar fontes manualmente
             if (req.method === 'POST' && pathname === '/api/blog/process') {
                 try {
-                    blogProcessor.processAndPublish().then(articles => {
+                    blogProcessor.processAndPublish().then(result => {
+                        const articles = (result && result.articles) ? result.articles : [];
+                        const rssStats = (result && result.rssStats) ? result.rssStats : {};
                         res.writeHead(200, { 
                             'Content-Type': 'application/json',
                             'Access-Control-Allow-Origin': '*'
@@ -197,7 +199,8 @@ const server = http.createServer((req, res) => {
                         res.end(JSON.stringify({ 
                             success: true, 
                             message: `${articles.length} artigos processados`,
-                            articles: articles.length
+                            articles: articles.length,
+                            rssStats
                         }), 'utf-8');
                     }).catch(error => {
                         console.error('Erro ao processar artigos:', error);

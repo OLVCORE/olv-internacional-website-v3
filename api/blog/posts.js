@@ -53,8 +53,8 @@ module.exports = async (req, res) => {
             // Se não houver posts, tentar processar
             try {
                 const { processAllSources } = require('../../blog-api');
-                const articles = await processAllSources();
-                posts = articles;
+                const result = await processAllSources();
+                posts = (result && result.articles) ? result.articles : [];
             } catch (processError) {
                 console.error('Erro ao processar posts:', processError);
                 // Retornar array vazio se falhar

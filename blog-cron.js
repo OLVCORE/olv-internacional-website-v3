@@ -106,7 +106,8 @@ async function processRSSFeeds() {
 async function processFull() {
     console.log('🔄 [CRON] Processamento completo iniciado...');
     try {
-        const articles = await processAndPublish();
+        const result = await processAndPublish();
+        const articles = (result && result.articles) ? result.articles : [];
         console.log(`✅ [CRON] Processamento completo concluído. ${articles.length} artigos processados.`);
     } catch (error) {
         console.error('❌ [CRON] Erro no processamento completo:', error.message);

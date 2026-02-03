@@ -70,7 +70,9 @@ async function processAndPublish() {
     console.log('🚀 Iniciando processamento de artigos...');
     
     try {
-        const articles = await processAllSources();
+        const result = await processAllSources();
+        const articles = (result && result.articles) ? result.articles : [];
+        const rssStats = (result && result.rssStats) ? result.rssStats : {};
         
         // Enriquecer cada artigo
         const enrichedArticles = articles.map(article => {
@@ -83,7 +85,7 @@ async function processAndPublish() {
         console.log(`✅ Limpeza de posts DESABILITADA - Blog é novo, não deletar nada`);
         
         console.log(`✅ ${enrichedArticles.length} artigos processados e enriquecidos`);
-        return enrichedArticles;
+        return { articles: enrichedArticles, rssStats };
     } catch (error) {
         console.error('❌ Erro no processamento:', error);
         throw error;
