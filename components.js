@@ -238,6 +238,14 @@ function loadComponents(currentPage = '') {
         document.head.appendChild(tickerScript);
     }
 
+    // Stratevo Visitor Tracking (carrega em todas as páginas)
+    if (!document.querySelector('script[src*="stratevo-tracking"]')) {
+        const stratevoScript = document.createElement('script');
+        stratevoScript.src = 'stratevo-tracking.js';
+        stratevoScript.async = true;
+        document.body.appendChild(stratevoScript);
+    }
+
     // Re-initialize theme toggle after header is loaded (otimizado)
     requestAnimationFrame(() => {
         if (typeof initThemeToggle === 'function') {
