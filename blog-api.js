@@ -223,16 +223,36 @@ async function fetchRSSFeed(feedUrl) {
             };
         }
         
-        // Usar rss-parser se disponível
+        // Usar rss-parser se disponível (User-Agent evita 502 em alguns sites)
         if (Parser) {
             const parser = new Parser({
-                timeout: 10000,
+                timeout: 15000,
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (compatible; OLV-Blog/1.0; +https://www.olvinternacional.com.br)',
+                    'Accept': 'application/rss+xml, application/xml, text/xml, */*'
+                },
                 customFields: {
                     item: ['dc:creator', 'content:encoded', 'dc:date', 'published', 'media:content', 'media:thumbnail', 'enclosure']
                 }
             });
-            
-            const feed = await parser.parseURL(feedUrl);
+            let feed;
+            const maxRetries = 3;
+            for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                try {
+                    feed = await parser.parseURL(feedUrl);
+                    break;
+                } catch (err) {
+                    const msg = (err && err.message) ? err.message : String(err);
+                    const isRetryable = /502|503|504|ECONNRESET|ETIMEDOUT|socket hang up/i.test(msg);
+                    if (isRetryable && attempt < maxRetries) {
+                        console.warn(`   Tentativa ${attempt}/${maxRetries} falhou (${msg.substring(0, 60)}...), aguardando 4s...`);
+                        await new Promise(r => setTimeout(r, 4000));
+                    } else {
+                        throw err;
+                    }
+                }
+            }
+            if (!feed) return null;
             // Garantir que todos os itens tenham pubDate e image
             if (feed.items) {
                 feed.items = feed.items.map(item => {

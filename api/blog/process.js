@@ -19,10 +19,12 @@ try {
 }
 
 module.exports = async (req, res) => {
-    // Verificar se é chamada do cron (Vercel Cron pode usar GET ou POST)
-    const isCronCall = req.headers['x-vercel-cron'] || 
-                       req.headers['cron-secret'] || 
-                       req.method === 'GET'; // Vercel Cron pode usar GET
+    // Verificar se é chamada do cron (Vercel envia GET com User-Agent vercel-cron/1.0)
+    const ua = (req.headers['user-agent'] || '').toLowerCase();
+    const isCronCall = req.headers['x-vercel-cron'] === '1' ||
+                       (ua.includes('vercel-cron') && req.method === 'GET') ||
+                       req.headers['cron-secret'] ||
+                       req.method === 'GET';
     
     // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -41,11 +43,12 @@ module.exports = async (req, res) => {
         return;
     }
     
-    // Log quando chamado pelo cron
-    if (isCronCall) {
-        console.log('⏰ Processamento iniciado pelo Vercel Cron');
+    const now = new Date().toISOString();
+    const fromCron = req.headers['x-vercel-cron'] === '1' || ua.includes('vercel-cron');
+    if (fromCron) {
+        console.log(`⏰ [CRON] Processamento iniciado pelo Vercel Cron em ${now}`);
     } else {
-        console.log('🔧 Processamento iniciado manualmente');
+        console.log(`🔧 Processamento iniciado (manual ou GET) em ${now}`);
     }
 
     try {

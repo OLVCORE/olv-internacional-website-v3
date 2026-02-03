@@ -31,6 +31,14 @@
   "crons": [
     {
       "path": "/api/blog/process",
+      "schedule": "8 1 * * *"
+    },
+    {
+      "path": "/api/blog/process",
+      "schedule": "14 1 * * *"
+    },
+    {
+      "path": "/api/blog/process",
       "schedule": "0 0 * * *"
     },
     {
