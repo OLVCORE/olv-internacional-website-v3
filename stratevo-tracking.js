@@ -7,7 +7,7 @@
   'use strict';
 
   const CONFIG = {
-    TENANT_ID: 'SEU_TENANT_ID_AQUI',
+    TENANT_ID: '050053d8-1e6b-4d16-8fb9-9376e1d079f2',
     API_URL: 'https://trsybhuzfmxidieyfpzo.supabase.co/functions/v1/track-visitor',
     TIME_UPDATE_INTERVAL: 30000,
     HIGH_INTENT_PATTERNS: {
