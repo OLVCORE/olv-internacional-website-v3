@@ -669,9 +669,9 @@ body {
     height: 100%;
 }
 
-/* Velocidade do ticker: variável customizável (base 105s = 50% mais lento que 70s); responsivo abaixo */
+/* Velocidade do ticker: boas práticas de mercado (200–300s para leitura confortável; referências UX/CNN-style) */
 .news-ticker-content {
-    --ticker-duration: 105s;
+    --ticker-duration: 240s;
     display: inline-flex;
     align-items: center;
     gap: 40px;
@@ -762,7 +762,7 @@ body {
     }
     
     .news-ticker-content {
-        --ticker-duration: 120s;
+        --ticker-duration: 280s;
         gap: 24px;
         padding-left: 12px;
     }
