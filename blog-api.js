@@ -371,6 +371,21 @@ function normalizeTitle(title) {
         .trim();
 }
 
+// Detectar se o texto parece estar em inglês (heurística por palavras comuns)
+function detectLanguage(text) {
+    if (!text || typeof text !== 'string') return false;
+    const t = text.toLowerCase().replace(/[^\w\s]/g, ' ');
+    const words = t.split(/\s+/).filter(Boolean);
+    if (words.length === 0) return false;
+    const en = ['the', 'and', 'of', 'to', 'in', 'is', 'for', 'on', 'with', 'as', 'by', 'at', 'from', 'that', 'this', 'it', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'will', 'would', 'could', 'should', 'can', 'may', 'new', 'said', 'says'];
+    const pt = ['de', 'da', 'do', 'em', 'no', 'na', 'para', 'com', 'que', 'por', 'um', 'uma', 'os', 'as', 'dos', 'das', 'nos', 'nas', 'ao', 'aos', 'pelo', 'pela', 'este', 'esta', 'esse', 'essa', 'isso', 'como', 'mais', 'mas', 'ser', 'foi', 'são', 'tem', 'ter', 'há', 'seu', 'sua', 'não'];
+    let enCount = 0, ptCount = 0;
+    const set = new Set(words);
+    for (const w of en) { if (set.has(w)) enCount++; }
+    for (const w of pt) { if (set.has(w)) ptCount++; }
+    return enCount > ptCount;
+}
+
 // Gerar ID único baseado no conteúdo (para evitar duplicatas)
 function generateUniqueArticleId(data, type) {
     const crypto = require('crypto');
@@ -583,9 +598,16 @@ function generateArticleFromData(data, type) {
             article.content = generateRSSContent(data);
             article._needsTranslation = false; // Flag para indicar se precisa tradução
             
-            // Detectar se está em inglês (verificação mais robusta)
-            const combinedText = (originalTitle + ' ' + originalExcerpt).toLowerCase();
-            const isEnglish = detectLanguage(combinedText);
+            // Detectar se está em inglês (inline para não depender de função externa no deploy)
+            const combinedText = (originalTitle + ' ' + originalExcerpt).toLowerCase().replace(/[^\w\s]/g, ' ');
+            const words = combinedText.split(/\s+/).filter(Boolean);
+            const enWords = ['the', 'and', 'of', 'to', 'in', 'is', 'for', 'on', 'with', 'as', 'by', 'at', 'from', 'that', 'this', 'it', 'are', 'was', 'were', 'new'];
+            const ptWords = ['de', 'da', 'do', 'em', 'no', 'na', 'para', 'com', 'que', 'por', 'um', 'uma', 'os', 'as', 'dos', 'das', 'como', 'mais', 'mas', 'não'];
+            const wordSet = new Set(words);
+            let enC = 0, ptC = 0;
+            for (const w of enWords) { if (wordSet.has(w)) enC++; }
+            for (const w of ptWords) { if (wordSet.has(w)) ptC++; }
+            const isEnglish = words.length > 0 && enC > ptC;
             
             if (isEnglish) {
                 article._needsTranslation = true;
@@ -788,6 +810,8 @@ function generateRSSContent(data) {
 
 // Salvar artigo
 async function saveArticle(article) {
+    // Garantir conexão (lazy-init no Vercel quando env só existe em runtime)
+    if (db && typeof db.ensureConnection === 'function') db.ensureConnection();
     // Tentar salvar no banco primeiro (se disponível)
     if (db && db.hasPostgres) {
         try {
@@ -795,26 +819,25 @@ async function saveArticle(article) {
             const saved = await db.saveArticleToDB(article);
             if (saved) {
                 console.log(`✅ Artigo salvo no banco: ${article.id}`);
-                // Limpar posts antigos periodicamente (apenas a cada 10 artigos para performance)
                 if (Math.random() < 0.1) {
-                    await db.cleanupOldPosts(500); // Aumentado para manter mais posts
+                    await db.cleanupOldPosts(500);
                 }
                 return saved;
-            } else {
-                console.warn('⚠️ saveArticleToDB retornou null, usando fallback');
             }
+            if (isVercel) throw new Error('saveArticleToDB retornou null no Vercel (DATABASE_URL ou Neon indisponível)');
+            console.warn('⚠️ saveArticleToDB retornou null, usando fallback em arquivo');
         } catch (error) {
+            if (isVercel) throw error;
             console.warn('⚠️ Erro ao salvar no banco, usando fallback de arquivo:', error.message);
             console.error('Stack:', error.stack);
         }
     } else {
+        if (isVercel) throw new Error('Banco não disponível (db ou hasPostgres falso)');
         console.warn('⚠️ Banco não disponível para salvar, usando arquivo');
-        console.warn(`   db disponível: ${!!db}`);
-        console.warn(`   hasPostgres: ${db?.hasPostgres}`);
-        console.warn(`   DATABASE_URL: ${process.env.DATABASE_URL ? '✅ Definido' : '❌ Não definido'}`);
+        console.warn(`   db disponível: ${!!db}, hasPostgres: ${db?.hasPostgres}`);
     }
 
-    // Fallback: salvar em arquivo (SEMPRE salvar, mesmo que banco falhe)
+    // Fallback: salvar em arquivo (apenas fora do Vercel)
     await ensureBlogDataDir();
     
     try {
@@ -1104,8 +1127,12 @@ async function processAllSources() {
         let totalItemsSaved = 0;
         let totalItemsDuplicated = 0;
         let lastSaveError = null;
+        const saveAttempts = []; // diagnóstico: cada tentativa de save
+        const MAX_ITEMS_PER_RUN = 12; // evita FUNCTION_INVOCATION_TIMEOUT (60s no Vercel)
+        let itemsProcessedThisRun = 0;
         
         for (const feed of RSS_FEEDS) {
+            if (itemsProcessedThisRun >= MAX_ITEMS_PER_RUN) break;
             try {
                 totalFeedsProcessed++;
                 console.log(`📡 [${totalFeedsProcessed}/${RSS_FEEDS.length}] Processando feed: ${feed.name}`);
@@ -1121,10 +1148,11 @@ async function processAllSources() {
                     totalFeedsWithItems++;
                     totalItemsFound += feedData.items.length;
                     console.log(`   ✅ ${feedData.items.length} itens encontrados no feed ${feed.name}`);
-                    // Processar os 30 primeiros itens mais recentes de cada feed (mais candidatos para notícias novas)
-                    const recentItems = feedData.items.slice(0, 30);
-                    console.log(`   🔄 Processando ${recentItems.length} itens mais recentes...`);
+                    const maxFromFeed = Math.min(30, MAX_ITEMS_PER_RUN - itemsProcessedThisRun);
+                    const recentItems = feedData.items.slice(0, maxFromFeed);
+                    console.log(`   🔄 Processando até ${recentItems.length} itens (limite ${MAX_ITEMS_PER_RUN}/run)...`);
                     for (const item of recentItems) {
+                        if (itemsProcessedThisRun >= MAX_ITEMS_PER_RUN) break;
                         // ============================================================
                         // MODELO EDITORIAL OLV - FILTRO BASEADO EM TEMAS MACRO
                         // ============================================================
@@ -1372,6 +1400,7 @@ async function processAllSources() {
                         
                         acceptedCount++;
                         totalItemsAccepted++;
+                        saveAttempts.push({ step: 'accepted', n: totalItemsAccepted, title: (item.title || '').substring(0, 40) });
                         const reason = hasTechnicalTheme ? 'tema técnico' : 
                                       hasMacroTheme ? 'tema macro' : 
                                       isVeryTrustedBrazilian ? 'fonte confiável BR' : 
@@ -1381,15 +1410,13 @@ async function processAllSources() {
                         console.log(`       🔗 URL: ${item.link?.substring(0, 80) || 'N/A'}...`);
                         
                         // ============================================================
-                        // CAMADA 2: PROCESSAR E CLASSIFICAR COMO NOTÍCIA
+                        // CAMADA 2: PROCESSAR E CLASSIFICAR COMO NOTÍCIA (um throw aqui não pode matar o loop)
                         // ============================================================
-                        // Processar artigo (já verificamos que é relevante)
+                        try {
                         const article = generateArticleFromData(item, 'rss');
                         
-                        // Garantir que é classificado como NOTÍCIA (não análise)
                         article.category = 'noticias';
                         
-                        // Traduzir para português se necessário
                         if (article._needsTranslation) {
                                 try {
                                     console.log(`🌐 Traduzindo artigo de inglês para português: "${article._originalTitle.substring(0, 50)}..."`);
@@ -1505,24 +1532,28 @@ async function processAllSources() {
                                     console.warn('   Stack:', e.stack);
                                     exists = false;
                                 }
-                            } else {
-                                // Se não tem link, verificar por título
+                        } else {
+                            // Se não tem link, verificar por título (não deixar throw sair do loop)
+                            try {
                                 console.log('⚠️ Artigo RSS sem link, verificando por título...');
                                 exists = await articleExists(article);
                                 if (exists) {
                                     console.log(`⏭️  Artigo já existe (verificação por título): "${article.title.substring(0, 60)}..."`);
                                 }
+                            } catch (e) {
+                                console.warn('⚠️ articleExists (sem link) falhou, tratando como não duplicado:', e.message);
+                                exists = false;
                             }
-                            
-                            if (exists) {
-                                totalItemsDuplicated++;
-                                console.log(`⏭️  [${totalItemsDuplicated}] Artigo duplicado ignorado (mesma URL completa): "${article.title.substring(0, 60)}..."`);
-                                console.log(`       🔗 URL: ${article.dataSource?.link?.substring(0, 80) || 'N/A'}...`);
-                                continue; // Pular apenas se URL completa for exatamente igual
-                            }
-                            
-                            // Garantir que a data da fonte seja preservada
-                            // Se o item tem pubDate, usar essa data como sourcePublishedDate
+                        }
+                        // Duplicata: contar mas NÃO pular — fazer upsert para atualizar conteúdo existente
+                        if (exists) {
+                            totalItemsDuplicated++;
+                            console.log(`🔄 [${totalItemsDuplicated}] Artigo já existe, será atualizado (upsert): "${article.title.substring(0, 60)}..."`);
+                        }
+                        saveAttempts.push({ step: 'passed_duplicate', id: article.id, wasDuplicate: exists });
+                        // Enriquecimento e salvamento (com ou sem link) - nunca sair do loop por throw
+                        try {
+                        // Garantir que a data da fonte seja preservada
                             if (item.pubDate && !article.sourcePublishedDate) {
                                 try {
                                     article.sourcePublishedDate = new Date(item.pubDate).toISOString();
@@ -1563,13 +1594,14 @@ async function processAllSources() {
                         
                         // Salvar artigo (não duplicado)
                         try {
+                            saveAttempts.push({ step: 'before_save', id: article.id, title: (article.title || '').substring(0, 50) });
                             console.log(`💾 Tentando salvar artigo: "${article.title.substring(0, 60)}..."`);
                             console.log(`   📋 ID: ${article.id}`);
                             console.log(`   🔗 URL: ${article.dataSource?.link?.substring(0, 80) || 'N/A'}...`);
                             console.log(`   📅 Data: ${article.datePublished || 'N/A'}`);
-                            
                             const saved = await saveArticle(article);
                             if (saved) {
+                                saveAttempts.push({ step: 'saved', id: article.id });
                                 articles.push(article);
                                 totalItemsSaved++;
                                 
@@ -1582,6 +1614,7 @@ async function processAllSources() {
                                 console.log(`   📊 Total acumulado nesta execução: ${articles.length} artigos`);
                             } else {
                                 lastSaveError = 'saveArticle retornou null/false (banco ou arquivo falhou)';
+                                saveAttempts.push({ step: 'failed', id: article.id, error: lastSaveError });
                                 console.error(`❌ ❌ ❌ FALHA CRÍTICA: Artigo NÃO foi salvo (saveArticle retornou null/false)`);
                                 console.error(`   Título: "${article.title}"`);
                                 console.error(`   ID: ${article.id}`);
@@ -1592,6 +1625,7 @@ async function processAllSources() {
                                     const retrySaved = await saveArticle(article);
                                     if (retrySaved) {
                                         articles.push(article);
+                                        totalItemsSaved++;
                                         console.log(`✅ ✅ Artigo salvo na segunda tentativa!`);
                                     } else {
                                         console.error(`❌ ❌ Falha também na segunda tentativa`);
@@ -1602,6 +1636,7 @@ async function processAllSources() {
                             }
                         } catch (saveError) {
                             lastSaveError = saveError.message || String(saveError);
+                            saveAttempts.push({ step: 'throw', id: article.id, error: lastSaveError });
                             console.error(`❌ ❌ ❌ ERRO CRÍTICO ao salvar artigo "${article.title}":`, saveError.message);
                             console.error(`   Stack:`, saveError.stack);
                             console.error(`   Artigo que falhou:`, {
@@ -1609,8 +1644,18 @@ async function processAllSources() {
                                 title: article.title.substring(0, 50),
                                 url: article.dataSource?.link?.substring(0, 80)
                             });
-                            // Continuar processando outros artigos mesmo se um falhar
                         }
+                        } catch (enrichOrSaveError) {
+                            lastSaveError = enrichOrSaveError.message || String(enrichOrSaveError);
+                            saveAttempts.push({ step: 'enrich_or_save_error', id: article.id, error: lastSaveError });
+                            console.error('❌ Erro em enriquecimento/save (item continua):', enrichOrSaveError.message);
+                        }
+                        } catch (itemError) {
+                            lastSaveError = itemError.message || String(itemError);
+                            saveAttempts.push({ step: 'item_error', error: lastSaveError });
+                            console.error('❌ Erro ao processar item aceito:', itemError.message);
+                        }
+                        itemsProcessedThisRun++;
                     }
                 } else {
                     console.log(`   ⚠️ Feed ${feed.name} não retornou itens ou está vazio`);
@@ -1671,10 +1716,18 @@ async function processAllSources() {
         rssStats.totalItemsRejected = totalItemsRejected;
         rssStats.totalItemsDuplicated = totalItemsDuplicated;
         rssStats.totalItemsSaved = totalItemsSaved;
-        if (lastSaveError) rssStats.lastSaveError = lastSaveError;
+        // Sempre preencher lastSaveError quando há aceitos mas nenhum foi salvo (para diagnóstico)
+        if (totalItemsAccepted > 0 && totalItemsSaved === 0) {
+            lastSaveError = lastSaveError || 'Nenhum artigo foi gravado (saveArticle retornou falsy ou exceção; verificar DATABASE_URL e logs no Vercel)';
+        }
+        rssStats.lastSaveError = lastSaveError || null;
+        rssStats.saveAttempts = saveAttempts;
     } catch (error) {
         console.error('❌ Erro ao processar RSS Feeds:', error.message);
         console.error('Stack:', error.stack);
+        rssStats.rssLoopError = error.message || String(error);
+        rssStats.lastSaveError = rssStats.lastSaveError || error.message || String(error);
+        rssStats.saveAttempts = rssStats.saveAttempts || [];
     }
 
     // 5. Criar artigos de exemplo para outras categorias (se não houver)
