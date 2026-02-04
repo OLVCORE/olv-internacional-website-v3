@@ -33,6 +33,15 @@ module.exports = async (req, res) => {
         res.status(405).json({ error: 'Method not allowed' });
         return;
     }
+    const hasOpenAIKey = !!(process.env.OPENAI_API_KEY && String(process.env.OPENAI_API_KEY).trim());
+    if (!hasOpenAIKey) {
+        return res.status(200).json({
+            success: false,
+            translated: 0,
+            translatedIds: [],
+            message: 'OPENAI_API_KEY não está definida no Vercel. Defina em: Projeto → Settings → Environment Variables. Depois rode este POST de novo.'
+        });
+    }
     try {
         if (initDatabase) await initDatabase();
         const db = require('../../blog-db-neon');
