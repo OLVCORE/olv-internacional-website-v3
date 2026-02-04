@@ -1763,7 +1763,9 @@ module.exports = {
     processAllSources,
     generateAutomaticInsights,
     generateAutomaticGuias,
-    generateInsightsFromNews
+    generateInsightsFromNews,
+    translateToPortuguese,
+    detectLanguage
 };
 
 // Gerar Insights automáticos baseados em dados das APIs

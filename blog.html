@@ -430,6 +430,26 @@
             padding-top: 16px;
             border-top: 1px solid var(--border-color);
         }
+        .blog-card-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent-primary);
+            white-space: nowrap;
+            letter-spacing: 0.02em;
+        }
+        .blog-card-cta i {
+            font-size: 10px;
+            transition: transform 0.2s ease;
+        }
+        .blog-card:hover .blog-card-cta {
+            color: var(--accent-hover);
+        }
+        .blog-card:hover .blog-card-cta i {
+            transform: translateX(4px);
+        }
         .blog-card-date {
             display: flex;
             align-items: center;
@@ -846,7 +866,7 @@
                                                     </span>
                                                 `}
                                             </div>
-                                            <span><i class="fas fa-arrow-right"></i></span>
+                                            <span class="blog-card-cta">Ver artigo completo <i class="fas fa-arrow-right"></i></span>
                                         </div>
                                     </div>
                                 </div>
