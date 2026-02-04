@@ -1113,6 +1113,13 @@ async function processAllSources() {
         console.log(`📡 ============================================================`);
         console.log(`📡 INICIANDO PROCESSAMENTO DE RSS FEEDS`);
         console.log(`📡 ============================================================`);
+        if (db && typeof db.deleteOffTopicPosts === 'function') {
+            try {
+                await db.deleteOffTopicPosts();
+            } catch (e) {
+                console.warn('⚠️ Limpeza off-topic:', e.message);
+            }
+        }
         console.log(`📡 Total de feeds RSS configurados: ${RSS_FEEDS.length}`);
         console.log(`📡 Feeds que serão processados:`);
         RSS_FEEDS.forEach((feed, idx) => {
@@ -1368,27 +1375,34 @@ async function processAllSources() {
                                                      allText.includes('mercado') ||
                                                      allText.includes('market');
                         
-                        // AJUSTE: Aceitar mais artigos de fontes confiáveis brasileiras
-                        // Se for de fonte muito confiável brasileira, aceitar quase tudo (apenas filtrar spam óbvio)
+                        // EXCLUSÃO EDITORIAL: temas fora do escopo (comércio exterior, supply chain, negócios)
+                        // Rejeitar SEMPRE, mesmo de fontes confiáveis (ex.: Exame publica BBB)
+                        const offTopicKeywords = [
+                            'bbb', 'big brother', 'brother eliminado', 'paredão', 'reality show',
+                            'bbb 26', 'bbb25', 'big brother brasil', 'brother é eliminado',
+                            'pipoca eliminado', 'camarote', 'sincerão', 'enquete bbb'
+                        ];
+                        const isOffTopic = offTopicKeywords.some(kw => allText.includes(kw));
+                        
                         const isSpam = allText.includes('casino') || 
                                       allText.includes('bet') || 
                                       allText.includes('aposta') ||
                                       allText.includes('viagra') ||
                                       allText.includes('crypto scam');
                         
-                        const isRelevant = hasTechnicalTheme || // Tema técnico (supply chain, logística)
+                        const isRelevant = !isOffTopic && (hasTechnicalTheme || // Tema técnico (supply chain, logística)
                                           hasMacroTheme || // Tema macro (geopolítica, acordos, tarifas)
                                           (isVeryTrustedBrazilian && !isSpam) || // Aceitar TUDO de fontes muito confiáveis brasileiras (exceto spam)
                                           (isVeryTrustedInternational && (hasMacroTheme || mentionsEconomicTopic || mentionsStrategicRegion)) || // Fontes internacionais confiáveis
                                           (mentionsStrategicRegion && mentionsEconomicTopic); // Região estratégica + tema econômico
                         
-                        // Se não é relevante, REJEITAR
+                        // Se não é relevante ou é off-topic, REJEITAR
                         if (!isRelevant) {
                             rejectedCount++;
                             totalItemsRejected++;
-                            // Log mais detalhado para diagnosticar problemas
                             if (rejectedCount <= 10 || rejectedCount % 10 === 0) {
-                                const rejectionReason = isSpam ? 'spam detectado' : 
+                                const rejectionReason = isOffTopic ? 'fora do escopo (ex.: BBB/entretenimento)' :
+                                                      isSpam ? 'spam detectado' : 
                                                       !hasTechnicalTheme && !hasMacroTheme ? 'sem temas relevantes' :
                                                       !isVeryTrustedBrazilian && !isVeryTrustedInternational ? 'fonte não confiável' :
                                                       'não atende critérios';

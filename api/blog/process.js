@@ -52,14 +52,18 @@ module.exports = async (req, res) => {
     }
 
     try {
-        // Inicializar banco se necessário (primeira vez)
+        // Inicializar banco (obrigatório; lazy-init se env estava ausente no load)
+        let dbStatus = { hasPostgres: false, initError: null };
         try {
             console.log('🔄 Inicializando banco de dados...');
+            if (db && db.ensureConnection) await db.ensureConnection();
             await initDatabase();
-            console.log('✅ Banco de dados inicializado');
+            dbStatus.hasPostgres = !!(db && db.hasPostgres);
+            console.log('✅ Banco de dados inicializado, hasPostgres:', dbStatus.hasPostgres);
         } catch (initError) {
             console.error('❌ Erro ao inicializar banco:', initError.message);
             console.error('Stack:', initError.stack);
+            dbStatus.initError = initError.message || String(initError);
         }
 
         console.log('🔄 Iniciando processamento de artigos...');
@@ -91,7 +95,7 @@ module.exports = async (req, res) => {
             console.warn('⚠️ Erro ao contar posts no banco:', countError.message);
         }
         
-        // Resposta com estatísticas RSS para diagnóstico (por que 0 artigos?)
+        // Resposta com estatísticas RSS e diagnóstico (lastSaveError no topo para não perder)
         const response = {
             success: true, 
             message: `${articles.length} artigos processados`,
@@ -100,6 +104,9 @@ module.exports = async (req, res) => {
             postsByCategory: postsByCategory,
             posts: articles,
             rssStats: rssStats,
+            lastSaveError: rssStats.lastSaveError ?? null,
+            dbStatus,
+            saveAttempts: rssStats.saveAttempts || [],
             timestamp: new Date().toISOString()
         };
         

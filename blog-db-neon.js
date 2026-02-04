@@ -813,6 +813,32 @@ async function cleanupOldPostsByDate(daysOld = 90) {
     }
 }
 
+// Remover posts fora do escopo editorial (BBB, reality, entretenimento)
+async function deleteOffTopicPosts() {
+    if (!hasPostgres || !sql) return 0;
+    try {
+        const isNeon = typeof sql === 'function' && !sql.unsafe;
+        const conditions = [
+            "LOWER(title) LIKE '%bbb%'", "LOWER(title) LIKE '%big brother%'",
+            "LOWER(title) LIKE '%brother eliminado%'", "LOWER(title) LIKE '%paredão%'",
+            "LOWER(title) LIKE '%reality show%'", "LOWER(content) LIKE '%bbb%'",
+            "LOWER(content) LIKE '%big brother brasil%'"
+        ];
+        const where = conditions.join(' OR ');
+        const query = `DELETE FROM blog_posts WHERE ${where}`;
+        if (isNeon) {
+            await sql(query);
+        } else {
+            await executeQuery(query);
+        }
+        console.log('✅ Limpeza de posts off-topic (BBB/entretenimento) executada.');
+        return 1;
+    } catch (error) {
+        console.warn('⚠️ deleteOffTopicPosts:', error.message);
+        return 0;
+    }
+}
+
 module.exports = {
     get hasPostgres() { return hasPostgres; },
     get sql() { return sql; },
@@ -823,5 +849,6 @@ module.exports = {
     loadPostFromDB,
     cleanupOldPosts,
     cleanupOldPostsByDate,
+    deleteOffTopicPosts,
     executeQuery
 };
