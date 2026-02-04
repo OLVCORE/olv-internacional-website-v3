@@ -50,13 +50,8 @@ module.exports = async (req, res) => {
                 recent: [] // Últimos 10 posts
             },
             rssFeeds: {
-                configured: [
-                    { name: 'Valor Econômico', url: 'https://www.valor.com.br/rss' },
-                    { name: 'Exame', url: 'https://exame.com/feed/' },
-                    { name: 'Agência Brasil', url: 'https://agenciabrasil.ebc.com.br/rss' },
-                    { name: 'Reuters', url: 'https://www.reuters.com/rssFeed/worldNews' }
-                ],
-                count: 4
+                note: 'Fontes especializadas (comércio exterior, supply chain). Ver blog-api.js → RSS_FEEDS.',
+                count: 13
             },
             recommendations: []
         };
@@ -76,8 +71,9 @@ module.exports = async (req, res) => {
             };
             
             // Últimos 10 posts
-            diagnosis.posts.recent = allPosts
-                .sort((a, b) => new Date(b.datePublished || b.dateModified) - new Date(a.datePublished || a.dateModified))
+            const sorted = allPosts
+                .sort((a, b) => new Date(b.datePublished || b.dateModified) - new Date(a.datePublished || a.dateModified));
+            diagnosis.posts.recent = sorted
                 .slice(0, 10)
                 .map(p => ({
                     id: p.id,
@@ -87,6 +83,10 @@ module.exports = async (req, res) => {
                     datePublished: p.datePublished || p.dateModified,
                     hasImage: !!p.image
                 }));
+            // Para confirmar se a ingestão automática (cron 8h/14h BRT) rodou
+            const newest = sorted && sorted[0];
+            diagnosis.ingestion.lastPostAt = newest ? (newest.datePublished || newest.dateModified) : null;
+            diagnosis.ingestion.totalPosts = allPosts.length;
         } catch (error) {
             diagnosis.posts.error = error.message;
         }
