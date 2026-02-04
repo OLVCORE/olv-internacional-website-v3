@@ -393,6 +393,36 @@ function detectLanguage(text) {
     return enCount > ptCount;
 }
 
+// Traduzir texto de inglês para português brasileiro (OpenAI). Usado em título, resumo e corpo dos artigos RSS.
+async function translateToPortuguese(text) {
+    if (!text || typeof text !== 'string' || !text.trim()) return text || '';
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey || !apiKey.trim()) return text;
+    try {
+        const response = await axios.post(
+            'https://api.openai.com/v1/chat/completions',
+            {
+                model: 'gpt-4o-mini',
+                messages: [
+                    { role: 'system', content: 'Traduza o texto para português brasileiro. Mantenha o tom profissional. Responda apenas com a tradução, sem explicações.' },
+                    { role: 'user', content: text.trim().slice(0, 12000) }
+                ],
+                max_tokens: 4096,
+                temperature: 0.2
+            },
+            {
+                headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+                timeout: 25000
+            }
+        );
+        const out = response.data?.choices?.[0]?.message?.content;
+        if (out && typeof out === 'string' && out.trim()) return out.trim();
+    } catch (err) {
+        console.warn('translateToPortuguese skip:', err.response?.data?.error?.message || err.message);
+    }
+    return text;
+}
+
 // Gerar ID único baseado no conteúdo (para evitar duplicatas)
 function generateUniqueArticleId(data, type) {
     const crypto = require('crypto');

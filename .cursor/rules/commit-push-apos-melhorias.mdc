@@ -1,15 +1,27 @@
 ---
-description: Fazer commit e push após melhorias no projeto
+description: Obrigatório: commit e push após qualquer melhoria ou alteração no código
 alwaysApply: true
 ---
 
-# Commit e push após melhorias
+# Commit e push — OBRIGATÓRIO após cada evolução
 
-Sempre que realizar melhorias, correções ou novas funcionalidades neste repositório:
+**Regra obrigatória:** Sempre que você (o agente Cursor) fizer qualquer melhoria, correção, nova funcionalidade ou alteração em arquivos do repositório, você **DEVE** executar commit e push **no mesmo turno**, antes de encerrar a resposta.
 
-1. **Commit**: Fazer commit das alterações com mensagem clara e objetiva em português (ex.: "Ticker: cache com poucos itens e animação mais rápida").
-2. **Push**: Enviar para o repositório remoto (`git push`) na mesma sequência.
+## O que fazer em toda sessão em que houver alterações
 
-Use `git add` nos arquivos alterados, `git commit -m "mensagem"` e `git push`. Solicite permissões `git_write` e `network` (ou `all`) conforme necessário para o comando executar no ambiente do usuário.
+1. **Add:** Incluir todos os arquivos alterados ou criados:  
+   `git add <arquivos>` ou `git add -A` quando fizer sentido.
+2. **Commit:** Criar commit com mensagem clara em português, descrevendo a melhoria:  
+   `git commit -m "Descrição objetiva da alteração"`.
+3. **Push:** Enviar para o remoto:  
+   `git push`.
 
-Não pule o push: o objetivo é manter o remoto atualizado sempre que houver melhorias.
+Use o PowerShell com `;` entre comandos (ex.: `git add .; git commit -m "..."; git push`). Solicite permissão **`all`** (ou `git_write` + `network`) para garantir que o push execute.
+
+## Nunca pule
+
+- Não encerre a resposta dizendo "faça o commit manualmente" se você já alterou arquivos.
+- Não assuma que o usuário vai fazer o push depois — **você deve executar** commit e push após as alterações.
+- Se houver falha de permissão ou rede, informe o usuário e sugira rodar os comandos localmente; mas em condições normais, **sempre execute** você mesmo.
+
+Objetivo: manter o repositório remoto **sempre** atualizado a cada evolução, de forma automática via Cursor.
