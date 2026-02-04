@@ -47,7 +47,13 @@ module.exports = async (req, res) => {
                     guias: 0,
                     insights: 0
                 },
-                recent: [] // Últimos 10 posts
+                recent: []
+            },
+            ingestion: {
+                lastPostAt: null,
+                totalPosts: 0,
+                cronScheduleBRT: '08:00 e 14:00 (horário de Brasília)',
+                cronScheduleUTC: '11:00 e 17:00'
             },
             rssFeeds: {
                 note: 'Fontes especializadas (comércio exterior, supply chain). Ver blog-api.js → RSS_FEEDS.',
@@ -85,6 +91,7 @@ module.exports = async (req, res) => {
                 }));
             // Para confirmar se a ingestão automática (cron 8h/14h BRT) rodou
             const newest = sorted && sorted[0];
+            if (!diagnosis.ingestion) diagnosis.ingestion = { lastPostAt: null, totalPosts: 0, cronScheduleBRT: '08:00 e 14:00 (horário de Brasília)', cronScheduleUTC: '11:00 e 17:00' };
             diagnosis.ingestion.lastPostAt = newest ? (newest.datePublished || newest.dateModified) : null;
             diagnosis.ingestion.totalPosts = allPosts.length;
         } catch (error) {

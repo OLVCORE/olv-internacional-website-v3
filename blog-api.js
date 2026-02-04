@@ -1154,7 +1154,7 @@ async function processAllSources() {
         let totalItemsDuplicated = 0;
         let lastSaveError = null;
         const saveAttempts = []; // diagnóstico: cada tentativa de save
-        const MAX_ITEMS_PER_RUN = 12; // evita FUNCTION_INVOCATION_TIMEOUT (60s no Vercel)
+        const MAX_ITEMS_PER_RUN = 6; // evita FUNCTION_INVOCATION_TIMEOUT (60s Vercel); cron 8h/14h roda 2x/dia
         let itemsProcessedThisRun = 0;
         
         for (const feed of RSS_FEEDS) {
