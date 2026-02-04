@@ -66,6 +66,7 @@ module.exports = async (req, res) => {
             dbStatus.initError = initError.message || String(initError);
         }
 
+        // Limpeza BBB: use POST /api/blog/cleanup-offtopic em vez de ?cleanup_offtopic=1
         console.log('🔄 Iniciando processamento de artigos...');
         const result = await processAndPublish();
         const articles = (result && result.articles) ? result.articles : [];

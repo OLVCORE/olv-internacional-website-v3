@@ -34,7 +34,10 @@ module.exports = async (req, res) => {
     }
 
     try {
-        // Inicializar banco se necessário (primeira vez)
+        try {
+            const db = require('../../blog-db-neon');
+            if (db && db.ensureConnection) db.ensureConnection();
+        } catch (e) {}
         try {
             await initDatabase();
         } catch (initError) {
@@ -49,18 +52,10 @@ module.exports = async (req, res) => {
         try {
             posts = await loadPosts();
         } catch (error) {
-            console.warn('Arquivo de posts não encontrado ou vazio. Processando agora...', error.message);
-            // Se não houver posts, tentar processar
-            try {
-                const { processAllSources } = require('../../blog-api');
-                const result = await processAllSources();
-                posts = (result && result.articles) ? result.articles : [];
-            } catch (processError) {
-                console.error('Erro ao processar posts:', processError);
-                // Retornar array vazio se falhar
-                posts = [];
-            }
+            console.warn('Erro ao carregar posts:', error.message);
+            posts = [];
         }
+        if (!Array.isArray(posts)) posts = [];
         
         // Remover duplicatas baseado em título normalizado + source/URL
         const normalizeTitle = (title) => {

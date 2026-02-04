@@ -575,46 +575,48 @@ async function loadPostsFromDB(limit = 500) {
         
         console.log(`✅ Carregados ${rows.length} posts do banco`);
         
+        const safeDate = (v) => {
+            if (!v) return null;
+            try {
+                const d = new Date(v);
+                return isNaN(d.getTime()) ? null : d.toISOString();
+            } catch (e) { return null; }
+        };
         return rows.map(row => {
-            // Tratar data_source com segurança
-            let dataSource = {};
-            if (row.data_source) {
-                if (typeof row.data_source === 'string') {
-                    // Verificar se é JSON válido (não HTML)
-                    if (row.data_source.trim().startsWith('{') || row.data_source.trim().startsWith('[')) {
-                        try {
-                            dataSource = JSON.parse(row.data_source);
-                        } catch (parseError) {
-                            console.warn('⚠️ Erro ao fazer parse de data_source:', parseError.message);
-                            dataSource = {};
+            try {
+                let dataSource = {};
+                if (row.data_source) {
+                    if (typeof row.data_source === 'string') {
+                        if (row.data_source.trim().startsWith('{') || row.data_source.trim().startsWith('[')) {
+                            try {
+                                dataSource = JSON.parse(row.data_source);
+                            } catch (e) { dataSource = {}; }
                         }
-                    } else {
-                        // Se começa com <, provavelmente é HTML (erro)
-                        console.warn('⚠️ data_source parece ser HTML, ignorando');
-                        dataSource = {};
+                    } else if (typeof row.data_source === 'object') {
+                        dataSource = row.data_source;
                     }
-                } else if (typeof row.data_source === 'object') {
-                    dataSource = row.data_source;
                 }
+                return {
+                    id: row.id || '',
+                    title: row.title || '',
+                    excerpt: row.excerpt || '',
+                    content: row.content || '',
+                    category: row.category || 'noticias',
+                    datePublished: safeDate(row.date_published) || new Date().toISOString(),
+                    dateModified: safeDate(row.date_modified) || new Date().toISOString(),
+                    sourcePublishedDate: safeDate(row.source_published_date),
+                    icon: row.icon || 'fas fa-chart-line',
+                    readTime: row.read_time || 5,
+                    source: row.source || 'rss',
+                    dataSource: dataSource,
+                    image: row.image || null,
+                    olvAnalysis: row.olv_analysis || null
+                };
+            } catch (e) {
+                console.warn('⚠️ Linha ignorada ao carregar posts:', e.message);
+                return null;
             }
-
-            return {
-                id: row.id,
-                title: row.title,
-                excerpt: row.excerpt,
-                content: row.content,
-                category: row.category,
-                datePublished: row.date_published ? new Date(row.date_published).toISOString() : new Date().toISOString(),
-                dateModified: row.date_modified ? new Date(row.date_modified).toISOString() : new Date().toISOString(),
-                sourcePublishedDate: row.source_published_date ? new Date(row.source_published_date).toISOString() : null,
-                icon: row.icon,
-                readTime: row.read_time,
-                source: row.source,
-                dataSource: dataSource,
-                image: row.image || null,
-                olvAnalysis: row.olv_analysis || null
-            };
-        });
+        }).filter(Boolean);
     } catch (error) {
         console.error('❌ Erro ao carregar posts do banco:', error);
         console.error('Stack:', error.stack);
@@ -815,23 +817,19 @@ async function cleanupOldPostsByDate(daysOld = 90) {
 
 // Remover posts fora do escopo editorial (BBB, reality, entretenimento)
 async function deleteOffTopicPosts() {
-    if (!hasPostgres || !sql) return 0;
     try {
-        const isNeon = typeof sql === 'function' && !sql.unsafe;
-        const conditions = [
-            "LOWER(title) LIKE '%bbb%'", "LOWER(title) LIKE '%big brother%'",
-            "LOWER(title) LIKE '%brother eliminado%'", "LOWER(title) LIKE '%paredão%'",
-            "LOWER(title) LIKE '%reality show%'", "LOWER(content) LIKE '%bbb%'",
-            "LOWER(content) LIKE '%big brother brasil%'"
-        ];
-        const where = conditions.join(' OR ');
-        const query = `DELETE FROM blog_posts WHERE ${where}`;
-        if (isNeon) {
-            await sql(query);
-        } else {
-            await executeQuery(query);
+        if (!hasPostgres || !sql) return 0;
+        const terms = ['bbb', 'big brother', 'brother eliminado', 'paredão', 'reality show', 'big brother brasil'];
+        for (const term of terms) {
+            try {
+                const escaped = term.replace(/'/g, "''");
+                const query = `DELETE FROM blog_posts WHERE LOWER(COALESCE(title,'')) LIKE '%${escaped}%' OR LOWER(COALESCE(content,'')) LIKE '%${escaped}%'`;
+                await executeQuery(query);
+            } catch (e) {
+                console.warn('⚠️ deleteOffTopicPosts term:', term, e.message);
+            }
         }
-        console.log('✅ Limpeza de posts off-topic (BBB/entretenimento) executada.');
+        console.log('✅ Limpeza off-topic (BBB/entretenimento) executada.');
         return 1;
     } catch (error) {
         console.warn('⚠️ deleteOffTopicPosts:', error.message);

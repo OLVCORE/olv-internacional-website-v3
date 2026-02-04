@@ -1113,13 +1113,7 @@ async function processAllSources() {
         console.log(`📡 ============================================================`);
         console.log(`📡 INICIANDO PROCESSAMENTO DE RSS FEEDS`);
         console.log(`📡 ============================================================`);
-        if (db && typeof db.deleteOffTopicPosts === 'function') {
-            try {
-                await db.deleteOffTopicPosts();
-            } catch (e) {
-                console.warn('⚠️ Limpeza off-topic:', e.message);
-            }
-        }
+        // Limpeza BBB/off-topic só sob demanda (query ?cleanup_offtopic=1) para não afetar listagem
         console.log(`📡 Total de feeds RSS configurados: ${RSS_FEEDS.length}`);
         console.log(`📡 Feeds que serão processados:`);
         RSS_FEEDS.forEach((feed, idx) => {
