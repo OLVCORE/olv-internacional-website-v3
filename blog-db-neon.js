@@ -107,8 +107,33 @@ async function executeQuery(query, params = []) {
     }
 }
 
+// Lazy-init: no Vercel o módulo pode ter sido carregado sem env; ao rodar initDatabase, re-tentar conectar
+function ensureConnection() {
+    if (hasPostgres && sql) return true;
+    const url = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL_NON_POOLING;
+    if (!url) return false;
+    try {
+        if (url.includes('neon.tech') || url.includes('neon')) {
+            const { neon } = require('@neondatabase/serverless');
+            sql = neon(url);
+            hasPostgres = true;
+            console.log('✅ Neon conectado (lazy-init)');
+            return true;
+        }
+        const vercelPostgres = require('@vercel/postgres');
+        sql = vercelPostgres.sql;
+        hasPostgres = true;
+        console.log('✅ Vercel Postgres conectado (lazy-init)');
+        return true;
+    } catch (e) {
+        console.warn('⚠️ Lazy-init falhou:', e.message);
+        return false;
+    }
+}
+
 // Inicializar tabela de posts
 async function initDatabase() {
+    ensureConnection();
     if (!hasPostgres || !sql) {
         console.log('⚠️ Vercel Postgres/Neon não configurado. Usando armazenamento em arquivo.');
         return false;
@@ -200,8 +225,11 @@ async function initDatabase() {
 // Salvar artigo no banco
 async function saveArticleToDB(article) {
     if (!hasPostgres || !sql) {
-        console.log('⚠️ Banco não disponível para saveArticleToDB');
-        return null;
+        ensureConnection();
+        if (!hasPostgres || !sql) {
+            console.log('⚠️ Banco não disponível para saveArticleToDB');
+            return null;
+        }
     }
 
     try {
@@ -258,23 +286,41 @@ async function saveArticleToDB(article) {
             } catch (e4) {}
         }
         const now = new Date().toISOString();
-        // Garantir que dataSource seja um objeto válido antes de stringify
+        // Garantir que data_source seja JSON válido (evitar "invalid input syntax for type json")
         let dataSourceObj = {};
         if (article.dataSource) {
             if (typeof article.dataSource === 'object') {
-                dataSourceObj = article.dataSource;
+                const raw = article.dataSource;
+                dataSourceObj = {
+                    link: typeof raw.link === 'string' ? raw.link : (raw.url || null),
+                    title: typeof raw.title === 'string' ? raw.title : null,
+                    pubDate: raw.pubDate || raw.isoDate || raw['dc:date'] || null
+                };
             } else if (typeof article.dataSource === 'string') {
                 try {
-                    dataSourceObj = JSON.parse(article.dataSource);
-                if (!dataSourceObj || typeof dataSourceObj !== 'object') {
-                    dataSourceObj = {};
-                }
+                    const parsed = JSON.parse(article.dataSource);
+                    if (parsed && typeof parsed === 'object') {
+                        dataSourceObj = {
+                            link: typeof parsed.link === 'string' ? parsed.link : (parsed.url || null),
+                            title: typeof parsed.title === 'string' ? parsed.title : null,
+                            pubDate: parsed.pubDate || parsed.isoDate || null
+                        };
+                    }
                 } catch (e) {
                     dataSourceObj = {};
                 }
             }
         }
-        const dataSourceJson = JSON.stringify(dataSourceObj);
+        let dataSourceJson;
+        try {
+            dataSourceJson = JSON.stringify(dataSourceObj);
+            if (typeof dataSourceJson !== 'string' || dataSourceJson.length > 50000) {
+                dataSourceJson = '{}';
+            }
+            dataSourceJson = dataSourceJson.replace(/[\x00-\x1f]/g, ' ');
+        } catch (e) {
+            dataSourceJson = '{}';
+        }
         
         // Escapar strings para SQL seguro
         const escapeString = (str) => {
@@ -285,6 +331,7 @@ async function saveArticleToDB(article) {
         };
         
         const isNeon = typeof sql === 'function' && !sql.unsafe;
+        const readTime = Math.min(120, Math.max(1, parseInt(article.readTime, 10) || 5));
         
         if (isNeon) {
             // Neon: usar query direta com valores escapados
@@ -298,16 +345,16 @@ async function saveArticleToDB(article) {
                     ${escapeString(article.id)},
                     ${escapeString(article.title)},
                     ${escapeString(article.excerpt || '')},
-                    ${escapeString(article.content)},
+                    ${escapeString((article.content || '').substring(0, 500000))},
                     ${escapeString(article.category)},
                     ${escapeString(article.datePublished)},
                     ${escapeString(article.dateModified || article.datePublished)},
                     ${article.sourcePublishedDate ? escapeString(article.sourcePublishedDate) : 'NULL'},
                     ${escapeString(article.icon || 'fas fa-chart-line')},
-                    ${article.readTime || 5},
+                    ${readTime},
                     ${escapeString(article.source || '')},
                     ${escapeString(dataSourceJson)},
-                    ${escapeString(article.image || null)},
+                    ${article.image != null && article.image !== '' ? escapeString(article.image) : 'NULL'},
                     ${olvAnalysis !== null ? escapeString(olvAnalysis) : 'NULL'},
                     ${escapeString(now)}
                 )
@@ -331,6 +378,7 @@ async function saveArticleToDB(article) {
         } else {
             // Vercel Postgres: usar template tag
             const olvAnalysis = (article.olvAnalysis && typeof article.olvAnalysis === 'string') ? article.olvAnalysis : null;
+            const contentSafe = (article.content || '').substring(0, 500000);
             await sql`
                 INSERT INTO blog_posts (
                     id, title, excerpt, content, category,
@@ -340,7 +388,7 @@ async function saveArticleToDB(article) {
                     ${article.id},
                     ${article.title},
                     ${article.excerpt || ''},
-                    ${article.content},
+                    ${contentSafe},
                     ${article.category},
                     ${article.datePublished},
                     ${article.dateModified || article.datePublished},
@@ -766,7 +814,9 @@ async function cleanupOldPostsByDate(daysOld = 90) {
 }
 
 module.exports = {
-    hasPostgres,
+    get hasPostgres() { return hasPostgres; },
+    get sql() { return sql; },
+    ensureConnection,
     initDatabase,
     saveArticleToDB,
     loadPostsFromDB,
