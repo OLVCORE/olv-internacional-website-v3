@@ -75,10 +75,10 @@ async function processRSSFeeds() {
     try {
         const { fetchRSSFeed, generateArticleFromData, saveArticle } = require('./blog-api');
         const RSS_FEEDS = [
-            { url: 'https://www.valor.com.br/rss', name: 'Valor Econômico' },
-            { url: 'https://exame.com/feed/', name: 'Exame' },
-            { url: 'https://agenciabrasil.ebc.com.br/rss', name: 'Agência Brasil' },
-            { url: 'https://www.reuters.com/rssFeed/worldNews', name: 'Reuters' }
+            { url: 'https://www.portosenavios.com.br/feed', name: 'Portos e Navios' },
+            { url: 'https://www.supplychaindive.com/feeds/news/', name: 'Supply Chain Dive' },
+            { url: 'https://www.freightwaves.com/feed', name: 'Freight Waves' },
+            { url: 'https://www.wto.org/english/news_e/rss_e/rss_e.xml', name: 'WTO News' }
         ];
 
         for (const feed of RSS_FEEDS) {

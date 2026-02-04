@@ -1075,39 +1075,27 @@ async function processAllSources() {
     console.log('📡 INICIANDO PROCESSAMENTO DE RSS FEEDS');
     console.log('📡 ============================================================');
     try {
-        // Fontes RSS ESPECÍFICAS para Supply Chain Global e Comércio Exterior
-        // Priorizando fontes brasileiras que realmente têm feeds RSS funcionais
-        // ============================================================
-        // FEEDS RSS PRINCIPAIS - Focando nos que funcionam
+        // Fontes RSS ESPECIALIZADAS - Comércio Exterior, Supply Chain, Logística Internacional
+        // Sem portais generalistas (Exame, Valor completo, G1, UOL) para evitar BBB/entretenimento
         // ============================================================
         const RSS_FEEDS = [
-            // FONTES BRASILEIRAS CONFIÁVEIS
-            { url: 'https://www.valor.com.br/rss', name: 'Valor Econômico', category: 'noticias' },
-            { url: 'https://exame.com/feed/', name: 'Exame', category: 'noticias' },
-            { url: 'https://agenciabrasil.ebc.com.br/rss', name: 'Agência Brasil', category: 'noticias' },
-            
-            // FONTES INTERNACIONAIS CONFIÁVEIS
-            { url: 'https://feeds.bloomberg.com/markets/news.rss', name: 'Bloomberg Markets', category: 'noticias' },
-            { url: 'https://feeds.bloomberg.com/world-news.rss', name: 'Bloomberg World News', category: 'noticias' },
-            
-            // FONTES DE LOGÍSTICA E SUPPLY CHAIN
-            { url: 'https://www.supplychaindive.com/feed/', name: 'Supply Chain Dive', category: 'noticias' },
+            // Comércio Exterior & Logística (Brasil)
+            { url: 'https://www.portosenavios.com.br/feed', name: 'Portos e Navios', category: 'noticias' },
+            { url: 'https://economia.estadao.com.br/rss.xml', name: 'Estadão - Economia', category: 'noticias' },
+            { url: 'https://www.aduaneiras.com.br/feed/', name: 'Aduaneiras', category: 'noticias' },
+            { url: 'https://www.logweb.com.br/feed/', name: 'Logweb', category: 'noticias' },
+            { url: 'https://www.tecnologistica.com.br/feed/', name: 'Revista Tecnologística', category: 'noticias' },
+            // Supply Chain & Procurement
+            { url: 'https://www.supplychaindive.com/feeds/news/', name: 'Supply Chain Dive', category: 'noticias' },
+            { url: 'https://www.scmr.com/rss', name: 'Supply Chain Management Review', category: 'noticias' },
+            { url: 'https://www.inboundlogistics.com/cms/feed/', name: 'Inbound Logistics', category: 'noticias' },
+            { url: 'https://www.logisticsmgmt.com/rss', name: 'Logistics Management', category: 'noticias' },
+            // Transporte & Freight
+            { url: 'https://www.freightwaves.com/feed', name: 'Freight Waves', category: 'noticias' },
+            { url: 'https://theloadstar.com/feed/', name: 'The Loadstar', category: 'noticias' },
             { url: 'https://www.joc.com/rss', name: 'Journal of Commerce', category: 'noticias' },
-            
-            // FONTES DE COMÉRCIO EXTERIOR
+            // Comércio Internacional & Acordos
             { url: 'https://www.wto.org/english/news_e/rss_e/rss_e.xml', name: 'WTO News', category: 'noticias' },
-            
-            // ============================================================
-            // FEEDS ADICIONAIS (podem ser adicionados depois)
-            // ============================================================
-            // { url: 'https://www.valor.com.br/rss/economia', name: 'Valor - Economia', category: 'noticias' },
-            // { url: 'https://www.valor.com.br/rss/empresas', name: 'Valor - Empresas', category: 'noticias' },
-            // { url: 'https://www.valor.com.br/rss/agronegocios', name: 'Valor - Agronegócios', category: 'noticias' },
-            // REMOVIDO: { url: 'https://www.valor.com.br/rss/internacional', name: 'Valor - Internacional', category: 'noticias' }, // 502 - URL quebrada
-            // { url: 'https://www.bcb.gov.br/rss/noticias/moedaestabilidadefin.xml', name: 'Banco Central do Brasil', category: 'noticias' },
-            // { url: 'https://www.logisticsmgmt.com/rss', name: 'Logistics Management', category: 'noticias' },
-            // { url: 'https://www.freightwaves.com/feed', name: 'FreightWaves', category: 'noticias' },
-            // { url: 'https://www.portos.gov.br/rss', name: 'Portos do Brasil', category: 'noticias' },
         ];
 
         console.log(`📡 ============================================================`);
@@ -1155,266 +1143,61 @@ async function processAllSources() {
                     for (const item of recentItems) {
                         if (itemsProcessedThisRun >= MAX_ITEMS_PER_RUN) break;
                         // ============================================================
-                        // MODELO EDITORIAL OLV - FILTRO BASEADO EM TEMAS MACRO
+                        // FILTRO RIGOROSO OLV - Apenas comércio exterior, supply chain, negócios internacionais
                         // ============================================================
-                        // Aceita notícias sobre TEMAS RELEVANTES mesmo sem palavras técnicas
-                        // Foco: Geopolítica aplicada ao comércio, não busca perfeita semântica
-                        // ============================================================
-                        
-                        // TEMAS EDITORIAIS MACRO (aceitar se mencionar qualquer um destes temas)
-                        const editorialThemes = [
-                            // Supply Chain & Logística
-                            'supply chain', 'supply-chain', 'cadeia de suprimentos', 'cadeia de abastecimento',
-                            'logística', 'logistics', 'logístico', 'logistic',
-                            'frete', 'freight', 'fretamento', 'shipping', 'transporte', 'transport',
-                            'frete aéreo', 'air freight', 'frete marítimo', 'sea freight', 'maritime', 'marítimo',
-                            'frete rodoviário', 'road freight', 'frete ferroviário', 'rail freight', 'railway',
-                            'armazenagem', 'warehouse', 'warehousing', 'armazém', 'estoque', 'inventory',
-                            'distribuição', 'distribution', 'distribuidor', 'distributor',
-                            
-                            // Comércio Exterior
-                            'comércio exterior', 'foreign trade', 'comércio internacional', 'international trade',
-                            'exportação', 'export', 'exportar', 'exporting', 'exportador', 'exporter',
-                            'importação', 'import', 'importar', 'importing', 'importador', 'importer',
-                            'compras internacionais', 'international procurement', 'procurement internacional',
-                            'expansão de mercado', 'market expansion', 'expansão internacional',
-                            'fornecedor internacional', 'international supplier', 'supplier global',
-                            'fornecedor qualificado', 'qualified supplier', 'supplier qualification',
-                            
-                            // Aduana & Regulamentação
-                            'aduana', 'customs', 'alfândega', 'despacho aduaneiro', 'customs clearance',
-                            'barreira comercial', 'trade barrier', 'barreiras comerciais', 'commercial barriers',
-                            'barreira tarifária', 'tariff barrier', 'barreiras tarifárias', 'tariff barriers',
-                            'tarifa', 'tariff', 'tarifas', 'tariffs', 'imposto de importação', 'import tax',
-                            'regime aduaneiro', 'customs regime', 'drawback', 'ex-tarifário', 'recof',
-                            'restrição comercial', 'trade restriction', 'restrições comerciais', 'trade restrictions',
-                            
-                            // Acordos & Negociações - EXPANDIDO
-                            'acordo comercial', 'trade agreement', 'acordos comerciais', 'trade agreements',
-                            'negociação internacional', 'international negotiation', 'negociações comerciais',
-                            'bloco comercial', 'trade bloc', 'mercado comum', 'common market',
-                            'Mercosul', 'Mercosur', 'União Europeia', 'European Union', 'EU',
-                            'NAFTA', 'USMCA', 'CPTPP', 'RCEP',
-                            'acordo Mercosul', 'Mercosur agreement', 'acordo UE', 'EU agreement',
-                            'negociação Mercosul', 'Mercosur negotiation', 'negociação UE', 'EU negotiation',
-                            
-                            // Países e Regiões Específicas - NOVO
-                            'Venezuela', 'venezuelan', 'venezuelano',
-                            'Rússia', 'Russia', 'russian', 'russo',
-                            'China', 'chinese', 'chinês',
-                            'Brasil', 'Brazil', 'brazilian', 'brasileiro',
-                            'Europa', 'Europe', 'european', 'europeu',
-                            
-                            // Transporte Internacional
-                            'transporte internacional', 'international transport', 'transporte global',
-                            'navegação', 'navigation', 'navio', 'ship', 'vessel', 'container', 'conteiner',
-                            'porto', 'port', 'terminal', 'terminal portuário', 'port terminal',
-                            'aeroporto', 'airport', 'carga aérea', 'air cargo', 'carga marítima', 'sea cargo',
-                            
-                            // Incoterms & Documentação
-                            'incoterm', 'incoterms', 'FOB', 'CIF', 'EXW', 'DDP', 'DAP',
-                            'documentação', 'documentation', 'documento de transporte', 'transport document',
-                            'conhecimento de embarque', 'bill of lading', 'B/L', 'BL',
-                            
-                            // TCO & Custos
-                            'TCO', 'total cost of ownership', 'custo total de propriedade',
-                            'custo logístico', 'logistics cost', 'custo de importação', 'import cost',
-                            'custo de exportação', 'export cost',
-                            
-                            // Preços e Impactos
-                            'aumento de preço', 'price increase', 'redução de preço', 'price reduction',
-                            'impacto tarifário', 'tariff impact', 'impacto comercial', 'trade impact',
-                            'sanções', 'sanctions', 'sanção', 'sanction'
+                        const requiredKeywords = [
+                            'comércio exterior', 'importação', 'exportação', 'supply chain',
+                            'logística internacional', 'freight', 'transporte marítimo',
+                            'transporte aéreo', 'alfândega', 'drawback', 'siscomex',
+                            'acordo comercial', 'tarifa', 'aduana', 'procurement',
+                            'sourcing global', 'incoterms', 'balança comercial', 'câmbio',
+                            'porto', 'terminal', 'distribuição global', 'cadeia de suprimentos',
+                            'international trade', 'export', 'import', 'customs', 'shipping',
+                            'logistics', 'trade', 'maritime', 'cargo', 'container'
                         ];
-                        
-                        // TEMAS MACRO EDITORIAIS (aceitar mesmo sem palavras técnicas)
-                        // Estes temas indicam relevância estratégica para comércio exterior
-                        const macroThemes = [
-                            'commodities', 'commodity', 'commodities trading', 'trading', 'commercial',
-                            'cross-border', 'cross border', 'global trade', 'world trade',
-                            'trade war', 'trade dispute', 'trade negotiations', 'trade group',
-                            'oil trade', 'crude', 'petroleum', 'petróleo', 'óleo', 'oil',
-                            'ethanol', 'etanol', 'agricultural', 'agrícola', 'agronegócio',
-                            'brazil', 'brasil', 'brazilian', 'brasileiro',
-                            'china', 'chinese', 'chinês',
-                            'russia', 'russian', 'russo',
-                            'venezuela', 'venezuelan', 'venezuelano',
-                            'india', 'indian', 'índia', 'indiano',
-                            'europe', 'europa', 'european', 'europeu', 'european union',
-                            'usa', 'united states', 'estados unidos', 'americano',
-                            'mercosur', 'mercosul',
-                            'internacional', 'international', 'global',
-                            'mercado', 'market', 'negócio', 'business',
-                            'empresa', 'company', 'empresarial', 'corporate',
-                            // NOVAS - Tópicos específicos mencionados pelo usuário
-                            'price', 'preço', 'prices', 'preços',
-                            'sanction', 'sanção', 'sanctions', 'sanções',
-                            'restriction', 'restrição', 'restrictions', 'restrições',
-                            'embargo', 'embargo',
-                            'trade deal', 'acordo comercial',
-                            'bilateral', 'bilateral',
-                            'multilateral', 'multilateral',
-                            
-                            // TEMAS MACRO - Geopolítica e Economia Global
-                            // Acordos e Blocos Econômicos
-                            'acordo', 'agreement', 'deal', 'negociação', 'negotiation',
-                            'bloco', 'bloc', 'mercado comum', 'common market',
-                            'parceria', 'partnership', 'tratado', 'treaty',
-                            
-                            // Tarifas e Barreiras (qualquer menção)
-                            'tarifa', 'tariff', 'taxa', 'tax', 'imposto', 'duty',
-                            'barreira', 'barrier', 'restrição', 'restriction',
-                            'sanção', 'sanction', 'embargo', 'proteção', 'protection',
-                            
-                            // Energia e Commodities Estratégicas
-                            'petróleo', 'oil', 'petroleum', 'crude', 'energia', 'energy',
-                            'gás', 'gas', 'combustível', 'fuel', 'commodity', 'commodities',
-                            
-                            // Transporte e Logística (qualquer modal)
-                            'navio', 'ship', 'vessel', 'container', 'conteiner',
-                            'porto', 'port', 'marítimo', 'maritime', 'aéreo', 'air',
-                            'frete', 'freight', 'carga', 'cargo', 'transporte', 'transport',
-                            
-                            // Política Econômica e Cambial
-                            'câmbio', 'exchange', 'dólar', 'dollar', 'moeda', 'currency',
-                            'juros', 'interest', 'taxa de juros', 'interest rate',
-                            'inflação', 'inflation', 'política monetária', 'monetary policy',
-                            
-                            // Países e Regiões Estratégicas
-                            'brasil', 'brazil', 'china', 'rússia', 'russia', 'venezuela',
-                            'europa', 'europe', 'european union', 'união europeia',
-                            'mercosul', 'mercosur', 'áfrica', 'africa', 'ásia', 'asia',
-                            
-                            // Conflitos e Crises com Impacto Econômico
-                            'conflito', 'conflict', 'crise', 'crisis', 'guerra', 'war',
-                            'tensão', 'tension', 'disputa', 'dispute'
+                        const blacklist = [
+                            'bbb', 'big brother', 'reality show', 'paredão', 'brother eliminado',
+                            'sincerão', 'camarote', 'pipoca', 'enquete bbb', 'participante bbb',
+                            'futebol', 'campeonato', 'jogo', 'gol', 'time', 'copa', 'libertadores',
+                            'celebridade', 'famoso', 'ator', 'atriz', 'cantor', 'cantora',
+                            'novela', 'série', 'filme', 'cinema', 'oscar', 'emmy',
+                            'fofoca', 'moda', 'beleza', 'receita', 'casino', 'bet', 'aposta', 'viagra'
                         ];
-                        
-                        // Fontes confiáveis específicas de Supply Chain/Comércio Exterior
-                        const trustedSources = [
-                            'valor.com.br', 'mdic.gov.br', 'comexstat', 'comex',
-                            'iccwbo.org', 'wto.org', 'reuters.com', 'bloomberg.com',
-                            'logisticsmgmt.com', 'supplychaindive.com', 'joc.com',
-                            'bcb.gov.br', 'receita.fazenda.gov.br', 'portos.gov.br'
+                        const forbiddenUrlPatterns = [
+                            '/entretenimento/', '/esportes/', '/celebridades/', '/cultura/',
+                            '/tv/', '/cinema/', '/games/', '/famosos/'
                         ];
+                        function isArticleRelevant(title, content, link) {
+                            const text = (title + ' ' + (content || '')).toLowerCase();
+                            const url = (link || '').toLowerCase();
+                            if (forbiddenUrlPatterns.some(p => url.includes(p))) return false;
+                            if (blacklist.some(term => text.includes(term))) return false;
+                            return requiredKeywords.some(kw => text.includes(kw));
+                        }
                         
-                        const titleLower = (item.title || '').toLowerCase();
-                        const descLower = (item.description || item.contentSnippet || '').toLowerCase();
-                        const contentLower = (item.content || '').toLowerCase();
-                        const allText = `${titleLower} ${descLower} ${contentLower}`;
-                        const linkLower = (item.link || '').toLowerCase();
+                        const titleStr = item.title || '';
+                        const contentStr = [item.description, item.contentSnippet, item.content].filter(Boolean).join(' ');
+                        const linkStr = item.link || '';
+                        const isRelevant = isArticleRelevant(titleStr, contentStr, linkStr);
                         
-                        // ============================================================
-                        // CAMADA 1: COLETA AMPLA (aceitar fatos relevantes)
-                        // ============================================================
-                        
-                        // Verificar se tem tema editorial técnico (supply chain, logística, etc)
-                        const hasTechnicalTheme = editorialThemes.some(theme => 
-                            allText.includes(theme.toLowerCase())
-                        );
-                        
-                        // Verificar se tem tema macro (geopolítica, acordos, tarifas, energia)
-                        const hasMacroTheme = macroThemes.some(theme => 
-                            allText.includes(theme.toLowerCase())
-                        );
-                        
-                        // Verificar se vem de fonte confiável
-                        const isFromTrustedSource = trustedSources.some(source => 
-                            linkLower.includes(source.toLowerCase())
-                        );
-                        
-                        // Fontes muito confiáveis (aceitar quase tudo delas)
-                        const isVeryTrustedBrazilian = linkLower.includes('valor.com.br') || 
-                                                      linkLower.includes('mdic.gov.br') ||
-                                                      linkLower.includes('comexstat') ||
-                                                      linkLower.includes('exame.com') ||
-                                                      linkLower.includes('agenciabrasil.ebc.com.br');
-                        
-                        const isVeryTrustedInternational = linkLower.includes('bloomberg.com') ||
-                                                          linkLower.includes('reuters.com') ||
-                                                          linkLower.includes('wto.org') ||
-                                                          linkLower.includes('iccwbo.org');
-                        
-                        // ============================================================
-                        // REGRA DE OURO: ACEITAR FATOS RELEVANTES
-                        // ============================================================
-                        // Aceitar se:
-                        // 1. Tem tema técnico (supply chain, logística) - SEMPRE ACEITAR
-                        // 2. OU tem tema macro (geopolítica, acordos, tarifas, energia) - ACEITAR
-                        // 3. OU vem de fonte muito confiável (Valor, Exame, Agência Brasil, etc) - ACEITAR QUASE TUDO
-                        // 4. OU menciona países/blocos estratégicos + qualquer tema econômico - ACEITAR
-                        const mentionsStrategicRegion = allText.includes('mercosul') ||
-                                                      allText.includes('mercosur') ||
-                                                      allText.includes('european union') ||
-                                                      allText.includes('união europeia') ||
-                                                      allText.includes('brasil') ||
-                                                      allText.includes('brazil') ||
-                                                      allText.includes('china') ||
-                                                      allText.includes('rússia') ||
-                                                      allText.includes('russia') ||
-                                                      allText.includes('venezuela');
-                        
-                        const mentionsEconomicTopic = allText.includes('trade') ||
-                                                     allText.includes('commercial') ||
-                                                     allText.includes('tariff') ||
-                                                     allText.includes('tarifa') ||
-                                                     allText.includes('economy') ||
-                                                     allText.includes('economia') ||
-                                                     allText.includes('export') ||
-                                                     allText.includes('import') ||
-                                                     allText.includes('price') ||
-                                                     allText.includes('preço') ||
-                                                     allText.includes('negócio') ||
-                                                     allText.includes('business') ||
-                                                     allText.includes('mercado') ||
-                                                     allText.includes('market');
-                        
-                        // EXCLUSÃO EDITORIAL: temas fora do escopo (comércio exterior, supply chain, negócios)
-                        // Rejeitar SEMPRE, mesmo de fontes confiáveis (ex.: Exame publica BBB)
-                        const offTopicKeywords = [
-                            'bbb', 'big brother', 'brother eliminado', 'paredão', 'reality show',
-                            'bbb 26', 'bbb25', 'big brother brasil', 'brother é eliminado',
-                            'pipoca eliminado', 'camarote', 'sincerão', 'enquete bbb'
-                        ];
-                        const isOffTopic = offTopicKeywords.some(kw => allText.includes(kw));
-                        
-                        const isSpam = allText.includes('casino') || 
-                                      allText.includes('bet') || 
-                                      allText.includes('aposta') ||
-                                      allText.includes('viagra') ||
-                                      allText.includes('crypto scam');
-                        
-                        const isRelevant = !isOffTopic && (hasTechnicalTheme || // Tema técnico (supply chain, logística)
-                                          hasMacroTheme || // Tema macro (geopolítica, acordos, tarifas)
-                                          (isVeryTrustedBrazilian && !isSpam) || // Aceitar TUDO de fontes muito confiáveis brasileiras (exceto spam)
-                                          (isVeryTrustedInternational && (hasMacroTheme || mentionsEconomicTopic || mentionsStrategicRegion)) || // Fontes internacionais confiáveis
-                                          (mentionsStrategicRegion && mentionsEconomicTopic); // Região estratégica + tema econômico
-                        
-                        // Se não é relevante ou é off-topic, REJEITAR
                         if (!isRelevant) {
                             rejectedCount++;
                             totalItemsRejected++;
                             if (rejectedCount <= 10 || rejectedCount % 10 === 0) {
-                                const rejectionReason = isOffTopic ? 'fora do escopo (ex.: BBB/entretenimento)' :
-                                                      isSpam ? 'spam detectado' : 
-                                                      !hasTechnicalTheme && !hasMacroTheme ? 'sem temas relevantes' :
-                                                      !isVeryTrustedBrazilian && !isVeryTrustedInternational ? 'fonte não confiável' :
-                                                      'não atende critérios';
-                                console.log(`   ⏭️  [${rejectedCount}] Artigo rejeitado: "${item.title?.substring(0, 60)}..." (${rejectionReason})`);
-                                console.log(`       🔗 URL: ${item.link?.substring(0, 80) || 'N/A'}...`);
+                                const hasForbiddenUrl = forbiddenUrlPatterns.some(p => linkStr.toLowerCase().includes(p));
+                                const hasBlacklist = blacklist.some(term => (titleStr + ' ' + contentStr).toLowerCase().includes(term));
+                                const rejectionReason = hasForbiddenUrl ? 'URL em categoria proibida' :
+                                                      hasBlacklist ? 'fora do escopo (blacklist)' : 'sem palavra-chave obrigatória';
+                                console.log(`   ⏭️  [${rejectedCount}] Artigo rejeitado: "${titleStr.substring(0, 60)}..." (${rejectionReason})`);
+                                console.log(`       🔗 URL: ${linkStr.substring(0, 80) || 'N/A'}...`);
                             }
-                            continue; // Pular este artigo
+                            continue;
                         }
                         
                         acceptedCount++;
                         totalItemsAccepted++;
-                        saveAttempts.push({ step: 'accepted', n: totalItemsAccepted, title: (item.title || '').substring(0, 40) });
-                        const reason = hasTechnicalTheme ? 'tema técnico' : 
-                                      hasMacroTheme ? 'tema macro' : 
-                                      isVeryTrustedBrazilian ? 'fonte confiável BR' : 
-                                      isVeryTrustedInternational ? 'fonte confiável INT' : 
-                                      'região estratégica + economia';
-                        console.log(`   ✅ [${acceptedCount}] Artigo aceito: "${item.title?.substring(0, 60)}..." (${reason})`);
+                        saveAttempts.push({ step: 'accepted', n: totalItemsAccepted, title: titleStr.substring(0, 40) });
+                        console.log(`   ✅ [${acceptedCount}] Artigo aceito: "${titleStr.substring(0, 60)}..." (comércio exterior/supply chain)`);
                         console.log(`       🔗 URL: ${item.link?.substring(0, 80) || 'N/A'}...`);
                         
                         // ============================================================
