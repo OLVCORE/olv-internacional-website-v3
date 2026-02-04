@@ -28,7 +28,7 @@ Seja objetivo e direto. Não invente dados; baseie-se apenas na notícia.`;
  * @returns {Promise<object>} - O mesmo article com article.olvAnalysis preenchido (ou inalterado em erro)
  */
 async function enrichArticleWithOpenAI(article, options = {}) {
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY || process.env.OPENAI_KEY;
     if (!apiKey || typeof apiKey !== 'string' || !apiKey.trim()) {
         return article;
     }

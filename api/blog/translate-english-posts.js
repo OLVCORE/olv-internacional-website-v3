@@ -33,13 +33,14 @@ module.exports = async (req, res) => {
         res.status(405).json({ error: 'Method not allowed' });
         return;
     }
-    const hasOpenAIKey = !!(process.env.OPENAI_API_KEY && String(process.env.OPENAI_API_KEY).trim());
+    const openAIKey = process.env.OPENAI_API_KEY || process.env.OPENAI_KEY;
+    const hasOpenAIKey = !!(openAIKey && String(openAIKey).trim());
     if (!hasOpenAIKey) {
         return res.status(200).json({
             success: false,
             translated: 0,
             translatedIds: [],
-            message: 'OPENAI_API_KEY não está definida no Vercel. Defina em: Projeto → Settings → Environment Variables. Depois rode este POST de novo.'
+            message: 'OPENAI_API_KEY (ou OPENAI_KEY) não está definida. Verifique .env local e Vercel → Settings → Environment Variables.'
         });
     }
     try {

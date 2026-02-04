@@ -393,11 +393,17 @@ function detectLanguage(text) {
     return enCount > ptCount;
 }
 
+// Obter chave OpenAI (OPENAI_API_KEY ou OPENAI_KEY, como em alguns setups Vercel)
+function getOpenAIKey() {
+    const k = process.env.OPENAI_API_KEY || process.env.OPENAI_KEY;
+    return (k && typeof k === 'string' && k.trim()) ? k.trim() : '';
+}
+
 // Traduzir texto de inglês para português brasileiro (OpenAI). Usado em título, resumo e corpo dos artigos RSS.
 async function translateToPortuguese(text) {
     if (!text || typeof text !== 'string' || !text.trim()) return text || '';
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey || !apiKey.trim()) return text;
+    const apiKey = getOpenAIKey();
+    if (!apiKey) return text;
     try {
         const response = await axios.post(
             'https://api.openai.com/v1/chat/completions',
@@ -1419,7 +1425,7 @@ async function processAllSources() {
                                 console.warn('   ⚠️ Perplexity enrich skip:', perplexityErr.message);
                             }
                         }
-                        if (!article.olvAnalysis && process.env.OPENAI_API_KEY) {
+                        if (!article.olvAnalysis && getOpenAIKey()) {
                             try {
                                 await enrichArticleWithOpenAI(article, { maxTokens: 500 });
                                 if (article.olvAnalysis) console.log(`   📝 Análise OLV (OpenAI fallback) para: "${article.title.substring(0, 50)}..."`);
