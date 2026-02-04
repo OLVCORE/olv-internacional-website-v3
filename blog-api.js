@@ -7,11 +7,18 @@ const path = require('path');
 try { require('dotenv').config(); } catch (e) {}
 
 let enrichArticleWithPerplexity = async (article) => article;
+let enrichArticleWithOpenAI = async (article) => article;
 try {
     const perplexity = require('./perplexity-service');
     enrichArticleWithPerplexity = perplexity.enrichArticleWithPerplexity;
 } catch (e) {
     console.warn('⚠️ perplexity-service não carregado:', e.message);
+}
+try {
+    const openaiAnalysis = require('./openai-analysis-service');
+    enrichArticleWithOpenAI = openaiAnalysis.enrichArticleWithOpenAI;
+} catch (e) {
+    console.warn('⚠️ openai-analysis-service não carregado:', e.message);
 }
 
 // Detectar se está rodando no Vercel
@@ -1373,13 +1380,21 @@ async function processAllSources() {
                             article.datePublished = article.sourcePublishedDate || new Date().toISOString();
                         }
                         
-                        // Enriquecer com análise OLV via Perplexity (apenas RSS, se API key configurada)
+                        // Enriquecer com análise OLV: Perplexity (contexto web, SEO) → fallback ChatGPT (OpenAI)
                         if (process.env.PERPLEXITY_API_KEY) {
                             try {
                                 await enrichArticleWithPerplexity(article, { maxTokens: 500 });
-                                if (article.olvAnalysis) console.log(`   📝 Análise OLV adicionada para: "${article.title.substring(0, 50)}..."`);
+                                if (article.olvAnalysis) console.log(`   📝 Análise OLV (Perplexity) para: "${article.title.substring(0, 50)}..."`);
                             } catch (perplexityErr) {
                                 console.warn('   ⚠️ Perplexity enrich skip:', perplexityErr.message);
+                            }
+                        }
+                        if (!article.olvAnalysis && process.env.OPENAI_API_KEY) {
+                            try {
+                                await enrichArticleWithOpenAI(article, { maxTokens: 500 });
+                                if (article.olvAnalysis) console.log(`   📝 Análise OLV (OpenAI fallback) para: "${article.title.substring(0, 50)}..."`);
+                            } catch (openaiErr) {
+                                console.warn('   ⚠️ OpenAI fallback skip:', openaiErr.message);
                             }
                         }
                         

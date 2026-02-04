@@ -669,12 +669,14 @@ body {
     height: 100%;
 }
 
+/* Velocidade do ticker: variável customizável (base 105s = 50% mais lento que 70s); responsivo abaixo */
 .news-ticker-content {
+    --ticker-duration: 105s;
     display: inline-flex;
     align-items: center;
     gap: 40px;
     white-space: nowrap;
-    animation: ticker-scroll 70s linear infinite;
+    animation: ticker-scroll var(--ticker-duration) linear infinite;
     padding-left: 20px;
 }
 
@@ -733,7 +735,7 @@ body {
     }
 }
 
-/* Responsivo: ajustar ticker em mobile */
+/* Responsivo: ticker mais lento também no mobile (velocidade moderada uniforme) */
 @media (max-width: 768px) {
     .news-ticker-container {
         display: flex;
@@ -760,6 +762,7 @@ body {
     }
     
     .news-ticker-content {
+        --ticker-duration: 120s;
         gap: 24px;
         padding-left: 12px;
     }
