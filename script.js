@@ -1028,6 +1028,13 @@ document.addEventListener('click', function(e) {
                 window.emailjsInitialized = true;
             }
             
+            // Formulário home (diagnóstico) vs contato: montar message e interesse
+            const isHomeDiagnostico = form.id === 'form-diagnostico-home' || (data.segmento || data.porte || data.maior_desafio);
+            const messageText = isHomeDiagnostico
+                ? 'Segmento: ' + (data.segmento || '-') + '\nPorte: ' + (data.porte || '-') + '\nMaior desafio: ' + (data.maior_desafio || '-')
+                : (data.mensagem || 'Sem mensagem');
+            const interesseVal = isHomeDiagnostico ? (data.segmento || 'Diagnóstico home') : (data.interesse || 'Não informado');
+
             // Preparar dados para o template EmailJS
             const templateParams = {
                 to_email: 'consultores@olvinternacional.com.br',
@@ -1036,11 +1043,11 @@ document.addEventListener('click', function(e) {
                 from_phone: data.telefone || 'Não informado',
                 company: data.empresa || 'Não informado',
                 cargo: data.cargo || 'Não informado',
-                interesse: data.interesse || 'Não informado',
-                message: data.mensagem || 'Sem mensagem',
+                interesse: interesseVal,
+                message: messageText,
                 timestamp: new Date().toLocaleString('pt-BR')
             };
-            
+
             console.log('📧 Enviando email de contato via EmailJS...');
             console.log('Para:', templateParams.to_email);
             
@@ -1052,21 +1059,25 @@ document.addEventListener('click', function(e) {
             )
             .then((response) => {
                 console.log('✅ Email de contato enviado com sucesso!', response.status, response.text);
-                
-                // TRACKING: Conversão - Formulário de Contato enviado
-                trackConversion('form_submit_contact', {
-                    'form_id': 'contact_form',
-                    'page_path': window.location.pathname,
-                    'interesse': data.interesse || 'Não informado'
-                });
-                
+
                 // Resetar progresso
                 if (formProgress && progressFill && progressText) {
                     formProgress.style.display = 'none';
                     progressFill.style.width = '0%';
                 }
-                
-                alert('✅ Obrigado! Sua mensagem foi enviada com sucesso. Entraremos em contato em breve.');
+
+                if (isHomeDiagnostico) {
+                    const successEl = document.getElementById('home-form-success');
+                    if (successEl) {
+                        form.style.display = 'none';
+                        successEl.style.display = 'block';
+                    }
+                    alert('Recebemos seus dados. Em até 1 dia útil, nossa equipe entrará em contato para agendar seu diagnóstico gratuito.');
+                    trackConversion('form_submit_diagnostico_home', { 'page_path': window.location.pathname, 'segmento': data.segmento || '' });
+                } else {
+                    alert('✅ Obrigado! Sua mensagem foi enviada com sucesso. Entraremos em contato em breve.');
+                    trackConversion('form_submit_contact', { 'form_id': 'contact_form', 'page_path': window.location.pathname, 'interesse': data.interesse || 'Não informado' });
+                }
                 form.reset();
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;

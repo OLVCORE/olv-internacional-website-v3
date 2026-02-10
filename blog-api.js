@@ -897,11 +897,15 @@ async function saveArticle(article) {
 
         // Verificar se artigo já existe (por ID ou URL se RSS)
         let existingIndex = -1;
-        if (article.dataSource && article.dataSource.link) {
+        const articleLink = article.dataSource?.link;
+        const linkStr = typeof articleLink === 'string' ? articleLink : (articleLink?.href ?? '');
+        if (article.dataSource && linkStr) {
             // Para RSS, verificar por URL
-            const url = article.dataSource.link.split('?')[0];
+            const url = linkStr.split('?')[0];
             existingIndex = posts.findIndex(p => {
-                const pUrl = p.dataSource?.link?.split('?')[0] || '';
+                const pl = p.dataSource?.link;
+                const pLinkStr = typeof pl === 'string' ? pl : (pl?.href ?? '');
+                const pUrl = pLinkStr ? pLinkStr.split('?')[0] : '';
                 return pUrl === url;
             });
         } else {

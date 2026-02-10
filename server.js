@@ -655,15 +655,11 @@ Data: ${new Date().toLocaleString('pt-BR')}
             return;
         }
         
-        // Reutilizar pathname já declarado acima
-        
-        // Default to index.html for root
-        if (pathname === '/' || pathname === '') {
-            pathname = '/index.html';
-        }
-        
+        // Default to index.html for root (pathname é const, usar variável para path a servir)
+        const requestPath = (pathname === '/' || pathname === '') ? '/index.html' : pathname;
+
         // Build file path
-        let filePath = path.join(__dirname, pathname);
+        let filePath = path.join(__dirname, requestPath);
         
         // Normalize path
         filePath = path.normalize(filePath);
