@@ -13,12 +13,12 @@ function titleLooksEnglish(title) {
     if (!title || typeof title !== 'string') return false;
     const t = title.toLowerCase().replace(/[^\w\s]/g, ' ');
     const words = new Set(t.split(/\s+/).filter(Boolean));
-    const enTitleWords = ['the', 'your', 'and', 'for', 'with', 'says', 'you', 'need', 'to', 'know', 'are', 'was', 'were', 'have', 'has', 'will', 'can', 'may', 'this', 'that', 'from', 'what', 'who', 'when', 'where', 'how', 'first', 'look', 'beat', 'find', 'finds', 'study', 'remain', 'remains', 'despite', 'rise', 'says', 'hauling', 'freight', 'million', 'posts', 'old', 'dominion', 'q4', 'ev', 'batteries', 'robust', 'charging', 'triggers', 'weak', 'demand', 'facility', 'closures', 'job', 'cuts'];
+    const enTitleWords = ['the', 'your', 'and', 'for', 'with', 'says', 'you', 'need', 'to', 'know', 'are', 'was', 'were', 'have', 'has', 'will', 'can', 'may', 'this', 'that', 'from', 'what', 'who', 'when', 'where', 'how', 'first', 'look', 'beat', 'find', 'finds', 'study', 'remain', 'remains', 'despite', 'rise', 'hauling', 'freight', 'million', 'posts', 'old', 'dominion', 'q4', 'ev', 'batteries', 'robust', 'charging', 'triggers', 'weak', 'demand', 'facility', 'closures', 'job', 'cuts', 'bill', 'billion', 'dollar', 'fix', 'problem', 'disguised', 'underride', 'trucking', 'companies', 'forced', 'spend', 'armoring', 'trailers', 'crashes', 'drivers', 'distracted', 'driving', 'kills', 'orders', 'rebound', 'recovery', 'remains', 'uneven', 'self', 'driving', 'greenlights', 'revenue', 'generating', 'rigs', 'carriers', 'insurers', 'subsidizing', 'failure', 'radiant', 'logistics', 'beats', 'expectations', 'former', 'chief', 'mullen', 'head', 'truckload'];
     let hits = 0;
     for (const w of enTitleWords) {
         if (words.has(w)) hits++;
     }
-    return hits >= 2;
+    return hits >= 1;
 }
 
 module.exports = async (req, res) => {
@@ -51,7 +51,7 @@ module.exports = async (req, res) => {
         if (!Array.isArray(allPosts)) {
             return res.status(200).json({ success: true, translated: 0, message: 'Nenhum post carregado.' });
         }
-        const maxPerRun = 5;
+        const maxPerRun = 12;
         let translated = 0;
         const translatedIds = [];
         for (const post of allPosts) {
@@ -73,7 +73,8 @@ module.exports = async (req, res) => {
             success: true,
             translated,
             translatedIds,
-            message: translated > 0 ? `${translated} post(s) traduzidos para português (cards).` : 'Nenhum post em inglês para traduzir ou OPENAI_API_KEY ausente. Rode de novo se houver mais.'
+            totalPosts: allPosts.length,
+            message: translated > 0 ? `${translated} post(s) traduzidos — manchetes e mini-cards em PT. Rode de novo se ainda houver cards em inglês.` : 'Nenhum post traduzido nesta execução. Confira OPENAI_API_KEY (ou OPENAI_KEY) em Vercel → Production e rode o POST de novo.'
         });
     } catch (err) {
         console.error('translate-english-posts:', err);
